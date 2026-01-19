@@ -4,7 +4,7 @@ import Footer from "../components/Footer.jsx";
 
 export default function RootLayout() {
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <header><Header /></header>
       <main>
         <Outlet />
