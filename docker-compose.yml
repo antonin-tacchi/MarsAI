@@ -14,10 +14,19 @@ services:
   frontend:
     build:
       context: ./Front-end
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: marsai-frontend
+    working_dir: /app
+    volumes:
+      - ./Front-end:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=200
+      - WATCHPACK_POLLING=true
+    command: npm run dev -- --host --port 5173
     depends_on:
       - backend
-    ports:
-      - "5173:80"
     restart: unless-stopped

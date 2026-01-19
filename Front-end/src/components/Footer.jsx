@@ -1,0 +1,133 @@
+import {
+  FaXTwitter,
+  FaYoutube,
+  FaFacebookF,
+  FaInstagram,
+  FaWhatsapp,
+  FaLinkedinIn,
+  FaArrowUp,
+} from "react-icons/fa6";
+
+export default function Footer() {
+  const scrollToTop = () =>
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+  return (
+    <footer className="relative w-full bg-[#262335] text-white">
+    <div className="mx-auto max-w-6xl px-6 py-12">
+        <div className="grid gap-10 md:grid-cols-3 md:items-start">
+            <div className="flex flex-col items-center">
+                <h3 className="mb-6 text-3xl font-semibold tracking-[0.2em] text-white/80">
+                    LE FESTIVAL
+                </h3>
+
+                <nav className="flex flex-col items-center space-y-2 text-lg leading-7">
+                    {[
+                    { label: "Le festival", href: "/about" },
+                    { label: "Catalogue", href: "/catalogs" },
+                    { label: "Participer", href: "/submissions" },
+                    { label: "Mon compte", href: "/login" },
+                    { label: "Les jury", href: "/jury" },
+                    { label: "Palmares", href: "/prize-list" },
+                    ].map((l) => (
+                    <a
+                        key={l.label}
+                        href={l.href}
+                        className="text-center text-white/90 transition hover:text-white"
+                    >
+                        {l.label}
+                    </a>
+                    ))}
+                </nav>
+                </div>
+
+
+            <div className="text-center md:text-center">
+                <h3 className="mb-6 text-3xl font-semibold tracking-[0.2em] text-white/80">
+                    LIENS UTILES
+                </h3>
+
+                <nav className="space-y-1 text-lg leading-7">
+                    {[
+                    { label: "Vos données personnelles", href: "/privacy" },
+                    { label: "Gestion des cookies", href: "/cookies" },
+                    { label: "Mentions Légales", href: "/legal" },
+                    { label: "Règlement", href: "/regulation" },
+                    ].map((l) => (
+                    <a
+                        key={l.label}
+                        href={l.href}
+                        className="block text-white/90 transition hover:text-white"
+                    >
+                        {l.label}
+                    </a>
+                    ))}
+                </nav>
+            </div>
+
+            <div className="flex flex-col items-center text-center">
+                <h3 className="mb-6 text-3xl font-semibold tracking-[0.2em] text-white/80">
+                    COMMUNICATION
+                </h3>
+
+                <a
+                    href="/contact"
+                    className="mb-6 text-lg text-white/90 transition hover:text-white"
+                >
+                    Contact
+                </a>
+
+                <div className="flex items-center justify-center gap-4">
+                    <SocialIcon href="#" label="X">
+                    <FaXTwitter />
+                    </SocialIcon>
+                    <SocialIcon href="#" label="YouTube">
+                    <FaYoutube />
+                    </SocialIcon>
+                    <SocialIcon href="#" label="Facebook">
+                    <FaFacebookF />
+                    </SocialIcon>
+                    <SocialIcon href="#" label="Instagram">
+                    <FaInstagram />
+                    </SocialIcon>
+                    <SocialIcon href="#" label="WhatsApp">
+                    <FaWhatsapp />
+                    </SocialIcon>
+                    <SocialIcon href="#" label="LinkedIn">
+                    <FaLinkedinIn />
+                    </SocialIcon>
+                </div>
+            </div>
+        </div>
+
+        <div className="pointer-events-none relative hidden md:block">
+            <div className="absolute left-1/3 top-0 h-full w-px bg-white/35" />
+            <div className="absolute left-2/3 top-0 h-full w-px bg-white/35" />
+        </div>
+
+        <button
+            type="button"
+            onClick={scrollToTop}
+            aria-label="Back to top"
+            className="fixed bottom-6 right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full border-4 border-white/90 bg-[#262335] text-white/90 transition hover:scale-105 hover:text-white pointer-events-auto"
+            >
+            <FaArrowUp className="text-2xl leading-none" />
+        </button>
+    </div>
+    </footer>
+  );
+}
+
+function SocialIcon({ href, label, children }) {
+    return (
+        <a
+            href={href}
+            aria-label={label}
+            className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#262335] transition hover:scale-105"
+            target="_blank"
+            rel="noreferrer"
+        >
+            <span className="text-lg">{children}</span>
+        </a>
+    );
+}
