@@ -20,10 +20,10 @@ export const register = async (req, res) => {
       });
     }
 
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, name } = req.body;
 
     // Check if user already exists
-    const existingUser = User.findByEmail(email);
+    const existingUser = await User.findByEmail(email);
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -36,11 +36,10 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create user
-    const user = User.create({
+    const user = await User.create({
       email,
       password: hashedPassword,
-      firstName,
-      lastName,
+      name,
     });
 
     // Generate JWT token
@@ -87,7 +86,7 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     // Check if user exists
-    const user = User.findByEmail(email);
+    const user = await User.findByEmail(email);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -136,7 +135,7 @@ export const login = async (req, res) => {
  */
 export const getProfile = async (req, res) => {
   try {
-    const user = User.findById(req.userId);
+    const user = await User.findById(req.userId);
 
     if (!user) {
       return res.status(404).json({

@@ -1,21 +1,52 @@
 # MarsAI Backend API
 
-API Backend pour l'application MarsAI avec authentification JWT.
+API Backend pour l'application MarsAI avec authentification JWT et base de données MySQL.
+
+## Prérequis
+
+- Node.js (v18 ou supérieur)
+- MySQL (v8 ou supérieur)
 
 ## Installation
+
+### 1. Installer les dépendances
 
 ```bash
 npm install
 ```
 
-## Configuration
+### 2. Configuration de la base de données
 
-Créez un fichier `.env` à la racine du projet :
+Créez une base de données MySQL nommée `marsai` :
+
+```sql
+CREATE DATABASE marsai;
+```
+
+Importez le schéma de base de données :
+
+```bash
+mysql -u root -p marsai < ../BDD/marsai.sql
+```
+
+### 3. Configuration
+
+Créez un fichier `.env` à la racine du projet back-end :
 
 ```env
+# Server Configuration
 PORT=5000
 CORS_ORIGIN=*
+
+# JWT Configuration
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=marsai
 ```
 
 ## Démarrage
@@ -39,8 +70,7 @@ Body:
 {
   "email": "user@example.com",
   "password": "password123",
-  "firstName": "John",
-  "lastName": "Doe"
+  "name": "John Doe"
 }
 ```
 
@@ -53,9 +83,8 @@ Response (201):
     "user": {
       "id": 1,
       "email": "user@example.com",
-      "firstName": "John",
-      "lastName": "Doe",
-      "createdAt": "2024-01-20T10:00:00.000Z"
+      "name": "John Doe",
+      "created_at": "2024-01-20T10:00:00.000Z"
     },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
@@ -83,9 +112,8 @@ Response (200):
     "user": {
       "id": 1,
       "email": "user@example.com",
-      "firstName": "John",
-      "lastName": "Doe",
-      "createdAt": "2024-01-20T10:00:00.000Z"
+      "name": "John Doe",
+      "created_at": "2024-01-20T10:00:00.000Z"
     },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
@@ -108,9 +136,11 @@ Response (200):
   "data": {
     "id": 1,
     "email": "user@example.com",
-    "firstName": "John",
-    "lastName": "Doe",
-    "createdAt": "2024-01-20T10:00:00.000Z"
+    "name": "John Doe",
+    "bio": null,
+    "country": null,
+    "school": null,
+    "created_at": "2024-01-20T10:00:00.000Z"
   }
 }
 ```
@@ -120,8 +150,7 @@ Response (200):
 ### Register
 - `email`: doit être un email valide
 - `password`: minimum 6 caractères
-- `firstName`: requis
-- `lastName`: requis
+- `name`: requis (nom complet)
 
 ### Login
 - `email`: doit être un email valide
@@ -135,8 +164,31 @@ Response (200):
 - `404`: Ressource non trouvée
 - `500`: Erreur serveur
 
+## Structure de la base de données
+
+La base de données `marsai` contient plusieurs tables :
+- `users` : Utilisateurs de la plateforme
+- `films` : Films soumis au festival
+- `votes` : Votes du public
+- `awards` : Prix et récompenses
+- `events` : Événements du festival
+- `roles` : Rôles utilisateurs (Director, Jury, Admin)
+- `user_roles` : Association utilisateurs-rôles
+
+Voir le fichier `/BDD/marsai.sql` pour le schéma complet.
+
+## Technologies utilisées
+
+- **Express.js** : Framework web
+- **MySQL2** : Driver MySQL avec support des promesses
+- **bcryptjs** : Hashage des mots de passe
+- **jsonwebtoken** : Authentification JWT
+- **express-validator** : Validation des données
+
 ## Notes importantes
 
-⚠️ **Ce backend utilise un stockage en mémoire pour les utilisateurs. Les données seront perdues au redémarrage du serveur.**
+✅ **Ce backend utilise une base de données MySQL persistante.**
 
-Pour la production, il est recommandé d'utiliser une vraie base de données (PostgreSQL, MongoDB, etc.).
+🔐 N'oubliez pas de changer le `JWT_SECRET` en production avec une clé secrète forte.
+
+🗄️ Assurez-vous que MySQL est en cours d'exécution avant de démarrer le serveur.
