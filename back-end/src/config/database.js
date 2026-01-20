@@ -1,6 +1,6 @@
 import mysql from "mysql2/promise";
 
-// Configuration de la connexion MySQL
+// MySQL connection configuration
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
   port: process.env.DB_PORT || 3306,
@@ -12,7 +12,7 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-// Test de connexion
+// Connection test
 export const testConnection = async () => {
   try {
     const connection = await pool.getConnection();

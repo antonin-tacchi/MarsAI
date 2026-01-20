@@ -27,7 +27,7 @@ export const register = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "Un utilisateur avec cet email existe déjà"
+        message: "A user with this email already exists"
       });
     }
 
@@ -54,7 +54,7 @@ export const register = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Utilisateur créé avec succès",
+      message: "User created successfully",
       data: {
         user: userWithoutPassword,
         token,
@@ -64,7 +64,7 @@ export const register = async (req, res) => {
     console.error("Register error:", error);
     res.status(500).json({
       success: false,
-      message: "Erreur lors de la création de l'utilisateur"
+      message: "Error creating user"
     });
   }
 };
@@ -90,7 +90,7 @@ export const login = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Email ou mot de passe incorrect"
+        message: "Invalid email or password"
       });
     }
 
@@ -99,7 +99,7 @@ export const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Email ou mot de passe incorrect"
+        message: "Invalid email or password"
       });
     }
 
@@ -115,7 +115,7 @@ export const login = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Connexion réussie",
+      message: "Login successful",
       data: {
         user: userWithoutPassword,
         token,
@@ -125,7 +125,7 @@ export const login = async (req, res) => {
     console.error("Login error:", error);
     res.status(500).json({
       success: false,
-      message: "Erreur lors de la connexion"
+      message: "Error during login"
     });
   }
 };
@@ -140,7 +140,7 @@ export const getProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "Utilisateur non trouvé"
+        message: "User not found"
       });
     }
 
@@ -154,7 +154,7 @@ export const getProfile = async (req, res) => {
     console.error("Get profile error:", error);
     res.status(500).json({
       success: false,
-      message: "Erreur lors de la récupération du profil"
+      message: "Error retrieving profile"
     });
   }
 };

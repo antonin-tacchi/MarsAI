@@ -14,7 +14,7 @@ export const authenticateToken = (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Accès refusé. Token manquant.",
+        message: "Access denied. Token missing.",
       });
     }
 
@@ -23,7 +23,7 @@ export const authenticateToken = (req, res, next) => {
       if (err) {
         return res.status(403).json({
           success: false,
-          message: "Token invalide ou expiré",
+          message: "Invalid or expired token",
         });
       }
 
@@ -36,7 +36,7 @@ export const authenticateToken = (req, res, next) => {
     console.error("Auth middleware error:", error);
     return res.status(500).json({
       success: false,
-      message: "Erreur lors de l'authentification",
+      message: "Authentication error",
     });
   }
 };

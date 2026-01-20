@@ -9,26 +9,26 @@ const router = Router();
 const registerValidation = [
   body("email")
     .isEmail()
-    .withMessage("Email invalide")
+    .withMessage("Invalid email")
     .normalizeEmail(),
   body("password")
     .isLength({ min: 6 })
-    .withMessage("Le mot de passe doit contenir au moins 6 caractères"),
+    .withMessage("Password must be at least 6 characters"),
   body("name")
     .trim()
     .notEmpty()
-    .withMessage("Le nom complet est requis"),
+    .withMessage("Full name is required"),
 ];
 
 // Validation rules for login
 const loginValidation = [
   body("email")
     .isEmail()
-    .withMessage("Email invalide")
+    .withMessage("Invalid email")
     .normalizeEmail(),
   body("password")
     .notEmpty()
-    .withMessage("Le mot de passe est requis"),
+    .withMessage("Password is required"),
 ];
 
 /**
