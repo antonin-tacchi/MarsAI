@@ -64,8 +64,6 @@ Son implémentation vise à centraliser la gestion des overlays et interactions 
 Les composants sont importés directement dans les pages ou composants React selon les besoins.
 Chaque composant expose une API simple basée sur les props React afin de faciliter son intégration.
 
-
-
 ## Exemple — Afficher un bouton sur la page Home
 
 - Créer ou ouvrir la page Home (`Home.jsx`)
@@ -73,14 +71,10 @@ Chaque composant expose une API simple basée sur les props React afin de facili
 - Ajouter le composant Button dans le JSX
 - Lancer l’application et vérifier l’affichage
 
-
-
 ### Code dans Home.jsx:
 
 import Button from "./components/ui/Button";
 
 function Home() {
-  return <Button>Click me</Button>;
+ return Click me;
 }
-
-
