@@ -1,4 +1,4 @@
-import { use, useState } from "react";
+import { useState } from "react";
 
 
 export default function Login() {
@@ -24,20 +24,38 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setApiError("");
+
+    if (!validate()) return;
+
+    setLoading(true);
+
+    setTimeout(() => {
+     setLoading(false);
+     setApiError("Email ou mot de passe incorrect");
+    }, 1500);
+  };
+
 
   return (
     <div className="auth-container">
       <h1>Connexion</h1>
 
-      <form>
+      <form onSubmit={handleSubmit}>
         <div>
           <label>Email</label>
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErrors({ ...errors, email: ""})
+            }}
             placeholder="Entrez votre email"
-          />  
+          />
+          {errors.email && <p className="error">{errors.email}</p>}
         </div>
 
         <div>
@@ -45,12 +63,20 @@ export default function Login() {
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setErrors({...errors, password: "" });
+            }}
             placeholder="Entrez votre mot de passe"
           />
+          {errors.password && <p className="error">{errors.password}</p>}
         </div>
 
-        <button type="submit">Se connecter</button>
+        {apiError && <p className="error global-error">{apiError}</p>}
+
+        <button type="submit" disabled={loading}>
+            {loading ? "Connexion..." : "Se connecter"}
+        </button>
       </form>
     </div>
   );
