@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 # Mac Trash
 .DS_Store
+
+# Docker compose override
+docker-compose.override.yml
