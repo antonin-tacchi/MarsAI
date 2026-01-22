@@ -6,66 +6,60 @@ import User from "../models/User.js";
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 const JWT_EXPIRES_IN = "24h";
 
+const normalizeRoleIds = (rolesRaw) => {
+  if (!Array.isArray(rolesRaw)) return [];
+  return rolesRaw.map((r) => Number(r?.role_id ?? r?.id ?? r)).filter((n) => Number.isFinite(n));
+};
+
 /**
  * Register a new user
  */
 export const register = async (req, res) => {
   try {
-    // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
     const { email, password, name } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findByEmail(email);
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "A user with this email already exists"
+        message: "A user with this email already exists",
       });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await User.create({
       email,
       password: hashedPassword,
       name,
     });
 
-    // Generate JWT token
+    // By default : director (1)
+    await User.assignRole(user.id, 1);
+
+    const rolesRaw = await User.getRoleIds(user.id);
+    const roles = normalizeRoleIds(rolesRaw);
+
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, roles },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _password, ...userWithoutPassword } = user;
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "User created successfully",
-      data: {
-        user: userWithoutPassword,
-        token,
-      },
+      data: { user: userWithoutPassword, token },
     });
   } catch (error) {
     console.error("Register error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error creating user"
-    });
+    return res.status(500).json({ success: false, message: "Error creating user" });
   }
 };
 
@@ -74,87 +68,70 @@ export const register = async (req, res) => {
  */
 export const login = async (req, res) => {
   try {
-    // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
     const { email, password } = req.body;
 
-    // Check if user exists
     const user = await User.findByEmail(email);
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password"
+        message: "Invalid email or password",
       });
     }
 
-    // Validate password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password"
+        message: "Invalid email or password",
       });
     }
 
-    // Generate JWT token
+    const rolesRaw = await User.getRoleIds(user.id);
+    const roles = normalizeRoleIds(rolesRaw);
+
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, roles },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _password, ...userWithoutPassword } = user;
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Login successful",
-      data: {
-        user: userWithoutPassword,
-        token,
-      },
+      data: { user: userWithoutPassword, token },
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error during login"
-    });
+    return res.status(500).json({ success: false, message: "Error during login" });
   }
 };
 
 /**
- * Get current user profile (protected route example)
+ * Get current user profile
  */
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found"
-      });
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthenticated" });
     }
 
-    const { password: _, ...userWithoutPassword } = user;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
-    res.status(200).json({
-      success: true,
-      data: userWithoutPassword,
-    });
+    const { password: _password, ...userWithoutPassword } = user;
+
+    return res.status(200).json({ success: true, data: userWithoutPassword });
   } catch (error) {
     console.error("Get profile error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error retrieving profile"
-    });
+    return res.status(500).json({ success: false, message: "Error retrieving profile" });
   }
 };

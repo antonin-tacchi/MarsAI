@@ -10,23 +10,28 @@ dotenv.config();
 
 const app = express();
 
+// Parsers
 app.use(express.json());
 
-app.use("/api", adminRoutes);
-
+// CORS
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: process.env.CORS_ORIGIN || "*", //DEV ONLY — replace "*" with allowed frontend domain in prod
     credentials: true,
   })
 );
 
+// Base route
 app.get("/", (req, res) => {
   res.json({ message: "MarsAI API online 🚀" });
 });
 
+// Routes
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
+            // app.use("/api/director", directorRoutes); ///WIP 
+            // app.use("/api/jury", juryRoutes);        ///WIP
+app.use("/api/admin", adminRoutes);
 
 const port = Number(process.env.PORT) || 5000;
 

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticateToken } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/authorize.middleware.js";
 import { getAllUsers } from "../controllers/admin.controller.js";
 
 const router = Router();
@@ -9,10 +10,10 @@ const router = Router();
  * @desc    Get all users
  * @access  Admin (later)
  */
+
 router.get(
-  "/admin/users",
-  authenticateToken,
-  getAllUsers
+  "/users",
+  authenticateToken, authorize([3]), getAllUsers
 );
 
 export default router;

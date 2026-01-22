@@ -2,41 +2,31 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
-/**
- * Middleware to authenticate JWT token
- */
 export const authenticateToken = (req, res, next) => {
   try {
-    // Get token from header
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+    const authHeader = req.headers.authorization ?? "";
+    const [type, token] = authHeader.split(" ");
 
-    if (!token) {
+    if (type !== "Bearer" || !token) {
       return res.status(401).json({
         success: false,
         message: "Access denied. Token missing.",
       });
     }
 
-    // Verify token
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(403).json({
-          success: false,
-          message: "Invalid or expired token",
-        });
-      }
+    const decoded = jwt.verify(token, JWT_SECRET);
 
-      // Add user info to request
-      req.userId = decoded.userId;
-      req.userEmail = decoded.email;
-      next();
-    });
-  } catch (error) {
-    console.error("Auth middleware error:", error);
-    return res.status(500).json({
+    // Payload JWT -> req.user
+    req.user = decoded;
+
+    // Debug utile (à enlever plus tard)
+    // console.log("JWT decoded:", decoded);
+
+    return next();
+  } catch (err) {
+    return res.status(403).json({
       success: false,
-      message: "Authentication error",
+      message: "Invalid or expired token",
     });
   }
 };
