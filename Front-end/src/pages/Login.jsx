@@ -76,7 +76,7 @@ export default function Login() {
 
       {/* Right side - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[#FBF5F0]">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-xl px-4">
           {/* Progress indicator */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-2">
