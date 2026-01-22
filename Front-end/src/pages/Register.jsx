@@ -1,19 +1,40 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { register } from "../services/authService";
+import { useGoogleAuth } from "../hooks/useGoogleAuth";
+import Header from "../components/Header";
 
 export default function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
-    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Google OAuth
+  const handleGoogleSuccess = (data) => {
+    console.log("Google registration successful:", data);
+    // Store token and user data
+    localStorage.setItem("token", data.data.token);
+    localStorage.setItem("user", JSON.stringify(data.data.user));
+    navigate("/");
+  };
+
+  const handleGoogleError = (error) => {
+    console.error("Google registration error:", error);
+    setApiError(error.message || "Google authentication failed");
+  };
+
+  const { isLoaded: isGoogleLoaded, signIn: signInWithGoogle } = useGoogleAuth(
+    handleGoogleSuccess,
+    handleGoogleError
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,28 +50,28 @@ export default function Register() {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Full name is required";
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "Le prénom est requis";
+    } else if (formData.firstName.trim().length < 2) {
+      newErrors.firstName = "Le prénom doit contenir au moins 2 caractères";
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Le nom est requis";
+    } else if (formData.lastName.trim().length < 2) {
+      newErrors.lastName = "Le nom doit contenir au moins 2 caractères";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = "L'email est requis";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
+      newErrors.email = "Format d'email invalide";
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Le mot de passe est requis";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.password = "Le mot de passe doit contenir au moins 6 caractères";
     }
 
     setErrors(newErrors);
@@ -66,67 +87,98 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const { confirmPassword, ...registerData } = formData;
+      const registerData = {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        password: formData.password,
+      };
       const response = await register(registerData);
       console.log("Registration successful:", response);
       navigate("/");
     } catch (error) {
-      setApiError(error.message || "Registration failed. Please try again.");
+      setApiError(error.message || "L'inscription a échoué. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-[#262335]">
-      {/* Left side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[#FBF5F0]">
-        <div className="w-full max-w-xl px-4">
-          {/* Progress indicator */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-[#463699] flex items-center justify-center text-white text-sm">
-                1
+    <div className="min-h-screen flex flex-col bg-white">
+      <Header />
+
+      <div className="flex-1 flex bg-[#262335]">
+        {/* Left side - Form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-8 lg:p-12 bg-[#FBF5F0]">
+          <div className="w-full max-w-xl px-4 md:px-6">
+            {/* Tab Toggle */}
+            <div className="flex bg-white rounded-full p-1 mb-8 border border-[#463699] text-base">
+              <Link
+                to="/login"
+                className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium text-[#262335] hover:bg-gray-50 transition-colors"
+              >
+                Se connecter
+              </Link>
+              <div className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium bg-[#463699] text-white">
+                S'inscrire
               </div>
-              <span className="text-sm text-[#262335] font-semibold">Register</span>
             </div>
-            <div className="flex-1 h-0.5 bg-[#C7C2CE] mx-4"></div>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-[#C7C2CE] flex items-center justify-center text-white text-sm">
-                2
-              </div>
-              <span className="text-sm text-[#262335]">Login</span>
-            </div>
-          </div>
 
           {/* Title */}
-          <h1 className="text-4xl font-bold text-[#262335] mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#262335] mb-3">
             S'inscrire
           </h1>
 
+          <p className="text-sm md:text-base text-gray-600 mb-4">
+            Si vous êtes <span className="font-semibold">jury</span> ou{" "}
+            <span className="font-semibold">réalisateur</span>, veuillez utiliser le mot de passe reçu par email
+          </p>
+
+          <p className="text-sm md:text-base text-gray-600 mb-6">
+            Si vous êtes <span className="font-semibold">visiteur</span>, vous pouvez créer un compte librement.
+          </p>
+
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-[#262335] mb-2">
-                Prénom
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-lg focus:outline-none focus:border-[#463699] text-[#262335]"
-                placeholder="Enter your name"
-              />
-              {errors.name && (
-                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-              )}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* First and Last Name in Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* First Name */}
+              <div>
+                <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
+                  Prénom
+                </label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
+                />
+                {errors.firstName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                )}
+              </div>
+
+              {/* Last Name */}
+              <div>
+                <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
+                  Nom
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
+                />
+                {errors.lastName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                )}
+              </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-[#262335] mb-2">
+              <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
                 Email
               </label>
               <input
@@ -134,8 +186,7 @@ export default function Register() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-lg focus:outline-none focus:border-[#463699] text-[#262335]"
-                placeholder="Enter your email"
+                className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -144,7 +195,7 @@ export default function Register() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-[#262335] mb-2">
+              <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
                 Mot de passe
               </label>
               <input
@@ -152,35 +203,16 @@ export default function Register() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-lg focus:outline-none focus:border-[#463699] text-[#262335]"
-                placeholder="Enter your password (min 6 characters)"
+                className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
               />
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">{errors.password}</p>
               )}
             </div>
 
-            {/* Confirm Password */}
-            <div>
-              <label className="block text-sm font-medium text-[#262335] mb-2">
-                Confirmer mot de passe
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-lg focus:outline-none focus:border-[#463699] text-[#262335]"
-                placeholder="Confirm your password"
-              />
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
-              )}
-            </div>
-
             {/* Error message */}
             {apiError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
                 <p className="text-red-600 text-sm">{apiError}</p>
               </div>
             )}
@@ -189,9 +221,9 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#262335] text-white py-3 rounded-lg font-semibold hover:bg-[#463699] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#262335] text-white py-3.5 rounded-md font-semibold hover:bg-[#463699] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6 text-base md:text-lg"
             >
-              {loading ? "Inscription..." : "S'INSCRIRE"}
+              {loading ? "Connexion..." : "Connexion"}
             </button>
 
             {/* Divider */}
@@ -200,14 +232,16 @@ export default function Register() {
                 <div className="w-full border-t border-[#C7C2CE]"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-[#FBF5F0] text-[#262335]">ou</span>
+                <span className="px-4 bg-[#FBF5F0] text-[#262335]">ou se connecter avec</span>
               </div>
             </div>
 
             {/* Google signup */}
             <button
               type="button"
-              className="w-full bg-white border border-[#C7C2CE] py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-3"
+              onClick={signInWithGoogle}
+              disabled={!isGoogleLoaded}
+              className="w-full bg-white border border-[#C7C2CE] py-3 rounded-md font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -227,16 +261,7 @@ export default function Register() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              <span className="text-[#262335]">S'inscrire avec Google</span>
             </button>
-
-            {/* Login link */}
-            <p className="text-center text-sm text-[#262335] mt-6">
-              Vous avez déjà un compte ?{" "}
-              <Link to="/login" className="text-[#463699] font-semibold hover:underline">
-                Se connecter
-              </Link>
-            </p>
           </form>
         </div>
       </div>
@@ -252,6 +277,7 @@ export default function Register() {
           <div className="absolute inset-0 bg-gradient-to-l from-[#8A83DA]/20 to-[#463699]/40"></div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
