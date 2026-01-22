@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { body } from "express-validator";
 import { register, login, getProfile } from "../controllers/auth.controller.js";
+import { googleAuth } from "../controllers/googleAuth.controller.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 
 const router = Router();
@@ -51,5 +52,12 @@ router.post("/login", loginValidation, login);
  * @access  Private
  */
 router.get("/profile", authenticateToken, getProfile);
+
+/**
+ * @route   POST /api/auth/google
+ * @desc    Authenticate with Google OAuth
+ * @access  Public
+ */
+router.post("/google", googleAuth);
 
 export default router;
