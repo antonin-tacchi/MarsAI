@@ -1,20 +1,16 @@
 import { Router } from "express";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/authorize.middleware.js";
-import { getAllUsers } from "../controllers/admin.controller.js";
 
 const router = Router();
 
-// Admin only
+// Director(1) + Admin(3)
 router.use(authenticateToken);
-router.use(authorize([3]));
+router.use(authorize([1, 3]));
 
-/**
- * @route   GET /api/admin/users
- * @desc    Get all users
- * @access  Admin
- */
-
-router.get("/users",authenticateToken, getAllUsers);
+//test
+router.get("/access", (req, res) => {
+  res.json({ success: true, zone: "director", user: req.user });
+});
 
 export default router;

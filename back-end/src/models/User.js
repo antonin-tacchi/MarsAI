@@ -4,11 +4,6 @@ import pool from "../config/database.js";
  * User Model - MySQL database operations
  */
 class UserModel {
-  /**
-   * Find user by email
-   * @param {string} email
-   * @returns {Promise<Object|null>}
-   */
   async findByEmail(email) {
     try {
       const [rows] = await pool.execute(
@@ -22,11 +17,6 @@ class UserModel {
     }
   }
 
-  /**
-   * Find user by ID
-   * @param {number} id
-   * @returns {Promise<Object|null>}
-   */
   async findById(id) {
     try {
       const [rows] = await pool.execute(
@@ -40,17 +30,6 @@ class UserModel {
     }
   }
 
-  /**
-   * Create new user
-   * @param {Object} userData - User data
-   * @param {string} userData.name - Full name
-   * @param {string} userData.email - Email address
-   * @param {string} userData.password - Hashed password
-   * @param {string} [userData.bio] - User bio
-   * @param {string} [userData.country] - Country
-   * @param {string} [userData.school] - School/Institution
-   * @returns {Promise<Object>}
-   */
   async create(userData) {
     try {
       const {
@@ -68,7 +47,6 @@ class UserModel {
         [name, email, password, bio, country, school]
       );
 
-      // Return the created user
       return await this.findById(result.insertId);
     } catch (error) {
       console.error("Error creating user:", error);
@@ -76,10 +54,6 @@ class UserModel {
     }
   }
 
-  /**
-   * Get all users
-   * @returns {Promise<Array>}
-   */
   async getAll() {
     try {
       const [rows] = await pool.execute("SELECT * FROM users");
@@ -90,12 +64,6 @@ class UserModel {
     }
   }
 
-  /**
-   * Update user
-   * @param {number} id
-   * @param {Object} userData
-   * @returns {Promise<Object|null>}
-   */
   async update(id, userData) {
     try {
       const fields = [];
@@ -122,6 +90,31 @@ class UserModel {
       return await this.findById(id);
     } catch (error) {
       console.error("Error updating user:", error);
+      throw error;
+    }
+  }
+
+  async getRoleIds(userId) {
+    try {
+      const [rows] = await pool.execute(
+        "SELECT role_id FROM user_roles WHERE user_id = ?",
+        [userId]
+      );
+      return rows.map((row) => row.role_id);
+    } catch (error) {
+      console.error("Error getting user roles:", error);
+      throw error;
+    }
+  }
+
+  async assignRole(userId, roleId) {
+    try {
+      await pool.execute(
+        "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)",
+        [userId, roleId]
+      );
+    } catch (error) {
+      console.error("Error assigning role to user:", error);
       throw error;
     }
   }

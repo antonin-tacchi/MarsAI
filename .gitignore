@@ -143,3 +143,6 @@ vite.config.ts.timestamp-*
 
 # Docker compose override
 docker-compose.override.yml
+
+# BDD 
+db/
