@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/authService";
+import { useGoogleAuth } from "../hooks/useGoogleAuth";
 import Header from "../components/Header";
 
 export default function Login() {
@@ -13,6 +14,25 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Google OAuth
+  const handleGoogleSuccess = (data) => {
+    console.log("Google login successful:", data);
+    // Store token and user data
+    localStorage.setItem("token", data.data.token);
+    localStorage.setItem("user", JSON.stringify(data.data.user));
+    navigate("/");
+  };
+
+  const handleGoogleError = (error) => {
+    console.error("Google login error:", error);
+    setApiError(error.message || "Google authentication failed");
+  };
+
+  const { isLoaded: isGoogleLoaded, signIn: signInWithGoogle } = useGoogleAuth(
+    handleGoogleSuccess,
+    handleGoogleError
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -172,7 +192,9 @@ export default function Login() {
             {/* Google login */}
             <button
               type="button"
-              className="w-full bg-white border border-[#C7C2CE] py-3 rounded-md font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
+              onClick={signInWithGoogle}
+              disabled={!isGoogleLoaded}
+              className="w-full bg-white border border-[#C7C2CE] py-3 rounded-md font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
