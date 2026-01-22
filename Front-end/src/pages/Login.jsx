@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/authService";
+import Header from "../components/Header";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,13 +29,13 @@ export default function Login() {
     const newErrors = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = "L'email est requis";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
+      newErrors.email = "Format d'email invalide";
     }
 
     if (!formData.password.trim()) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Le mot de passe est requis";
     }
 
     setErrors(newErrors);
@@ -54,56 +55,55 @@ export default function Login() {
       console.log("Login successful:", response);
       navigate("/");
     } catch (error) {
-      setApiError(error.message || "Login failed. Please try again.");
+      setApiError(error.message || "La connexion a échoué. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-[#262335]">
-      {/* Left side - Image */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070')",
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-[#8A83DA]/20 to-[#463699]/40"></div>
-        </div>
-      </div>
+    <div className="min-h-screen flex flex-col bg-white">
+      <Header />
 
-      {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[#FBF5F0]">
-        <div className="w-full max-w-xl px-4">
-          {/* Progress indicator */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-[#C7C2CE] flex items-center justify-center text-white text-sm">
-                1
-              </div>
-              <span className="text-sm text-[#262335]">Register</span>
-            </div>
-            <div className="flex-1 h-0.5 bg-[#C7C2CE] mx-4"></div>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-[#463699] flex items-center justify-center text-white text-sm">
-                2
-              </div>
-              <span className="text-sm text-[#262335] font-semibold">Login</span>
-            </div>
+      <div className="flex-1 flex bg-[#262335]">
+        {/* Left side - Image */}
+        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: "url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070')",
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#8A83DA]/20 to-[#463699]/40"></div>
           </div>
+        </div>
+
+        {/* Right side - Form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-[#FBF5F0]">
+          <div className="w-full max-w-md px-4">
+            {/* Tab Toggle */}
+            <div className="flex bg-white rounded-full p-1 mb-8 border border-[#463699]">
+              <div className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium bg-[#463699] text-white">
+                Se connecter
+              </div>
+              <Link
+                to="/register"
+                className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium text-[#262335] hover:bg-gray-50 transition-colors"
+              >
+                S'inscrire
+              </Link>
+            </div>
 
           {/* Title */}
-          <h1 className="text-4xl font-bold text-[#262335] mb-8">
+          <h1 className="text-3xl font-bold text-[#262335] mb-8">
             Se connecter
           </h1>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-[#262335] mb-2">
+              <label className="block text-sm font-medium text-[#262335] mb-1">
                 Email
               </label>
               <input
@@ -111,8 +111,7 @@ export default function Login() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-lg focus:outline-none focus:border-[#463699] text-[#262335]"
-                placeholder="Enter your email"
+                className="w-full px-4 py-2.5 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335]"
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -121,7 +120,7 @@ export default function Login() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-[#262335] mb-2">
+              <label className="block text-sm font-medium text-[#262335] mb-1">
                 Mot de passe
               </label>
               <input
@@ -129,8 +128,7 @@ export default function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-lg focus:outline-none focus:border-[#463699] text-[#262335]"
-                placeholder="Enter your password"
+                className="w-full px-4 py-2.5 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335]"
               />
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">{errors.password}</p>
@@ -147,7 +145,7 @@ export default function Login() {
 
             {/* Error message */}
             {apiError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
                 <p className="text-red-600 text-sm">{apiError}</p>
               </div>
             )}
@@ -156,7 +154,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#262335] text-white py-3 rounded-lg font-semibold hover:bg-[#463699] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#262335] text-white py-3 rounded-md font-semibold hover:bg-[#463699] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
             >
               {loading ? "Connexion..." : "Connexion"}
             </button>
@@ -167,14 +165,14 @@ export default function Login() {
                 <div className="w-full border-t border-[#C7C2CE]"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-[#FBF5F0] text-[#262335]">ou</span>
+                <span className="px-4 bg-[#FBF5F0] text-[#262335]">ou se connecter avec</span>
               </div>
             </div>
 
             {/* Google login */}
             <button
               type="button"
-              className="w-full bg-white border border-[#C7C2CE] py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-3"
+              className="w-full bg-white border border-[#C7C2CE] py-3 rounded-md font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -194,19 +192,11 @@ export default function Login() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              <span className="text-[#262335]">Se connecter avec Google</span>
             </button>
-
-            {/* Register link */}
-            <p className="text-center text-sm text-[#262335] mt-6">
-              Vous n'avez pas de compte ?{" "}
-              <Link to="/register" className="text-[#463699] font-semibold hover:underline">
-                S'inscrire
-              </Link>
-            </p>
           </form>
         </div>
       </div>
+    </div>
     </div>
   );
 }
