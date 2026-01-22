@@ -11,10 +11,7 @@ dotenv.config();
 
 const app = express();
 
-app.use(express.json());
-
-app.use("/api", adminRoutes);
-
+// Middleware - CORS MUST be before routes
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "*",
@@ -22,10 +19,14 @@ app.use(
   })
 );
 
+app.use(express.json());
+
 app.get("/", (req, res) => {
   res.json({ message: "MarsAI API online 🚀" });
 });
 
+// Routes
+app.use("/api", adminRoutes);
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);

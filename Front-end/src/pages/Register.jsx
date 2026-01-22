@@ -223,7 +223,7 @@ export default function Register() {
               disabled={loading}
               className="w-full bg-[#262335] text-white py-3.5 rounded-md font-semibold hover:bg-[#463699] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6 text-base md:text-lg"
             >
-              {loading ? "Connexion..." : "Connexion"}
+              {loading ? "Inscription..." : "S'inscrire"}
             </button>
 
             {/* Divider */}

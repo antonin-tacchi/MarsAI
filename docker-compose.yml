@@ -3,12 +3,12 @@ services:
     image: mysql:8.0
     container_name: marsai-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: marsai
       MYSQL_USER: marsai_user
       MYSQL_PASSWORD: marsai_password
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./BDD/marsai.sql:/docker-entrypoint-initdb.d/marsai.sql
@@ -25,11 +25,11 @@ services:
     container_name: marsai-backend
     environment:
       PORT: "5000"
-      CORS_ORIGIN: "http://localhost:5173"
-      DB_HOST: mysql
+      CORS_ORIGIN: "*"
+      DB_HOST: host.docker.internal
       DB_PORT: "3306"
       DB_USER: root
-      DB_PASSWORD: rootpassword
+      DB_PASSWORD: 
       DB_NAME: marsai
       JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
     ports:
