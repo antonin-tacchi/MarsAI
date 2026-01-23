@@ -19,10 +19,13 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Auth routes - without header/footer */}
+        <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
+
+        {/* Main routes - with header/footer */}
         <Route path="/" element={<RootLayout />}>
           <Route index element={<Home />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
           <Route path="about" element={<About />} />
           <Route path="catalogs" element={<Catalogs />} />
           <Route path="contact" element={<Contact />} />
