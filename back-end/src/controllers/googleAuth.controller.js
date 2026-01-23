@@ -4,6 +4,11 @@ import User from "../models/User.js";
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 const JWT_EXPIRES_IN = "24h";
 
+const normalizeRoleIds = (rolesRaw) => {
+  if (!Array.isArray(rolesRaw)) return [];
+  return rolesRaw.map((r) => Number(r?.role_id ?? r?.id ?? r)).filter((n) => Number.isFinite(n));
+};
+
 /**
  * Verify Google token and authenticate user
  * Uses Google Identity Services (OAuth 2.0)
@@ -19,8 +24,17 @@ export const googleAuth = async (req, res) => {
       });
     }
 
-    // Decode the Google JWT token (without verification for now)
-    // In production, you should verify the token with Google's public keys
+    // SECURITY WARNING: This decodes the token without verification
+    // For production, install google-auth-library:
+    //   npm install google-auth-library
+    // And verify the token:
+    //   import { OAuth2Client } from 'google-auth-library';
+    //   const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    //   const ticket = await client.verifyIdToken({
+    //     idToken: credential,
+    //     audience: process.env.GOOGLE_CLIENT_ID,
+    //   });
+    //   const payload = ticket.getPayload();
     const decodedToken = jwt.decode(credential);
 
     if (!decodedToken) {
@@ -42,11 +56,18 @@ export const googleAuth = async (req, res) => {
         name,
         password: `google_${googleId}_${Date.now()}`, // Random password (user won't use it)
       });
+
+      // Assign default role: director (1)
+      await User.assignRole(user.id, 1);
     }
+
+    // Get user roles
+    const rolesRaw = await User.getRoleIds(user.id);
+    const roles = normalizeRoleIds(rolesRaw);
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, roles },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );

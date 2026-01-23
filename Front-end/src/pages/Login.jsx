@@ -131,6 +131,7 @@ export default function Login() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                autoComplete="email"
                 className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
               />
               {errors.email && (
@@ -148,6 +149,7 @@ export default function Login() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                autoComplete="current-password"
                 className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
               />
               {errors.password && (
