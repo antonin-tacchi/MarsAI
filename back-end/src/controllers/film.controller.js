@@ -15,6 +15,7 @@ export const submitFilm = async (req, res) => {
     // Handle uploaded files
     let filmUrl = null;
     let posterUrl = null;
+    let thumbnailUrl = null;
 
     if (req.files) {
       if (req.files.film && req.files.film[0]) {
@@ -22,6 +23,9 @@ export const submitFilm = async (req, res) => {
       }
       if (req.files.poster && req.files.poster[0]) {
         posterUrl = `/uploads/posters/${req.files.poster[0].filename}`;
+      }
+      if (req.files.thumbnail && req.files.thumbnail[0]) {
+        thumbnailUrl = `/uploads/thumbnails/${req.files.thumbnail[0].filename}`;
       }
     }
 
@@ -33,6 +37,7 @@ export const submitFilm = async (req, res) => {
       film_url: filmUrl,
       youtube_link: req.body.youtube_link || null,
       poster_url: posterUrl || req.body.poster_url,
+      thumbnail_url: thumbnailUrl || req.body.thumbnail_url,
       ai_tools_used: req.body.ai_tools_used,
       ai_certification: req.body.ai_certification,
 
@@ -508,6 +513,133 @@ export const getFilmsForJury = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Erreur lors de la recuperation des films",
+    });
+  }
+};
+
+// ============================================
+// SUPER JURY ENDPOINTS
+// ============================================
+
+/**
+ * Get all pending films for Super Jury (no assignment filter)
+ */
+export const getFilmsForSuperJury = async (req, res) => {
+  try {
+    const films = await Film.getAllPendingFilmsForSuperJury();
+
+    // Get categories for each film
+    const filmsWithCategories = await Promise.all(
+      films.map(async (film) => {
+        const categories = await Film.getCategories(film.id);
+        return { ...film, categories };
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: filmsWithCategories,
+    });
+  } catch (error) {
+    console.error("Get films for super jury error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la recuperation des films",
+    });
+  }
+};
+
+/**
+ * Get all jury members with their assignment counts
+ */
+export const getJuryMembers = async (req, res) => {
+  try {
+    const juryMembers = await Film.getJuryMembersWithAssignments();
+
+    return res.status(200).json({
+      success: true,
+      data: juryMembers,
+    });
+  } catch (error) {
+    console.error("Get jury members error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la recuperation des membres du jury",
+    });
+  }
+};
+
+/**
+ * Assign films to a jury member (Super Jury only)
+ */
+export const assignFilmsToJury = async (req, res) => {
+  try {
+    const { jury_id, film_ids } = req.body;
+    const assignedBy = req.user.id;
+
+    if (!jury_id || !film_ids || !Array.isArray(film_ids)) {
+      return res.status(400).json({
+        success: false,
+        message: "jury_id et film_ids sont requis",
+      });
+    }
+
+    const results = await Film.assignFilmsToJury(jury_id, film_ids, assignedBy);
+
+    return res.status(200).json({
+      success: true,
+      message: `${film_ids.length} film(s) assigne(s) au jury`,
+      data: results,
+    });
+  } catch (error) {
+    console.error("Assign films to jury error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de l'assignation des films",
+    });
+  }
+};
+
+/**
+ * Remove a film assignment from a jury member
+ */
+export const removeFilmAssignment = async (req, res) => {
+  try {
+    const { jury_id, film_id } = req.params;
+
+    await Film.removeFilmAssignment(jury_id, film_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Assignation supprimee",
+    });
+  } catch (error) {
+    console.error("Remove film assignment error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la suppression de l'assignation",
+    });
+  }
+};
+
+/**
+ * Get films assigned to a specific jury member (for Super Jury view)
+ */
+export const getJuryAssignedFilms = async (req, res) => {
+  try {
+    const { jury_id } = req.params;
+
+    const films = await Film.getFilmsAssignedToJury(jury_id);
+
+    return res.status(200).json({
+      success: true,
+      data: films,
+    });
+  } catch (error) {
+    console.error("Get jury assigned films error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la recuperation des films assignes",
     });
   }
 };

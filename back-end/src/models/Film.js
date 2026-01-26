@@ -18,6 +18,7 @@ class FilmModel {
         film_url = null,
         youtube_link = null,
         poster_url = null,
+        thumbnail_url = null,
         ai_tools_used = null,
         ai_certification = false,
 
@@ -35,13 +36,13 @@ class FilmModel {
 
       const [result] = await pool.execute(
         `INSERT INTO films (
-          title, country, description, film_url, youtube_link, poster_url,
+          title, country, description, film_url, youtube_link, poster_url, thumbnail_url,
           ai_tools_used, ai_certification,
           director_firstname, director_lastname, director_email,
           director_bio, director_school, director_website,
           social_instagram, social_youtube, social_vimeo,
           status, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
         [
           title,
           country,
@@ -49,6 +50,7 @@ class FilmModel {
           film_url,
           youtube_link,
           poster_url,
+          thumbnail_url,
           ai_tools_used,
           ai_certification ? 1 : 0,
           director_firstname,
@@ -371,7 +373,7 @@ class FilmModel {
   }
 
   /**
-   * Get films with ratings info for jury dashboard
+   * Get films with ratings info for jury dashboard (only assigned films)
    */
   async getFilmsForJury(userId) {
     try {
@@ -381,13 +383,139 @@ class FilmModel {
           (SELECT COUNT(*) FROM jury_ratings WHERE film_id = f.id) as rating_count,
           (SELECT rating FROM jury_ratings WHERE film_id = f.id AND user_id = ?) as my_rating
          FROM films f
+         INNER JOIN jury_assignments ja ON f.id = ja.film_id AND ja.jury_id = ?
          WHERE f.status = 'pending'
          ORDER BY f.created_at DESC`,
-        [userId]
+        [userId, userId]
       );
       return rows;
     } catch (error) {
       console.error("Error getting films for jury:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all pending films for Super Jury (no assignment filter)
+   */
+  async getAllPendingFilmsForSuperJury() {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT f.*,
+          (SELECT AVG(rating) FROM jury_ratings WHERE film_id = f.id) as average_rating,
+          (SELECT COUNT(*) FROM jury_ratings WHERE film_id = f.id) as rating_count,
+          (SELECT COUNT(*) FROM jury_assignments WHERE film_id = f.id) as assignment_count
+         FROM films f
+         WHERE f.status = 'pending'
+         ORDER BY f.created_at DESC`
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error getting films for super jury:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Assign films to a jury member (Super Jury only)
+   */
+  async assignFilmsToJury(juryId, filmIds, assignedBy) {
+    try {
+      const results = [];
+      for (const filmId of filmIds) {
+        try {
+          await pool.execute(
+            `INSERT INTO jury_assignments (jury_id, film_id, assigned_by)
+             VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE assigned_by = VALUES(assigned_by), assigned_at = NOW()`,
+            [juryId, filmId, assignedBy]
+          );
+          results.push({ filmId, success: true });
+        } catch (err) {
+          results.push({ filmId, success: false, error: err.message });
+        }
+      }
+      return results;
+    } catch (error) {
+      console.error("Error assigning films to jury:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove film assignment from jury member
+   */
+  async removeFilmAssignment(juryId, filmId) {
+    try {
+      await pool.execute(
+        "DELETE FROM jury_assignments WHERE jury_id = ? AND film_id = ?",
+        [juryId, filmId]
+      );
+    } catch (error) {
+      console.error("Error removing film assignment:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all assignments for a jury member
+   */
+  async getJuryAssignments(juryId) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT ja.*, f.title, f.thumbnail_url, f.poster_url, f.director_firstname, f.director_lastname
+         FROM jury_assignments ja
+         JOIN films f ON ja.film_id = f.id
+         WHERE ja.jury_id = ?
+         ORDER BY ja.assigned_at DESC`,
+        [juryId]
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error getting jury assignments:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all jury members with their assignment counts
+   */
+  async getJuryMembersWithAssignments() {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT u.id, u.name, u.email,
+          (SELECT COUNT(*) FROM jury_assignments WHERE jury_id = u.id) as assigned_films,
+          (SELECT COUNT(*) FROM jury_ratings WHERE user_id = u.id) as rated_films
+         FROM users u
+         JOIN user_roles ur ON u.id = ur.user_id
+         WHERE ur.role_id = 1
+         ORDER BY u.name`
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error getting jury members:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get films assigned to a specific jury member (for Super Jury view)
+   */
+  async getFilmsAssignedToJury(juryId) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT f.id, f.title, f.thumbnail_url, f.poster_url, f.director_firstname, f.director_lastname,
+          ja.assigned_at,
+          (SELECT rating FROM jury_ratings WHERE film_id = f.id AND user_id = ?) as jury_rating
+         FROM films f
+         JOIN jury_assignments ja ON f.id = ja.film_id
+         WHERE ja.jury_id = ?
+         ORDER BY ja.assigned_at DESC`,
+        [juryId, juryId]
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error getting films assigned to jury:", error);
       throw error;
     }
   }

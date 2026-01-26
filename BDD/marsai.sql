@@ -17,7 +17,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 -- --------------------------------------------------------
--- Table: roles (Jury and Admin only)
+-- Table: roles (Jury, Super Jury, and Admin)
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `roles`;
@@ -30,7 +30,8 @@ CREATE TABLE `roles` (
 
 INSERT INTO `roles` (`id`, `role_name`) VALUES
 (1, 'Jury'),
-(2, 'Admin');
+(2, 'Admin'),
+(3, 'Super Jury');
 
 -- --------------------------------------------------------
 -- Table: users (Jury and Admin accounts only)
@@ -95,7 +96,8 @@ CREATE TABLE `films` (
   `description` text,
   `film_url` varchar(500) DEFAULT NULL COMMENT 'URL to uploaded film file',
   `youtube_link` varchar(500) DEFAULT NULL COMMENT 'YouTube link (added later by admin)',
-  `poster_url` varchar(500) DEFAULT NULL,
+  `poster_url` varchar(500) DEFAULT NULL COMMENT 'Main poster image',
+  `thumbnail_url` varchar(500) DEFAULT NULL COMMENT 'Small thumbnail for lists',
   `ai_tools_used` text COMMENT 'AI tools used (free text)',
   `ai_certification` tinyint(1) DEFAULT 0 COMMENT 'Certifies film was made with AI tools',
 
@@ -235,6 +237,27 @@ CREATE TABLE `newsletter_subscriptions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
+-- Table: jury_assignments (Super Jury assigns films to Jury)
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `jury_assignments`;
+CREATE TABLE `jury_assignments` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `jury_id` int NOT NULL COMMENT 'Jury member assigned to review',
+  `film_id` int NOT NULL,
+  `assigned_by` int NOT NULL COMMENT 'Super Jury who made the assignment',
+  `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_jury_film_assignment` (`jury_id`, `film_id`),
+  KEY `fk_ja_jury` (`jury_id`),
+  KEY `fk_ja_film` (`film_id`),
+  KEY `fk_ja_assigner` (`assigned_by`),
+  CONSTRAINT `fk_ja_jury` FOREIGN KEY (`jury_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ja_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ja_assigner` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
 -- Table: jury_ratings (Jury film ratings)
 -- --------------------------------------------------------
 
@@ -265,7 +288,7 @@ CREATE TABLE `invitations` (
   `id` int NOT NULL AUTO_INCREMENT,
   `email` varchar(255) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
-  `role_id` int NOT NULL COMMENT '1=Jury, 2=Admin',
+  `role_id` int NOT NULL COMMENT '1=Jury, 2=Admin, 3=Super Jury',
   `token` varchar(255) NOT NULL,
   `invited_by` int NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,

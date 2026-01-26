@@ -374,3 +374,136 @@ export const updateFilmCategories = async (id, categoryIds) => {
     throw error;
   }
 };
+
+// ============================================
+// SUPER JURY ENDPOINTS
+// ============================================
+
+/**
+ * Get all pending films for Super Jury (no assignment filter)
+ * @returns {Promise<Object>} Response with films array
+ */
+export const getFilmsForSuperJury = async () => {
+  try {
+    const response = await fetch(`${API_URL}/films/super-jury`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erreur lors de la recuperation des films");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get all jury members with their assignment counts
+ * @returns {Promise<Object>} Response with jury members array
+ */
+export const getJuryMembers = async () => {
+  try {
+    const response = await fetch(`${API_URL}/films/super-jury/members`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erreur lors de la recuperation des membres du jury");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Assign films to a jury member (Super Jury only)
+ * @param {number} juryId - Jury member ID
+ * @param {number[]} filmIds - Array of film IDs to assign
+ * @returns {Promise<Object>} Response with assignment results
+ */
+export const assignFilmsToJury = async (juryId, filmIds) => {
+  try {
+    const response = await fetch(`${API_URL}/films/super-jury/assign`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ jury_id: juryId, film_ids: filmIds }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erreur lors de l'assignation des films");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get films assigned to a specific jury member
+ * @param {number} juryId - Jury member ID
+ * @returns {Promise<Object>} Response with assigned films array
+ */
+export const getJuryAssignedFilms = async (juryId) => {
+  try {
+    const response = await fetch(`${API_URL}/films/super-jury/jury/${juryId}/films`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erreur lors de la recuperation des films assignes");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Remove a film assignment from a jury member
+ * @param {number} juryId - Jury member ID
+ * @param {number} filmId - Film ID to unassign
+ * @returns {Promise<Object>} Response
+ */
+export const removeFilmAssignment = async (juryId, filmId) => {
+  try {
+    const response = await fetch(`${API_URL}/films/super-jury/jury/${juryId}/films/${filmId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erreur lors de la suppression de l'assignation");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

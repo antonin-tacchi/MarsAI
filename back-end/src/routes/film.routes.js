@@ -16,6 +16,12 @@ import {
   updateFilmCategories,
   getAllCategories,
   getFilmsForJury,
+  // Super Jury
+  getFilmsForSuperJury,
+  getJuryMembers,
+  assignFilmsToJury,
+  removeFilmAssignment,
+  getJuryAssignedFilms,
 } from "../controllers/film.controller.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/authorize.middleware.js";
@@ -23,7 +29,7 @@ import { uploadFilm, uploadPoster } from "../config/upload.js";
 
 const router = Router();
 
-// Role IDs: 1 = Jury, 2 = Admin
+// Role IDs: 1 = Jury, 2 = Admin, 3 = Super Jury
 
 // Validation rules for film submission
 const submitValidation = [
@@ -114,6 +120,7 @@ const submitValidation = [
 const filmUpload = uploadFilm.fields([
   { name: "film", maxCount: 1 },
   { name: "poster", maxCount: 1 },
+  { name: "thumbnail", maxCount: 1 },
 ]);
 
 router.post("/submit", filmUpload, submitValidation, submitFilm);
@@ -195,6 +202,75 @@ router.get(
   authorize([1, 2]),
   getFilmsForJury
 );
+
+// ============================================
+// SUPER JURY ROUTES (Super Jury and Admin only)
+// Must be defined BEFORE /:id routes
+// ============================================
+
+/**
+ * @route   GET /api/films/super-jury
+ * @desc    Get all pending films for Super Jury (no assignment filter)
+ * @access  Super Jury, Admin
+ */
+router.get(
+  "/super-jury",
+  authenticateToken,
+  authorize([2, 3]),
+  getFilmsForSuperJury
+);
+
+/**
+ * @route   GET /api/films/super-jury/members
+ * @desc    Get all jury members with their assignment counts
+ * @access  Super Jury, Admin
+ */
+router.get(
+  "/super-jury/members",
+  authenticateToken,
+  authorize([2, 3]),
+  getJuryMembers
+);
+
+/**
+ * @route   POST /api/films/super-jury/assign
+ * @desc    Assign films to a jury member
+ * @access  Super Jury, Admin
+ */
+router.post(
+  "/super-jury/assign",
+  authenticateToken,
+  authorize([2, 3]),
+  assignFilmsToJury
+);
+
+/**
+ * @route   GET /api/films/super-jury/jury/:jury_id/films
+ * @desc    Get films assigned to a specific jury member
+ * @access  Super Jury, Admin
+ */
+router.get(
+  "/super-jury/jury/:jury_id/films",
+  authenticateToken,
+  authorize([2, 3]),
+  getJuryAssignedFilms
+);
+
+/**
+ * @route   DELETE /api/films/super-jury/jury/:jury_id/films/:film_id
+ * @desc    Remove a film assignment from a jury member
+ * @access  Super Jury, Admin
+ */
+router.delete(
+  "/super-jury/jury/:jury_id/films/:film_id",
+  authenticateToken,
+  authorize([2, 3]),
+  removeFilmAssignment
+);
+
+// ============================================
+// PARAMETERIZED ROUTES (must be last)
+// ============================================
 
 /**
  * @route   GET /api/films/:id

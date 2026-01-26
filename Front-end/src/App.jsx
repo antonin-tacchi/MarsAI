@@ -11,6 +11,7 @@ import DetailsFilm from "./pages/DetailsFilm.jsx";
 import PrizeList from "./pages/PrizeList.jsx";
 import ProfileAdmin from "./pages/ProfileAdmin.jsx";
 import ProfileJury from "./pages/ProfileJury.jsx";
+import ProfileSuperJury from "./pages/ProfileSuperJury.jsx";
 import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
 import NotFound from "./pages/NotFound.jsx";
@@ -38,8 +39,9 @@ export default function App() {
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />
 
-          {/* Protected routes (jury/admin) */}
+          {/* Protected routes (jury/admin/super-jury) */}
           <Route path="dashboard" element={<ProfileJury />} />
+          <Route path="super-jury" element={<ProfileSuperJury />} />
           <Route path="admin" element={<ProfileAdmin />} />
         </Route>
 

@@ -6,6 +6,7 @@ import fs from "fs";
 // Ensure uploads directories exist
 const filmsDir = path.join(process.cwd(), "uploads", "films");
 const postersDir = path.join(process.cwd(), "uploads", "posters");
+const thumbnailsDir = path.join(process.cwd(), "uploads", "thumbnails");
 
 if (!fs.existsSync(filmsDir)) {
   fs.mkdirSync(filmsDir, { recursive: true });
@@ -13,14 +14,19 @@ if (!fs.existsSync(filmsDir)) {
 if (!fs.existsSync(postersDir)) {
   fs.mkdirSync(postersDir, { recursive: true });
 }
+if (!fs.existsSync(thumbnailsDir)) {
+  fs.mkdirSync(thumbnailsDir, { recursive: true });
+}
 
-// Configure storage for both film and poster uploads
+// Configure storage for film, poster and thumbnail uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (file.fieldname === "film") {
       cb(null, filmsDir);
     } else if (file.fieldname === "poster") {
       cb(null, postersDir);
+    } else if (file.fieldname === "thumbnail") {
+      cb(null, thumbnailsDir);
     } else {
       cb(new Error("Champ de fichier inconnu"), false);
     }
@@ -28,7 +34,10 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const uniqueId = uuidv4();
     const ext = path.extname(file.originalname).toLowerCase();
-    const prefix = file.fieldname === "film" ? "film" : "poster";
+    let prefix = "file";
+    if (file.fieldname === "film") prefix = "film";
+    else if (file.fieldname === "poster") prefix = "poster";
+    else if (file.fieldname === "thumbnail") prefix = "thumb";
     cb(null, `${prefix}_${uniqueId}${ext}`);
   },
 });
@@ -58,7 +67,7 @@ const fileFilter = (req, file, cb) => {
     } else {
       cb(new Error("Format de video non supporte. Utilisez MP4, MOV, AVI, WMV, WebM, MPEG ou MKV."), false);
     }
-  } else if (file.fieldname === "poster") {
+  } else if (file.fieldname === "poster" || file.fieldname === "thumbnail") {
     if (imageMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {

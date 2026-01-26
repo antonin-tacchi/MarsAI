@@ -11,6 +11,7 @@ export default function SubmitFilm() {
 
   const filmInputRef = useRef(null);
   const posterInputRef = useRef(null);
+  const thumbnailInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     // Film Info
@@ -34,6 +35,7 @@ export default function SubmitFilm() {
 
   const [filmFile, setFilmFile] = useState(null);
   const [posterFile, setPosterFile] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -69,6 +71,19 @@ export default function SubmitFilm() {
     }
   };
 
+  const handleThumbnailFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check file size (5MB max for thumbnail)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("La miniature ne doit pas depasser 5MB");
+        return;
+      }
+      setThumbnailFile(file);
+      setError("");
+    }
+  };
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -86,6 +101,10 @@ export default function SubmitFilm() {
       }
       if (!filmFile) {
         setError("Le fichier du film est requis");
+        return;
+      }
+      if (!thumbnailFile) {
+        setError("La miniature est requise");
         return;
       }
     }
@@ -132,6 +151,9 @@ export default function SubmitFilm() {
       }
       if (posterFile) {
         submitData.append("poster", posterFile);
+      }
+      if (thumbnailFile) {
+        submitData.append("thumbnail", thumbnailFile);
       }
 
       await submitFilm(submitData, (progress) => {
@@ -354,6 +376,60 @@ export default function SubmitFilm() {
                         </svg>
                         <p className="text-[#262335] font-medium">Cliquez pour telecharger l'affiche</p>
                         <p className="text-sm text-gray-500 mt-1">JPG, PNG, WebP, GIF (max 10MB)</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Thumbnail File Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-[#262335] mb-2">
+                    Miniature / Thumbnail *
+                  </label>
+                  <input
+                    type="file"
+                    ref={thumbnailInputRef}
+                    onChange={handleThumbnailFileChange}
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                  />
+                  <div
+                    onClick={() => thumbnailInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+                      ${thumbnailFile ? "border-green-400 bg-green-50" : "border-[#C7C2CE] hover:border-[#463699]"}`}
+                  >
+                    {thumbnailFile ? (
+                      <div className="flex items-center justify-center gap-3">
+                        <img
+                          src={URL.createObjectURL(thumbnailFile)}
+                          alt="Thumbnail preview"
+                          className="w-20 h-12 object-cover rounded"
+                        />
+                        <div className="text-left">
+                          <p className="font-medium text-[#262335]">{thumbnailFile.name}</p>
+                          <p className="text-sm text-gray-500">{formatFileSize(thumbnailFile.size)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setThumbnailFile(null);
+                            if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+                          }}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <svg className="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-[#262335] font-medium">Cliquez pour telecharger la miniature</p>
+                        <p className="text-sm text-gray-500 mt-1">Format paysage 16:9 recommande - JPG, PNG, WebP, GIF (max 5MB)</p>
                       </>
                     )}
                   </div>

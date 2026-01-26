@@ -83,3 +83,12 @@ export const isJury = () => {
   const user = getCurrentUser();
   return user?.roles?.includes(1) || false;
 };
+
+/**
+ * Check if user is super jury
+ * @returns {boolean}
+ */
+export const isSuperJury = () => {
+  const user = getCurrentUser();
+  return user?.roles?.includes(3) || false;
+};
