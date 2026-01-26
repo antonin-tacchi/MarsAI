@@ -234,6 +234,29 @@ CREATE TABLE `newsletter_subscriptions` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- --------------------------------------------------------
+-- Table: invitations (Admin/Jury invitations)
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `invitations`;
+CREATE TABLE `invitations` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `role_id` int NOT NULL COMMENT '1=Jury, 2=Admin',
+  `token` varchar(255) NOT NULL,
+  `invited_by` int NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` datetime NOT NULL,
+  `accepted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `fk_inv_role` (`role_id`),
+  KEY `fk_inv_user` (`invited_by`),
+  CONSTRAINT `fk_inv_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`),
+  CONSTRAINT `fk_inv_user` FOREIGN KEY (`invited_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

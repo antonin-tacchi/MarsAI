@@ -201,6 +201,57 @@ class EmailService {
 
     return this.send(film.director_email, subject, html);
   }
+
+  /**
+   * Send invitation email to new admin/jury member
+   */
+  async sendInvitation(invitation, invitedByName) {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const inviteUrl = `${frontendUrl}/invite/${invitation.token}`;
+    const roleName = invitation.roleId === 2 ? "Administrateur" : "Membre du Jury";
+
+    const subject = `MarsAI Festival - Invitation a rejoindre l'equipe`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #262335; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background-color: #f9f9f9; }
+          .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+          .button { display: inline-block; background-color: #463699; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .highlight { color: #463699; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>MarsAI Festival</h1>
+          </div>
+          <div class="content">
+            <h2>Bonjour${invitation.name ? ` ${invitation.name}` : ""} !</h2>
+            <p>Vous avez ete invite(e) par <strong>${invitedByName}</strong> a rejoindre l'equipe du MarsAI Festival en tant que :</p>
+            <p class="highlight" style="font-size: 20px;">${roleName}</p>
+            <p>Pour activer votre compte, cliquez sur le bouton ci-dessous et definissez votre mot de passe :</p>
+            <p style="text-align: center;">
+              <a href="${inviteUrl}" class="button" style="color: white;">Activer mon compte</a>
+            </p>
+            <p style="font-size: 12px; color: #666;">Ce lien est valable pendant 7 jours.</p>
+            <p style="font-size: 12px; color: #666;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>${inviteUrl}</p>
+          </div>
+          <div class="footer">
+            <p>MarsAI Festival - Marseille, La Plateforme</p>
+            <p>Si vous n'avez pas demande cette invitation, ignorez cet email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.send(invitation.email, subject, html);
+  }
 }
 
 export default new EmailService();

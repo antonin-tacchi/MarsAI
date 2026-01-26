@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
+import AcceptInvitation from "./pages/AcceptInvitation.jsx";
 import SubmitFilm from "./pages/SubmitFilm.jsx";
 import About from "./pages/About.jsx";
 import Catalogs from "./pages/Catalogs.jsx";
@@ -20,6 +21,7 @@ export default function App() {
       <Routes>
         {/* Auth routes - without header/footer */}
         <Route path="login" element={<Login />} />
+        <Route path="invite/:token" element={<AcceptInvitation />} />
 
         {/* Film submission - without header/footer */}
         <Route path="submit" element={<SubmitFilm />} />
