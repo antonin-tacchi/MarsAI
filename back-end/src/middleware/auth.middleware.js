@@ -21,7 +21,6 @@ export const authenticateToken = (req, res, next) => {
       });
     }
 
-    // 🔑 ICI que tout se joue
     req.user = {
       id: decoded.userId,
       roles: decoded.roles || [],
