@@ -11,6 +11,11 @@ import {
   getFilmStats,
   checkSubmissionStatus,
   deleteFilm,
+  rateFilm,
+  getFilmRatings,
+  updateFilmCategories,
+  getAllCategories,
+  getFilmsForJury,
 } from "../controllers/film.controller.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/authorize.middleware.js";
@@ -168,6 +173,30 @@ router.get(
 );
 
 /**
+ * @route   GET /api/films/categories
+ * @desc    Get all available categories
+ * @access  Jury, Admin
+ */
+router.get(
+  "/categories",
+  authenticateToken,
+  authorize([1, 2]),
+  getAllCategories
+);
+
+/**
+ * @route   GET /api/films/jury
+ * @desc    Get films for jury dashboard with ratings
+ * @access  Jury, Admin
+ */
+router.get(
+  "/jury",
+  authenticateToken,
+  authorize([1, 2]),
+  getFilmsForJury
+);
+
+/**
  * @route   GET /api/films/:id
  * @desc    Get a single film by ID
  * @access  Jury, Admin
@@ -201,6 +230,42 @@ router.post(
   authenticateToken,
   authorize([1, 2]),
   rejectFilm
+);
+
+/**
+ * @route   POST /api/films/:id/rate
+ * @desc    Rate a film (1-5 stars)
+ * @access  Jury, Admin
+ */
+router.post(
+  "/:id/rate",
+  authenticateToken,
+  authorize([1, 2]),
+  rateFilm
+);
+
+/**
+ * @route   GET /api/films/:id/ratings
+ * @desc    Get all ratings for a film
+ * @access  Jury, Admin
+ */
+router.get(
+  "/:id/ratings",
+  authenticateToken,
+  authorize([1, 2]),
+  getFilmRatings
+);
+
+/**
+ * @route   PUT /api/films/:id/categories
+ * @desc    Update film categories
+ * @access  Jury, Admin
+ */
+router.put(
+  "/:id/categories",
+  authenticateToken,
+  authorize([1, 2]),
+  updateFilmCategories
 );
 
 /**

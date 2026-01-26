@@ -255,6 +255,142 @@ class FilmModel {
       throw error;
     }
   }
+
+  /**
+   * Rate a film (jury member)
+   */
+  async rateFilm(filmId, userId, rating, comment = null) {
+    try {
+      // Use INSERT ... ON DUPLICATE KEY UPDATE for upsert
+      await pool.execute(
+        `INSERT INTO jury_ratings (film_id, user_id, rating, comment)
+         VALUES (?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment), updated_at = NOW()`,
+        [filmId, userId, rating, comment]
+      );
+
+      return await this.getFilmRating(filmId, userId);
+    } catch (error) {
+      console.error("Error rating film:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a specific jury member's rating for a film
+   */
+  async getFilmRating(filmId, userId) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT * FROM jury_ratings WHERE film_id = ? AND user_id = ?`,
+        [filmId, userId]
+      );
+      return rows[0] || null;
+    } catch (error) {
+      console.error("Error getting film rating:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all ratings for a film with jury info
+   */
+  async getFilmRatings(filmId) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT jr.*, u.name as jury_name
+         FROM jury_ratings jr
+         JOIN users u ON jr.user_id = u.id
+         WHERE jr.film_id = ?
+         ORDER BY jr.created_at DESC`,
+        [filmId]
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error getting film ratings:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get average rating for a film
+   */
+  async getAverageRating(filmId) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT AVG(rating) as average, COUNT(*) as count
+         FROM jury_ratings WHERE film_id = ?`,
+        [filmId]
+      );
+      return {
+        average: rows[0].average ? parseFloat(rows[0].average).toFixed(1) : null,
+        count: rows[0].count,
+      };
+    } catch (error) {
+      console.error("Error getting average rating:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update categories for a film (replace all)
+   */
+  async updateCategories(filmId, categoryIds) {
+    try {
+      // Remove existing categories
+      await pool.execute("DELETE FROM film_categories WHERE film_id = ?", [filmId]);
+
+      // Add new categories
+      if (categoryIds && categoryIds.length > 0) {
+        for (const categoryId of categoryIds) {
+          await pool.execute(
+            "INSERT INTO film_categories (film_id, category_id) VALUES (?, ?)",
+            [filmId, categoryId]
+          );
+        }
+      }
+
+      return await this.getCategories(filmId);
+    } catch (error) {
+      console.error("Error updating film categories:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all available categories
+   */
+  async getAllCategories() {
+    try {
+      const [rows] = await pool.execute("SELECT * FROM categories ORDER BY name");
+      return rows;
+    } catch (error) {
+      console.error("Error getting all categories:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get films with ratings info for jury dashboard
+   */
+  async getFilmsForJury(userId) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT f.*,
+          (SELECT AVG(rating) FROM jury_ratings WHERE film_id = f.id) as average_rating,
+          (SELECT COUNT(*) FROM jury_ratings WHERE film_id = f.id) as rating_count,
+          (SELECT rating FROM jury_ratings WHERE film_id = f.id AND user_id = ?) as my_rating
+         FROM films f
+         WHERE f.status = 'pending'
+         ORDER BY f.created_at DESC`,
+        [userId]
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error getting films for jury:", error);
+      throw error;
+    }
+  }
 }
 
 export default new FilmModel();

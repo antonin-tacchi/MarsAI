@@ -235,6 +235,28 @@ CREATE TABLE `newsletter_subscriptions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
+-- Table: jury_ratings (Jury film ratings)
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `jury_ratings`;
+CREATE TABLE `jury_ratings` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `film_id` int NOT NULL,
+  `user_id` int NOT NULL COMMENT 'Jury member who rated',
+  `rating` int NOT NULL COMMENT 'Rating from 1 to 5',
+  `comment` text COMMENT 'Optional comment',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_jury_film` (`film_id`, `user_id`),
+  KEY `fk_rating_film` (`film_id`),
+  KEY `fk_rating_user` (`user_id`),
+  CONSTRAINT `fk_rating_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_rating_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_rating_range` CHECK (`rating` >= 1 AND `rating` <= 5)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
 -- Table: invitations (Admin/Jury invitations)
 -- --------------------------------------------------------
 

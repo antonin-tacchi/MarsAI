@@ -267,3 +267,110 @@ export const deleteFilm = async (id) => {
     throw error;
   }
 };
+
+/**
+ * Get films for jury dashboard with ratings (jury/admin)
+ * @returns {Promise<Object>} Response with films and ratings
+ */
+export const getFilmsForJury = async () => {
+  try {
+    const response = await fetch(`${API_URL}/films/jury`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erreur lors de la recuperation des films");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Get all categories (jury/admin)
+ * @returns {Promise<Object>} Response with categories array
+ */
+export const getCategories = async () => {
+  try {
+    const response = await fetch(`${API_URL}/films/categories`, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erreur lors de la recuperation des categories");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Rate a film (jury/admin)
+ * @param {number} id - Film ID
+ * @param {number} rating - Rating 1-5
+ * @param {string} comment - Optional comment
+ * @returns {Promise<Object>} Response with rating data
+ */
+export const rateFilm = async (id, rating, comment = "") => {
+  try {
+    const response = await fetch(`${API_URL}/films/${id}/rate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ rating, comment }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erreur lors de la notation");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Update film categories (jury/admin)
+ * @param {number} id - Film ID
+ * @param {number[]} categoryIds - Array of category IDs
+ * @returns {Promise<Object>} Response with updated categories
+ */
+export const updateFilmCategories = async (id, categoryIds) => {
+  try {
+    const response = await fetch(`${API_URL}/films/${id}/categories`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify({ category_ids: categoryIds }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erreur lors de la mise a jour des categories");
+    }
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};

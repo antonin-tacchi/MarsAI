@@ -350,3 +350,164 @@ export const deleteFilm = async (req, res) => {
     });
   }
 };
+
+/**
+ * Rate a film (jury/admin)
+ */
+export const rateFilm = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+    const userId = req.user.id;
+
+    // Validate rating
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "La note doit etre entre 1 et 5",
+      });
+    }
+
+    const film = await Film.findById(id);
+    if (!film) {
+      return res.status(404).json({
+        success: false,
+        message: "Film non trouve",
+      });
+    }
+
+    const userRating = await Film.rateFilm(id, userId, rating, comment);
+    const averageRating = await Film.getAverageRating(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Note enregistree",
+      data: {
+        userRating,
+        averageRating,
+      },
+    });
+  } catch (error) {
+    console.error("Rate film error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la notation du film",
+    });
+  }
+};
+
+/**
+ * Get ratings for a film (jury/admin)
+ */
+export const getFilmRatings = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const film = await Film.findById(id);
+    if (!film) {
+      return res.status(404).json({
+        success: false,
+        message: "Film non trouve",
+      });
+    }
+
+    const ratings = await Film.getFilmRatings(id);
+    const averageRating = await Film.getAverageRating(id);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ratings,
+        average: averageRating.average,
+        count: averageRating.count,
+      },
+    });
+  } catch (error) {
+    console.error("Get film ratings error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la recuperation des notes",
+    });
+  }
+};
+
+/**
+ * Update film categories (jury/admin)
+ */
+export const updateFilmCategories = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { category_ids } = req.body;
+
+    const film = await Film.findById(id);
+    if (!film) {
+      return res.status(404).json({
+        success: false,
+        message: "Film non trouve",
+      });
+    }
+
+    const categories = await Film.updateCategories(id, category_ids || []);
+
+    return res.status(200).json({
+      success: true,
+      message: "Categories mises a jour",
+      data: categories,
+    });
+  } catch (error) {
+    console.error("Update film categories error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la mise a jour des categories",
+    });
+  }
+};
+
+/**
+ * Get all categories
+ */
+export const getAllCategories = async (req, res) => {
+  try {
+    const categories = await Film.getAllCategories();
+
+    return res.status(200).json({
+      success: true,
+      data: categories,
+    });
+  } catch (error) {
+    console.error("Get all categories error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la recuperation des categories",
+    });
+  }
+};
+
+/**
+ * Get films for jury dashboard (with ratings info)
+ */
+export const getFilmsForJury = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const films = await Film.getFilmsForJury(userId);
+
+    // Get categories for each film
+    const filmsWithCategories = await Promise.all(
+      films.map(async (film) => {
+        const categories = await Film.getCategories(film.id);
+        return { ...film, categories };
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: filmsWithCategories,
+    });
+  } catch (error) {
+    console.error("Get films for jury error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la recuperation des films",
+    });
+  }
+};
