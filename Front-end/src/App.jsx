@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
@@ -15,15 +15,23 @@ import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = !!localStorage.getItem("token");
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Auth routes - without header/footer */}
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
 
-        {/* Main routes - with header/footer */}
         <Route path="/" element={<RootLayout />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
@@ -31,11 +39,32 @@ export default function App() {
           <Route path="contact" element={<Contact />} />
           <Route path="details-film" element={<DetailsFilm />} />
           <Route path="prize-list" element={<PrizeList />} />
-          <Route path="profile-admin" element={<ProfileAdmin />} />
-          <Route path="profile-director" element={<ProfileDirector />} />
-          <Route path="profile-jury" element={<ProfileJury />} />
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />
+          <Route
+            path="profile-admin"
+            element={
+              <ProtectedRoute>
+                <ProfileAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile-director"
+            element={
+              <ProtectedRoute>
+                <ProfileDirector />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile-jury"
+            element={
+              <ProtectedRoute>
+                <ProfileJury />
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
         <Route path="*" element={<NotFound />} />
