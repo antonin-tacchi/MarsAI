@@ -1,40 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 /**
- * Register a new user
- * @param {Object} userData - User registration data (name, email, password)
- * @returns {Promise<Object>} Response with user data and token
- */
-export const register = async (userData) => {
-  try {
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userData),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Registration failed");
-    }
-
-    // Store token and user data if registration successful
-    if (data.data?.token) {
-      localStorage.setItem("token", data.data.token);
-      localStorage.setItem("user", JSON.stringify(data.data.user));
-    }
-
-    return data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-/**
- * Login user
+ * Login user (Jury/Admin only)
  * @param {Object} credentials - User credentials (email, password)
  * @returns {Promise<Object>} Response with user data and token
  */
@@ -51,7 +18,7 @@ export const login = async (credentials) => {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || "Login failed");
+      throw new Error(data.message || "La connexion a echoue");
     }
 
     // Store token and user data if login successful
@@ -97,4 +64,22 @@ export const getToken = () => {
  */
 export const isAuthenticated = () => {
   return !!getToken();
+};
+
+/**
+ * Check if user is admin
+ * @returns {boolean}
+ */
+export const isAdmin = () => {
+  const user = getCurrentUser();
+  return user?.roles?.includes(2) || false;
+};
+
+/**
+ * Check if user is jury
+ * @returns {boolean}
+ */
+export const isJury = () => {
+  const user = getCurrentUser();
+  return user?.roles?.includes(1) || false;
 };

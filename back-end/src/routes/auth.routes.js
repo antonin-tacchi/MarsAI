@@ -1,47 +1,52 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { register, login, getProfile } from "../controllers/auth.controller.js";
-import { googleAuth } from "../controllers/googleAuth.controller.js";
+import {
+  login,
+  getProfile,
+  createUser,
+  getAllUsers,
+  deleteUser,
+} from "../controllers/auth.controller.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/authorize.middleware.js";
 
 const router = Router();
 
-// Validation rules for registration
-const registerValidation = [
-  body("email")
-    .isEmail()
-    .withMessage("Invalid email")
-    .normalizeEmail(),
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters"),
-  body("name")
-    .trim()
-    .notEmpty()
-    .withMessage("Full name is required"),
-];
+// Role IDs: 1 = Jury, 2 = Admin
 
 // Validation rules for login
 const loginValidation = [
   body("email")
     .isEmail()
-    .withMessage("Invalid email")
+    .withMessage("Email invalide")
     .normalizeEmail(),
   body("password")
     .notEmpty()
-    .withMessage("Password is required"),
+    .withMessage("Mot de passe requis"),
+];
+
+// Validation rules for creating a user
+const createUserValidation = [
+  body("email")
+    .isEmail()
+    .withMessage("Email invalide")
+    .normalizeEmail(),
+  body("password")
+    .isLength({ min: 6 })
+    .withMessage("Le mot de passe doit contenir au moins 6 caractères"),
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Le nom est requis"),
+  body("role")
+    .optional()
+    .isIn(["jury", "admin"])
+    .withMessage("Le rôle doit être 'jury' ou 'admin'"),
 ];
 
 /**
- * @route   POST /api/auth/register
- * @desc    Register a new user
- * @access  Public
- */
-router.post("/register", registerValidation, register);
-
-/**
  * @route   POST /api/auth/login
- * @desc    Login user
+ * @desc    Login (Jury/Admin only)
  * @access  Public
  */
 router.post("/login", loginValidation, login);
@@ -49,15 +54,45 @@ router.post("/login", loginValidation, login);
 /**
  * @route   GET /api/auth/profile
  * @desc    Get current user profile
- * @access  Private
+ * @access  Private (Jury/Admin)
  */
 router.get("/profile", authenticateToken, getProfile);
 
 /**
- * @route   POST /api/auth/google
- * @desc    Authenticate with Google OAuth
- * @access  Public
+ * @route   POST /api/auth/users
+ * @desc    Create a new user (Jury or Admin)
+ * @access  Admin only
  */
-router.post("/google", googleAuth);
+router.post(
+  "/users",
+  authenticateToken,
+  authorize([2]),
+  createUserValidation,
+  createUser
+);
+
+/**
+ * @route   GET /api/auth/users
+ * @desc    Get all users
+ * @access  Admin only
+ */
+router.get(
+  "/users",
+  authenticateToken,
+  authorize([2]),
+  getAllUsers
+);
+
+/**
+ * @route   DELETE /api/auth/users/:id
+ * @desc    Delete a user
+ * @access  Admin only
+ */
+router.delete(
+  "/users/:id",
+  authenticateToken,
+  authorize([2]),
+  deleteUser
+);
 
 export default router;
