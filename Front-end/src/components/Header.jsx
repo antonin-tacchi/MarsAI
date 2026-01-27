@@ -33,7 +33,6 @@ export default function Header() {
     { to: "/about", label: "Le festival" },
     { to: "/catalogs", label: "Catalogue" },
     { to: "/submissions", label: "Participer" },
-    { to: "/profile-director", label: "Mon Compte" },
     { to: "/prize-list", label: "Palmarès" },
   ];
 

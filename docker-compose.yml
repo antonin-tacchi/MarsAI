@@ -8,7 +8,7 @@ services:
       MYSQL_USER: marsai_user
       MYSQL_PASSWORD: marsai_password
     ports:
-      - "3307:3306"
+      - "${MYSQL_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./BDD/marsai.sql:/docker-entrypoint-initdb.d/marsai.sql
