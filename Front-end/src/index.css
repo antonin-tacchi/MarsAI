@@ -2,8 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  font-family: 'Saira', sans-serif !important;
+  text-transform: none !important; 
+  font-weight: inherit; 
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Saira', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -70,3 +76,4 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
