@@ -12,6 +12,7 @@ import PrizeList from "./pages/PrizeList.jsx";
 import ProfileAdmin from "./pages/ProfileAdmin.jsx";
 import ProfileJury from "./pages/ProfileJury.jsx";
 import ProfileSuperJury from "./pages/ProfileSuperJury.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
 import NotFound from "./pages/NotFound.jsx";
@@ -32,6 +33,7 @@ export default function App() {
       <Routes>
         <Route path="login" element={<Login />} />
         <Route path="invite/:token" element={<AcceptInvitation />} />
+        <Route path="dashboard" element={<Dashboard />} />
 
         {/* Film submission - without header/footer */}
         <Route path="submit" element={<SubmitFilm />} />
