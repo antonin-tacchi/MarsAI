@@ -55,18 +55,18 @@ export default function App() {
             }
           />
           <Route
-            path="profile-director"
-            element={
-              <ProtectedRoute>
-                <ProfileDirector />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="profile-jury"
             element={
               <ProtectedRoute>
                 <ProfileJury />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="super-jury"
+            element={
+              <ProtectedRoute>
+                <ProfileSuperJury />
               </ProtectedRoute>
             }
           />
