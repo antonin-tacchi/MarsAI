@@ -1,4 +1,8 @@
+import dotenv from "dotenv";
 import pool from "../src/config/database.js";
+
+// Load environment variables
+dotenv.config();
 
 async function testConnection() {
   console.log("Testing database connection...");

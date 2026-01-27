@@ -1,29 +1,29 @@
 # MarsAI Backend API
 
-API Backend pour l'application MarsAI avec authentification JWT et base de données MySQL.
+API Backend pour le festival MarsAI - Plateforme de gestion de films avec systeme d'invitation Jury/Admin.
 
-## Prérequis
+## Prerequis
 
-- Node.js (v18 ou supérieur)
-- MySQL (v8 ou supérieur)
+- Node.js (v18 ou superieur)
+- MySQL (v8 ou superieur)
 
 ## Installation
 
-### 1. Installer les dépendances
+### 1. Installer les dependances
 
 ```bash
 npm install
 ```
 
-### 2. Configuration de la base de données
+### 2. Configuration de la base de donnees
 
-Créez une base de données MySQL nommée `marsai` :
+Creez une base de donnees MySQL nommee `marsai` :
 
 ```sql
 CREATE DATABASE marsai;
 ```
 
-Importez le schéma de base de données :
+Importez le schema de base de donnees :
 
 ```bash
 mysql -u root -p marsai < ../BDD/marsai.sql
@@ -31,7 +31,7 @@ mysql -u root -p marsai < ../BDD/marsai.sql
 
 ### 3. Configuration
 
-Créez un fichier `.env` à la racine du projet back-end :
+Creez un fichier `.env` a la racine du projet back-end :
 
 ```env
 # Server Configuration
@@ -47,148 +47,196 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_mysql_password
 DB_NAME=marsai
+
+# Frontend URL (for email links)
+FRONTEND_URL=http://localhost:5173
+
+# Email Configuration (Gmail)
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
 ```
 
-## Démarrage
+## Demarrage
 
 ```bash
-# Mode développement
+# Mode developpement
 npm run dev
 
 # Mode production
 npm start
 ```
 
-## Endpoints d'authentification
+## API Endpoints
 
-### Register (Inscription)
+### Authentification
 
-**POST** `/api/auth/register`
-
-Body:
-```json
-{
-  "email": "user@example.com",
-  "password": "password123",
-  "name": "John Doe"
-}
-```
-
-Response (201):
-```json
-{
-  "success": true,
-  "message": "Utilisateur créé avec succès",
-  "data": {
-    "user": {
-      "id": 1,
-      "email": "user@example.com",
-      "name": "John Doe",
-      "created_at": "2024-01-20T10:00:00.000Z"
-    },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
-### Login (Connexion)
+#### Login (Connexion Jury/Admin)
 
 **POST** `/api/auth/login`
 
-Body:
 ```json
 {
-  "email": "user@example.com",
-  "password": "password123"
+  "email": "admin@marsai.com",
+  "password": "admin123"
 }
 ```
 
-Response (200):
-```json
-{
-  "success": true,
-  "message": "Connexion réussie",
-  "data": {
-    "user": {
-      "id": 1,
-      "email": "user@example.com",
-      "name": "John Doe",
-      "created_at": "2024-01-20T10:00:00.000Z"
-    },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
-### Get Profile (Profil utilisateur)
+#### Profil utilisateur
 
 **GET** `/api/auth/profile`
 
-Headers:
-```
-Authorization: Bearer <token>
-```
+Headers: `Authorization: Bearer <token>`
 
-Response (200):
+### Systeme d'invitation (Admin only)
+
+#### Envoyer une invitation
+
+**POST** `/api/auth/invite`
+
+Headers: `Authorization: Bearer <token>`
+
 ```json
 {
-  "success": true,
-  "data": {
-    "id": 1,
-    "email": "user@example.com",
-    "name": "John Doe",
-    "bio": null,
-    "country": null,
-    "school": null,
-    "created_at": "2024-01-20T10:00:00.000Z"
-  }
+  "email": "nouveau@email.com",
+  "name": "Nom de la personne",
+  "role": "jury"
 }
 ```
 
-## Validation des données
+Roles disponibles: `jury`, `admin`
 
-### Register
-- `email`: doit être un email valide
-- `password`: minimum 6 caractères
-- `name`: requis (nom complet)
+#### Voir les invitations en attente
 
-### Login
-- `email`: doit être un email valide
-- `password`: requis
+**GET** `/api/auth/invitations`
 
-## Codes d'erreur
+#### Annuler une invitation
 
-- `400`: Données invalides
-- `401`: Non authentifié
-- `403`: Token invalide ou expiré
-- `404`: Ressource non trouvée
-- `500`: Erreur serveur
+**DELETE** `/api/auth/invitations/:id`
 
-## Structure de la base de données
+### Acceptation d'invitation (Public)
 
-La base de données `marsai` contient plusieurs tables :
-- `users` : Utilisateurs de la plateforme
-- `films` : Films soumis au festival
-- `votes` : Votes du public
-- `awards` : Prix et récompenses
-- `events` : Événements du festival
-- `roles` : Rôles utilisateurs (Director, Jury, Admin)
-- `user_roles` : Association utilisateurs-rôles
+#### Verifier une invitation
 
-Voir le fichier `/BDD/marsai.sql` pour le schéma complet.
+**GET** `/api/auth/invite/:token`
 
-## Technologies utilisées
+#### Accepter et creer le compte
+
+**POST** `/api/auth/invite/:token/accept`
+
+```json
+{
+  "password": "motdepasse123",
+  "name": "Mon nom"
+}
+```
+
+### Soumission de films (Public)
+
+#### Soumettre un film
+
+**POST** `/api/films/submit`
+
+Content-Type: `multipart/form-data`
+
+Champs:
+- `film` (fichier video) - MP4, MOV, AVI, WebM, MKV (max 2GB)
+- `poster` (fichier image) - JPG, PNG, WebP, GIF (max 10MB)
+- `title` (requis)
+- `country`
+- `description`
+- `ai_tools_used`
+- `ai_certification` (boolean)
+- `director_firstname` (requis)
+- `director_lastname` (requis)
+- `director_email` (requis)
+- `director_bio`
+- `director_school`
+- `director_website`
+- `social_instagram`
+- `social_youtube`
+- `social_vimeo`
+
+#### Voir le catalogue (films approuves)
+
+**GET** `/api/films/catalog`
+
+#### Verifier le statut de soumission
+
+**GET** `/api/films/status?email=realisateur@email.com`
+
+### Gestion des films (Jury/Admin)
+
+#### Voir tous les films
+
+**GET** `/api/films`
+
+Query params: `?status=pending|approved|rejected`
+
+#### Voir les films en attente
+
+**GET** `/api/films/pending`
+
+#### Statistiques
+
+**GET** `/api/films/stats`
+
+#### Approuver un film
+
+**POST** `/api/films/:id/approve`
+
+#### Refuser un film
+
+**POST** `/api/films/:id/reject`
+
+```json
+{
+  "reason": "Raison du refus (optionnel)"
+}
+```
+
+#### Supprimer un film (Admin only)
+
+**DELETE** `/api/films/:id`
+
+## Roles
+
+| ID | Role | Permissions |
+|----|------|-------------|
+| 1 | Jury | Voir/Approuver/Refuser films |
+| 2 | Admin | Tout + Invitations + Suppression |
+
+## Compte Admin par defaut
+
+- Email: `admin@marsai.com`
+- Password: `admin123`
+
+## Structure de la base de donnees
+
+- `users` : Comptes Jury/Admin
+- `user_roles` : Association utilisateurs-roles
+- `roles` : Roles (Jury=1, Admin=2)
+- `invitations` : Invitations en attente
+- `films` : Films soumis avec infos realisateur
+- `film_categories` : Categories des films
+- `categories` : Categories du festival
+- `email_logs` : Historique des emails envoyes
+- `awards` : Prix et recompenses
+- `events` : Evenements du festival
+- `festival_config` : Configuration du festival
+
+## Technologies
 
 - **Express.js** : Framework web
-- **MySQL2** : Driver MySQL avec support des promesses
+- **MySQL2** : Driver MySQL
 - **bcryptjs** : Hashage des mots de passe
 - **jsonwebtoken** : Authentification JWT
-- **express-validator** : Validation des données
+- **express-validator** : Validation des donnees
+- **multer** : Upload de fichiers
+- **nodemailer** : Envoi d'emails
 
 ## Notes importantes
 
-✅ **Ce backend utilise une base de données MySQL persistante.**
-
-🔐 N'oubliez pas de changer le `JWT_SECRET` en production avec une clé secrète forte.
-
-🗄️ Assurez-vous que MySQL est en cours d'exécution avant de démarrer le serveur.
+- Pas d'inscription publique - Systeme d'invitation uniquement
+- Les realisateurs soumettent leurs films via le formulaire public
+- Ils recoivent un email a chaque changement de statut
+- Changez le `JWT_SECRET` en production

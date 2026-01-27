@@ -32,6 +32,8 @@ services:
       DB_PASSWORD: rootpassword
       DB_NAME: marsai
       JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_PASS: ${EMAIL_PASS:-}
     ports:
       - "${BACKEND_PORT}:5000"
     depends_on:

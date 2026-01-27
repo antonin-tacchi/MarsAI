@@ -2,15 +2,16 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
+import AcceptInvitation from "./pages/AcceptInvitation.jsx";
+import SubmitFilm from "./pages/SubmitFilm.jsx";
 import About from "./pages/About.jsx";
 import Catalogs from "./pages/Catalogs.jsx";
 import Contact from "./pages/Contact.jsx";
 import DetailsFilm from "./pages/DetailsFilm.jsx";
 import PrizeList from "./pages/PrizeList.jsx";
 import ProfileAdmin from "./pages/ProfileAdmin.jsx";
-import ProfileDirector from "./pages/ProfileDirector.jsx";
 import ProfileJury from "./pages/ProfileJury.jsx";
+import ProfileSuperJury from "./pages/ProfileSuperJury.jsx";
 import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
 import NotFound from "./pages/NotFound.jsx";
@@ -30,7 +31,10 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
+        <Route path="invite/:token" element={<AcceptInvitation />} />
+
+        {/* Film submission - without header/footer */}
+        <Route path="submit" element={<SubmitFilm />} />
 
         <Route path="/" element={<RootLayout />}>
           <Route index element={<Home />} />
@@ -38,6 +42,7 @@ export default function App() {
           <Route path="catalogs" element={<Catalogs />} />
           <Route path="contact" element={<Contact />} />
           <Route path="details-film" element={<DetailsFilm />} />
+          <Route path="details-film/:id" element={<DetailsFilm />} />
           <Route path="prize-list" element={<PrizeList />} />
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />

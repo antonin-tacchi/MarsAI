@@ -1,7 +1,7 @@
 import pool from "../config/database.js";
 
 /**
- * User Model - MySQL database operations
+ * User Model - For Jury and Admin accounts only
  */
 class UserModel {
   async findByEmail(email) {
@@ -32,19 +32,12 @@ class UserModel {
 
   async create(userData) {
     try {
-      const {
-        name,
-        email,
-        password,
-        bio = null,
-        country = null,
-        school = null,
-      } = userData;
+      const { name, email, password } = userData;
 
       const [result] = await pool.execute(
-        `INSERT INTO users (name, email, password, bio, country, school, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-        [name, email, password, bio, country, school]
+        `INSERT INTO users (name, email, password, created_at)
+         VALUES (?, ?, ?, NOW())`,
+        [name, email, password]
       );
 
       return await this.findById(result.insertId);
@@ -56,40 +49,17 @@ class UserModel {
 
   async getAll() {
     try {
-      const [rows] = await pool.execute("SELECT * FROM users");
+      const [rows] = await pool.execute(
+        `SELECT u.id, u.name, u.email, u.created_at,
+                GROUP_CONCAT(r.role_name) as roles
+         FROM users u
+         LEFT JOIN user_roles ur ON u.id = ur.user_id
+         LEFT JOIN roles r ON ur.role_id = r.id
+         GROUP BY u.id`
+      );
       return rows;
     } catch (error) {
       console.error("Error getting all users:", error);
-      throw error;
-    }
-  }
-
-  async update(id, userData) {
-    try {
-      const fields = [];
-      const values = [];
-
-      Object.keys(userData).forEach((key) => {
-        if (userData[key] !== undefined && key !== "id") {
-          fields.push(`${key} = ?`);
-          values.push(userData[key]);
-        }
-      });
-
-      if (fields.length === 0) {
-        return await this.findById(id);
-      }
-
-      values.push(id);
-
-      await pool.execute(
-        `UPDATE users SET ${fields.join(", ")} WHERE id = ?`,
-        values
-      );
-
-      return await this.findById(id);
-    } catch (error) {
-      console.error("Error updating user:", error);
       throw error;
     }
   }
@@ -115,6 +85,27 @@ class UserModel {
       );
     } catch (error) {
       console.error("Error assigning role to user:", error);
+      throw error;
+    }
+  }
+
+  async removeRole(userId, roleId) {
+    try {
+      await pool.execute(
+        "DELETE FROM user_roles WHERE user_id = ? AND role_id = ?",
+        [userId, roleId]
+      );
+    } catch (error) {
+      console.error("Error removing role from user:", error);
+      throw error;
+    }
+  }
+
+  async delete(id) {
+    try {
+      await pool.execute("DELETE FROM users WHERE id = ?", [id]);
+    } catch (error) {
+      console.error("Error deleting user:", error);
       throw error;
     }
   }
