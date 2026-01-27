@@ -397,8 +397,9 @@ class FilmModel {
 
   /**
    * Get all pending films for Super Jury (no assignment filter)
+   * @param {number} minRatings - Minimum ratings required (films with this many ratings are "complete")
    */
-  async getAllPendingFilmsForSuperJury() {
+  async getAllPendingFilmsForSuperJury(minRatings = 3) {
     try {
       const [rows] = await pool.execute(
         `SELECT f.*,
@@ -412,6 +413,75 @@ class FilmModel {
       return rows;
     } catch (error) {
       console.error("Error getting films for super jury:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get films that still need ratings (less than minRatings)
+   * @param {number} minRatings - Minimum ratings required
+   */
+  async getFilmsNeedingRatings(minRatings = 3) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT f.*,
+          (SELECT AVG(rating) FROM jury_ratings WHERE film_id = f.id) as average_rating,
+          (SELECT COUNT(*) FROM jury_ratings WHERE film_id = f.id) as rating_count,
+          (SELECT COUNT(*) FROM jury_assignments WHERE film_id = f.id) as assignment_count
+         FROM films f
+         WHERE f.status = 'pending'
+         HAVING rating_count < ?
+         ORDER BY rating_count ASC, f.created_at ASC`,
+        [minRatings]
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error getting films needing ratings:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get films that have enough ratings (completed evaluation)
+   * @param {number} minRatings - Minimum ratings required
+   */
+  async getFilmsWithEnoughRatings(minRatings = 3) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT f.*,
+          (SELECT AVG(rating) FROM jury_ratings WHERE film_id = f.id) as average_rating,
+          (SELECT COUNT(*) FROM jury_ratings WHERE film_id = f.id) as rating_count,
+          (SELECT COUNT(*) FROM jury_assignments WHERE film_id = f.id) as assignment_count
+         FROM films f
+         WHERE f.status = 'pending'
+         HAVING rating_count >= ?
+         ORDER BY average_rating DESC, rating_count DESC`,
+        [minRatings]
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error getting films with enough ratings:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get statistics for Super Jury dashboard
+   */
+  async getSuperJuryStats(minRatings = 3) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT
+          COUNT(*) as total_pending,
+          SUM(CASE WHEN (SELECT COUNT(*) FROM jury_ratings WHERE film_id = f.id) < ? THEN 1 ELSE 0 END) as needs_review,
+          SUM(CASE WHEN (SELECT COUNT(*) FROM jury_ratings WHERE film_id = f.id) >= ? THEN 1 ELSE 0 END) as review_complete
+         FROM films f
+         WHERE f.status = 'pending'`,
+        [minRatings, minRatings]
+      );
+      return rows[0];
+    } catch (error) {
+      console.error("Error getting super jury stats:", error);
       throw error;
     }
   }

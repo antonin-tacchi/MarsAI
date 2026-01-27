@@ -521,16 +521,25 @@ export const getFilmsForJury = async (req, res) => {
 // SUPER JURY ENDPOINTS
 // ============================================
 
+const MIN_RATINGS_REQUIRED = 3; // Films need 3 ratings to be considered "reviewed"
+
 /**
- * Get all pending films for Super Jury (no assignment filter)
+ * Get all pending films for Super Jury with stats
  */
 export const getFilmsForSuperJury = async (req, res) => {
   try {
-    const films = await Film.getAllPendingFilmsForSuperJury();
+    const [allFilms, stats] = await Promise.all([
+      Film.getAllPendingFilmsForSuperJury(MIN_RATINGS_REQUIRED),
+      Film.getSuperJuryStats(MIN_RATINGS_REQUIRED),
+    ]);
 
-    // Get categories for each film
+    // Separate films into two groups
+    const filmsNeedingReview = allFilms.filter(f => f.rating_count < MIN_RATINGS_REQUIRED);
+    const filmsReviewComplete = allFilms.filter(f => f.rating_count >= MIN_RATINGS_REQUIRED);
+
+    // Get categories for films needing review
     const filmsWithCategories = await Promise.all(
-      films.map(async (film) => {
+      filmsNeedingReview.map(async (film) => {
         const categories = await Film.getCategories(film.id);
         return { ...film, categories };
       })
@@ -539,6 +548,11 @@ export const getFilmsForSuperJury = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: filmsWithCategories,
+      completed: filmsReviewComplete,
+      stats: {
+        ...stats,
+        minRatingsRequired: MIN_RATINGS_REQUIRED,
+      },
     });
   } catch (error) {
     console.error("Get films for super jury error:", error);
