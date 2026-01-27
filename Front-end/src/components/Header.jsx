@@ -32,7 +32,7 @@ export default function Header() {
   const links = [
     { to: "/about", label: "Le festival" },
     { to: "/catalogs", label: "Catalogue" },
-    { to: "/submissions", label: "Participer" },
+    { to: "/submit", label: "Participer" },
     { to: "/prize-list", label: "Palmarès" },
   ];
 
