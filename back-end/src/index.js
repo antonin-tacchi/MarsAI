@@ -1,10 +1,12 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 import adminRoutes from "./routes/admin.routes.js";
 import healthRoutes from "./routes/health.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import testRoutes from "./routes/test.routes.js";
+import filmRoutes from "./routes/film.routes.js";
 import { testConnection } from "./config/database.js";
 
 dotenv.config();
@@ -21,6 +23,8 @@ app.use(
 
 app.use(express.json());
 
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+
 app.get("/", (req, res) => {
   res.json({ message: "MarsAI API online 🚀" });
 });
@@ -28,7 +32,8 @@ app.get("/", (req, res) => {
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
-app.use("/api", adminRoutes);
+app.use("/api/films", filmRoutes);
+app.use("/api/admin", adminRoutes);
 
 const port = Number(process.env.PORT) || 5000;
 
