@@ -231,19 +231,6 @@ CREATE TABLE `awards` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: newsletter_subscriptions
--- --------------------------------------------------------
-
-DROP TABLE IF EXISTS `newsletter_subscriptions`;
-CREATE TABLE `newsletter_subscriptions` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `email` varchar(100) NOT NULL,
-  `subscribed_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
 -- Table: jury_assignments (Super Jury assigns films to Jury)
 -- --------------------------------------------------------
 

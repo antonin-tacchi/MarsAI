@@ -107,13 +107,13 @@ MarsAI est une plateforme web pour un festival de films générés par Intellige
           └──────────────┘                            └──────────────┘
 
 
-          ┌──────────────┐                            ┌──────────────┐
-          │   events     │                            │ newsletter   │
-          ├──────────────┤                            ├──────────────┤
-          │ PK id        │                            │ PK id        │
-          │    event_type│                            │    email     │
-          │    title     │                            │ subscribed_at│
-          │    event_date│                            └──────────────┘
+          ┌──────────────┐
+          │   events     │
+          ├──────────────┤
+          │ PK id        │
+          │    event_type│
+          │    title     │
+          │    event_date│
           │    location  │
           └──────────────┘
 ```
