@@ -95,7 +95,6 @@ CREATE TABLE `films` (
   `country` varchar(100) DEFAULT NULL,
   `description` text,
   `film_url` varchar(500) DEFAULT NULL COMMENT 'URL to uploaded film file',
-  `youtube_link` varchar(500) DEFAULT NULL COMMENT 'YouTube link (added later by admin)',
   `poster_url` varchar(500) DEFAULT NULL COMMENT 'Main poster image',
   `thumbnail_url` varchar(500) DEFAULT NULL COMMENT 'Small thumbnail for lists',
   `ai_tools_used` text COMMENT 'AI tools used (free text)',
@@ -229,19 +228,6 @@ CREATE TABLE `awards` (
   KEY `idx_year_rank` (`year`, `rank`),
   CONSTRAINT `fk_award_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_award_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
--- Table: newsletter_subscriptions
--- --------------------------------------------------------
-
-DROP TABLE IF EXISTS `newsletter_subscriptions`;
-CREATE TABLE `newsletter_subscriptions` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `email` varchar(100) NOT NULL,
-  `subscribed_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------

@@ -16,7 +16,6 @@ class FilmModel {
         country = null,
         description = null,
         film_url = null,
-        youtube_link = null,
         poster_url = null,
         thumbnail_url = null,
         ai_tools_used = null,
@@ -36,19 +35,18 @@ class FilmModel {
 
       const [result] = await pool.execute(
         `INSERT INTO films (
-          title, country, description, film_url, youtube_link, poster_url, thumbnail_url,
+          title, country, description, film_url, poster_url, thumbnail_url,
           ai_tools_used, ai_certification,
           director_firstname, director_lastname, director_email,
           director_bio, director_school, director_website,
           social_instagram, social_youtube, social_vimeo,
           status, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())`,
         [
           title,
           country,
           description,
           film_url,
-          youtube_link,
           poster_url,
           thumbnail_url,
           ai_tools_used,

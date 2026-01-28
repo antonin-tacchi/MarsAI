@@ -35,7 +35,6 @@ export const submitFilm = async (req, res) => {
       country: req.body.country,
       description: req.body.description,
       film_url: filmUrl,
-      youtube_link: req.body.youtube_link || null,
       poster_url: posterUrl || req.body.poster_url,
       thumbnail_url: thumbnailUrl || req.body.thumbnail_url,
       ai_tools_used: req.body.ai_tools_used,
@@ -142,7 +141,6 @@ export const getApprovedFilms = async (req, res) => {
       director_lastname: film.director_lastname,
       description: film.description,
       country: film.country,
-      youtube_link: film.youtube_link,
       poster_url: film.poster_url,
       ai_tools_used: film.ai_tools_used,
     }));
