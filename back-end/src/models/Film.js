@@ -81,4 +81,58 @@ export default class Film {
       status: "pending",
     };
   }
+
+  static async findById(id) {
+    const sql = `SELECT * FROM films WHERE id = ?`;
+    const [rows] = await db.query(sql, [id]);
+    return rows[0] || null;
+  }
+
+  static async findAllPending() {
+    const sql = `
+      SELECT id, title, country, description, film_url, poster_url, thumbnail_url,
+             director_firstname, director_lastname, director_email, director_bio,
+             ai_tools_used, ai_certification, status, created_at
+      FROM films
+      WHERE status = 'pending'
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
+  }
+
+  static async findApproved() {
+    const sql = `
+      SELECT id, title, country, description, film_url, poster_url, thumbnail_url,
+             director_firstname, director_lastname, director_bio,
+             ai_tools_used, ai_certification, status, created_at
+      FROM films
+      WHERE status = 'approved'
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
+  }
+
+  static async updateStatus(id, status, rejectionReason = null) {
+    const sql = `
+      UPDATE films
+      SET status = ?, rejection_reason = ?, updated_at = NOW()
+      WHERE id = ?
+    `;
+    const [result] = await db.query(sql, [status, rejectionReason, id]);
+    return result.affectedRows > 0;
+  }
+
+  static async findAll() {
+    const sql = `
+      SELECT id, title, country, description, film_url, poster_url, thumbnail_url,
+             director_firstname, director_lastname, director_email, director_bio,
+             ai_tools_used, ai_certification, status, created_at
+      FROM films
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
+  }
 }

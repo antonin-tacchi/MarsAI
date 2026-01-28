@@ -147,3 +147,94 @@ export const createFilm = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+/**
+ * Get all pending films (Admin only)
+ */
+export const getPendingFilms = async (req, res) => {
+  try {
+    const films = await Film.findAllPending();
+    return res.status(200).json({
+      success: true,
+      data: films,
+    });
+  } catch (err) {
+    console.error("getPendingFilms error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+/**
+ * Get all approved films (Catalog - Public)
+ */
+export const getApprovedFilms = async (req, res) => {
+  try {
+    const films = await Film.findApproved();
+    return res.status(200).json({
+      success: true,
+      data: films,
+    });
+  } catch (err) {
+    console.error("getApprovedFilms error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+/**
+ * Update film status (Admin only)
+ */
+export const updateFilmStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, rejection_reason } = req.body;
+
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status must be 'approved' or 'rejected'",
+      });
+    }
+
+    const film = await Film.findById(id);
+    if (!film) {
+      return res.status(404).json({
+        success: false,
+        message: "Film not found",
+      });
+    }
+
+    const updated = await Film.updateStatus(id, status, rejection_reason || null);
+
+    if (!updated) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update film status",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Film ${status}`,
+      data: { id, status },
+    });
+  } catch (err) {
+    console.error("updateFilmStatus error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+/**
+ * Get all films (Admin only)
+ */
+export const getAllFilms = async (req, res) => {
+  try {
+    const films = await Film.findAll();
+    return res.status(200).json({
+      success: true,
+      data: films,
+    });
+  } catch (err) {
+    console.error("getAllFilms error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};

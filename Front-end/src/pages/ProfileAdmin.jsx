@@ -105,7 +105,7 @@ export default function ProfileAdmin() {
   const handleFilmStatus = async (filmId, status, reason = null) => {
     try {
       const response = await fetch(`${API_URL}/films/${filmId}/status`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
