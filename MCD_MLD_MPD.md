@@ -1,6 +1,6 @@
 # MarsAI - Modélisation de la Base de Données
 
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-27
 **Auteur:** Équipe MarsAI
 
@@ -34,7 +34,6 @@
         │ date_expir   │         │ nom       │                 │
         │ date_accept  │         │ email     │                 │ concerne
         └──────────────┘         │ password  │                 │ (1,1)
-                                 │ date_crea │                 │
                                  └─────┬─────┘                 │
                                        │                       │
                           note  (0,n)  │                       │
@@ -42,39 +41,35 @@
                         │                                      │
                         ▼                                      ▼
                  ┌─────────────┐                        ┌─────────────┐
-                 │   NOTATION  │                        │    FILM     │
-                 ├─────────────┤      évalue           ├─────────────┤
-                 │ note (1-5)  │◄──────────────────────┤ titre       │
-                 │ commentaire │        (0,n)          │ pays        │
-                 │ date        │                       │ description │
-                 └─────────────┘                       │ url_video   │
-                                                       │ url_poster  │
-                                                       │ url_thumb   │
-                 ┌─────────────┐                       │ outils_ia   │
-                 │  CATEGORIE  │      appartient       │ statut      │
-                 ├─────────────┤◄──────────────────────┤ date_crea   │
-                 │ nom         │        (0,n)          │             │
-                 │ description │                       │ -- Réalis.--│
-                 └─────────────┘                       │ prenom      │
-                                                       │ nom         │
-                                                       │ email       │
-                 ┌─────────────┐      reçoit           │ bio         │
-                 │ EMAIL_LOG   │◄──────────────────────┤ ecole       │
-                 ├─────────────┤        (0,n)          └─────────────┘
-                 │ type        │
+                 │   NOTATION  │      évalue           │    FILM     │
+                 ├─────────────┤◄──────────────────────┤             │
+                 │ note (1-5)  │        (0,n)          ├─────────────┤
+                 │ commentaire │                       │ titre       │
+                 │ date        │                       │ pays        │
+                 └──────┬──────┘                       │ description │
+                        │                              │ statut      │
+                        │                              │ réalisateur │
+                        │ détermine                    └──────┬──────┘
+                        │ (calcul moyenne)                    │
+                        │                                     │
+                        ▼                                     │
+                 ┌─────────────┐                              │
+                 │    PRIX     │◄─────────────────────────────┤ gagne (0,n)
+                 ├─────────────┤                              │
+                 │ rang        │         appartient           │
+                 │ type        │◄──────────────────────┐      │
+                 │ score_final │                       │      │
+                 │ montant     │                       │      │
+                 │ année       │                ┌──────┴──────┤
+                 └─────────────┘                │  CATEGORIE  │
+                                               ├─────────────┤
+                                               │ nom         │
+                 ┌─────────────┐               │ description │
+                 │ EMAIL_LOG   │◄──────────────└─────────────┘
+                 ├─────────────┤    reçoit
+                 │ type        │     (0,n)
                  │ date        │
-                 │ succès      │
                  └─────────────┘
-
-
-                 ┌─────────────┐      attribué_à       ┌─────────────┐
-                 │    PRIX     │◄──────────────────────┤   FESTIVAL  │
-                 ├─────────────┤        (0,n)          ├─────────────┤
-                 │ nom         │                       │ date_debut  │
-                 │ type        │                       │ date_fin    │
-                 │ montant     │                       │ lieu        │
-                 │ année       │                       │ actif       │
-                 └─────────────┘                       └─────────────┘
 ```
 
 ### Cardinalités
@@ -88,8 +83,9 @@
 | assigne | UTILISATEUR | (0,n) | ASSIGNATION | (0,n) |
 | concerne | ASSIGNATION | (1,1) | FILM | (0,n) |
 | appartient | FILM | (0,n) | CATEGORIE | (0,n) |
+| **gagne** | **FILM** | **(0,n)** | **PRIX** | **(1,1)** |
+| **par_categorie** | **PRIX** | **(0,1)** | **CATEGORIE** | **(0,n)** |
 | reçoit | FILM | (0,n) | EMAIL_LOG | (1,1) |
-| attribué_à | FILM | (0,1) | PRIX | (0,n) |
 
 ---
 
@@ -127,56 +123,48 @@
        │   │ #id (PK)         │                        │ #id (PK)         │
        │   │ @jury_id (FK)────┼────────────┐           │ @film_id (FK)────┼───────┐
        │   │ @film_id (FK)────┼─────────┐  │           │ @user_id (FK)────┼────┐  │
-       └──►│ @assigned_by (FK)│         │  │           │  rating          │    │  │
+       └──►│ @assigned_by (FK)│         │  │           │  rating (1-5)    │    │  │
            │  assigned_at     │         │  │           │  comment         │    │  │
            └──────────────────┘         │  │           │  created_at      │    │  │
                                         │  │           └──────────────────┘    │  │
-                                        │  │                                   │  │
+                                        │  │                    │              │  │
+                                        │  │                    │ moyenne      │  │
+                                        │  │                    ▼              │  │
                                         │  └───────────────────────────────────┼──┼───┐
                                         │                                      │  │   │
                                         ▼                                      │  │   │
     categories                      films                                      │  │   │
 ┌──────────────┐              ┌──────────────────────┐                        │  │   │
 │ #id (PK)     │              │ #id (PK)             │◄───────────────────────┘  │   │
-│  name        │              │                      │                           │   │
-│  description │              │  title               │◄──────────────────────────┘   │
-└──────┬───────┘              │  country             │                               │
-       │                      │  description         │◄──────────────────────────────┘
-       │                      │  film_url            │
-       │                      │  youtube_link        │
-       │   film_categories    │  poster_url          │
-       │  ┌──────────────┐    │  thumbnail_url       │
-       │  │ @film_id (FK)├───►│  ai_tools_used       │
-       └─►│@category_id(FK)   │  ai_certification    │
-          │  (PK composée)│    │                      │
-          └──────────────┘    │  director_firstname  │
-                              │  director_lastname   │
-                              │  director_email      │
-                              │  director_bio        │        email_logs
-                              │  director_school     │    ┌──────────────────┐
-                              │  director_website    │    │ #id (PK)         │
-                              │  social_instagram    │    │ @film_id (FK)────┼────┐
-                              │  social_youtube      │    │  recipient_email │    │
-                              │  social_vimeo        │    │  email_type      │    │
-                              │                      │    │  sent_at         │    │
-                              │  status              │    │  success         │    │
-                              │ @status_changed_by(FK)────│  error_message   │    │
-                              │  status_changed_at   │    └──────────────────┘    │
-                              │  rejection_reason    │                            │
-                              │  created_at          │◄───────────────────────────┘
-                              └──────────────────────┘
-
-
-    awards                        festival_config              events
-┌──────────────────┐          ┌──────────────────┐      ┌──────────────────┐
-│ #id (PK)         │          │ #id (PK)         │      │ #id (PK)         │
-│  award_name      │          │  submission_start│      │  event_type      │
-│  award_type      │          │  submission_end  │      │  title           │
-│ @film_id (FK)────┼────►     │  event_date      │      │  description     │
-│  year            │          │  location        │      │  event_date      │
-│  description     │          │  is_active       │      │  location        │
-│  prize_amount    │          └──────────────────┘      │  max_attendees   │
-└──────────────────┘                                    └──────────────────┘
+│  name        │              │  title               │                           │   │
+│  description │              │  country             │◄──────────────────────────┘   │
+└──────┬───────┘              │  description         │                               │
+       │                      │  film_url            │◄──────────────────────────────┘
+       │                      │  poster_url          │
+       │                      │  thumbnail_url       │
+       │   film_categories    │  status              │
+       │  ┌──────────────┐    │  director_*          │
+       │  │ @film_id (FK)├───►│  created_at          │
+       └─►│@category_id(FK)   └──────────┬───────────┘
+          │  (PK composée)│              │
+          └──────────────┘              │
+                   │                    │
+                   │                    │ gagne
+                   │                    ▼
+                   │           ┌──────────────────────┐
+                   │           │       awards         │
+                   │           ├──────────────────────┤
+                   │           │ #id (PK)             │
+                   └──────────►│ @film_id (FK)        │ ◄── Film gagnant
+                               │ @category_id (FK)   │ ◄── Prix par catégorie
+                               │  rank               │ ◄── 1er, 2ème, 3ème
+                               │  award_type         │ ◄── grand_prix, gold...
+                               │  final_score        │ ◄── Moyenne des notes
+                               │  award_name         │
+                               │  prize_amount       │
+                               │  year               │
+                               │  awarded_at         │
+                               └──────────────────────┘
 
 
 Légende:
@@ -185,170 +173,118 @@ Légende:
   ─► = Référence
 ```
 
-### Résumé des Tables
-
-| Table | Clé Primaire | Clés Étrangères |
-|-------|--------------|-----------------|
-| `roles` | id | - |
-| `users` | id | - |
-| `user_roles` | (user_id, role_id) | user_id → users, role_id → roles |
-| `invitations` | id | role_id → roles, invited_by → users |
-| `films` | id | status_changed_by → users |
-| `categories` | id | - |
-| `film_categories` | (film_id, category_id) | film_id → films, category_id → categories |
-| `jury_ratings` | id | film_id → films, user_id → users |
-| `jury_assignments` | id | jury_id → users, film_id → films, assigned_by → users |
-| `email_logs` | id | film_id → films |
-| `awards` | id | film_id → films |
-| `festival_config` | id | - |
-| `events` | id | - |
-
 ---
 
-## 3. MPD - Modèle Physique de Données
-
-> Le MPD détaille l'implémentation physique avec types de données et contraintes.
+## 3. Flux de Notation → Prix
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                     MPD                                         │
-│                         Modèle Physique de Données                              │
-│                                  (MySQL 8)                                      │
+│                     FLUX : DES NOTES AUX PRIX                                   │
 └─────────────────────────────────────────────────────────────────────────────────┘
+
+  ÉTAPE 1: Notation par les jurys
+  ═══════════════════════════════
+
+    Jury A                Jury B                Jury C
+       │                     │                     │
+       │ note: 4/5           │ note: 5/5           │ note: 4/5
+       │                     │                     │
+       └─────────────────────┼─────────────────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │  jury_ratings   │
+                    │                 │
+                    │ Film X: 4,5,4   │
+                    │ Film Y: 3,4,3   │
+                    │ Film Z: 5,5,4   │
+                    └────────┬────────┘
+                             │
+                             │
+  ÉTAPE 2: Calcul des moyennes
+  ════════════════════════════
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │    Moyennes     │
+                    │                 │
+                    │ Film X: 4.33    │
+                    │ Film Y: 3.33    │
+                    │ Film Z: 4.67    │
+                    └────────┬────────┘
+                             │
+                             │
+  ÉTAPE 3: Classement par catégorie
+  ══════════════════════════════════
+                             │
+                             ▼
+        ┌────────────────────────────────────────┐
+        │         Catégorie: Futurisme           │
+        │                                        │
+        │   1er: Film Z (4.67) ──► Grand Prix    │
+        │   2ème: Film X (4.33) ──► Prix Jury    │
+        │   3ème: Film Y (3.33) ──► Mention      │
+        └────────────────────────────────────────┘
+                             │
+                             │
+  ÉTAPE 4: Attribution des prix
+  ══════════════════════════════
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │     awards      │
+                    │                 │
+                    │ film_id: Z      │
+                    │ category_id: 1  │
+                    │ rank: 1         │
+                    │ type: grand_prix│
+                    │ final_score:4.67│
+                    │ year: 2026      │
+                    └─────────────────┘
 ```
 
-### Table: `roles`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                        roles                            │
-├─────────────┬──────────────┬────────────┬──────────────┤
-│ Colonne     │ Type         │ Contrainte │ Description  │
-├─────────────┼──────────────┼────────────┼──────────────┤
-│ id          │ INT          │ PK, AI     │ Identifiant  │
-│ role_name   │ VARCHAR(50)  │ UNIQUE, NN │ Nom du rôle  │
-└─────────────┴──────────────┴────────────┴──────────────┘
-Données: (1, 'Jury'), (2, 'Admin'), (3, 'Super Jury')
-```
+---
 
-### Table: `users`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                        users                            │
-├─────────────┬──────────────┬────────────┬──────────────┤
-│ Colonne     │ Type         │ Contrainte │ Description  │
-├─────────────┼──────────────┼────────────┼──────────────┤
-│ id          │ INT          │ PK, AI     │ Identifiant  │
-│ name        │ VARCHAR(100) │ NN         │ Nom complet  │
-│ email       │ VARCHAR(100) │ UNIQUE, NN │ Email        │
-│ password    │ VARCHAR(255) │ NN         │ Hash bcrypt  │
-│ created_at  │ DATETIME     │ DEFAULT NOW│ Date création│
-└─────────────┴──────────────┴────────────┴──────────────┘
-Index: idx_email (email)
-```
+## 4. MPD - Modèle Physique de Données
 
-### Table: `user_roles`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                      user_roles                         │
-├─────────────┬──────────────┬────────────┬──────────────┤
-│ Colonne     │ Type         │ Contrainte │ Description  │
-├─────────────┼──────────────┼────────────┼──────────────┤
-│ user_id     │ INT          │ PK, FK     │ → users.id   │
-│ role_id     │ INT          │ PK, FK     │ → roles.id   │
-└─────────────┴──────────────┴────────────┴──────────────┘
-ON DELETE CASCADE
-```
+### Table: `awards` (MISE À JOUR)
 
-### Table: `invitations`
 ```sql
-┌─────────────────────────────────────────────────────────┐
-│                     invitations                         │
-├─────────────┬──────────────┬────────────┬──────────────┤
-│ Colonne     │ Type         │ Contrainte │ Description  │
-├─────────────┼──────────────┼────────────┼──────────────┤
-│ id          │ INT          │ PK, AI     │ Identifiant  │
-│ email       │ VARCHAR(255) │ NN         │ Email invité │
-│ name        │ VARCHAR(100) │ NULL       │ Nom optionnel│
-│ role_id     │ INT          │ FK, NN     │ → roles.id   │
-│ token       │ VARCHAR(255) │ UNIQUE, NN │ Token 64 hex │
-│ invited_by  │ INT          │ FK, NN     │ → users.id   │
-│ created_at  │ DATETIME     │ DEFAULT NOW│ Date création│
-│ expires_at  │ DATETIME     │ NN         │ +7 jours     │
-│ accepted_at │ DATETIME     │ NULL       │ Date accept. │
-└─────────────┴──────────────┴────────────┴──────────────┘
-Index: idx_token (token)
-```
+┌────────────────────────────────────────────────────────────────┐
+│                          awards                                │
+│              Prix basés sur le classement des notes            │
+├────────────────┬──────────────────┬────────────┬──────────────┤
+│ Colonne        │ Type             │ Contrainte │ Description  │
+├────────────────┼──────────────────┼────────────┼──────────────┤
+│ id             │ INT              │ PK, AI     │ Identifiant  │
+│ film_id        │ INT              │ FK, NN     │ → films.id   │
+│ category_id    │ INT              │ FK, NULL   │→categories.id│
+│ rank           │ INT              │ NN         │ 1, 2, 3...   │
+│ award_type     │ ENUM             │ NN         │ Type de prix │
+│ award_name     │ VARCHAR(100)     │ NN         │ Nom affiché  │
+│ final_score    │ DECIMAL(3,2)     │ NULL       │ Moyenne notes│
+│ year           │ INT              │ NN         │ Année        │
+│ description    │ TEXT             │ NULL       │ Description  │
+│ prize_amount   │ DECIMAL(10,2)    │ NULL       │ Montant €    │
+│ awarded_at     │ DATETIME         │ DEFAULT NOW│ Date remise  │
+└────────────────┴──────────────────┴────────────┴──────────────┘
 
-### Table: `films`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                        films                            │
-├───────────────────┬──────────────┬──────────┬──────────┤
-│ Colonne           │ Type         │Contrainte│Descript. │
-├───────────────────┼──────────────┼──────────┼──────────┤
-│ id                │ INT          │ PK, AI   │ ID       │
-│ title             │ VARCHAR(255) │ NN       │ Titre    │
-│ country           │ VARCHAR(100) │ NULL     │ Pays     │
-│ description       │ TEXT         │ NULL     │ Synopsis │
-│ film_url          │ VARCHAR(500) │ NULL     │ URL vidéo│
-│ youtube_link      │ VARCHAR(500) │ NULL     │ Lien YT  │
-│ poster_url        │ VARCHAR(500) │ NULL     │ Affiche  │
-│ thumbnail_url     │ VARCHAR(500) │ NULL     │ Miniature│
-│ ai_tools_used     │ TEXT         │ NULL     │ Outils IA│
-│ ai_certification  │ TINYINT(1)   │ DEFAULT 0│ Certifié │
-├───────────────────┼──────────────┼──────────┼──────────┤
-│ director_firstname│ VARCHAR(100) │ NN       │ Prénom   │
-│ director_lastname │ VARCHAR(100) │ NN       │ Nom      │
-│ director_email    │ VARCHAR(255) │ NN       │ Email    │
-│ director_bio      │ TEXT         │ NULL     │ Bio      │
-│ director_school   │ VARCHAR(255) │ NULL     │ École    │
-│ director_website  │ VARCHAR(500) │ NULL     │ Site web │
-│ social_instagram  │ VARCHAR(255) │ NULL     │ Instagram│
-│ social_youtube    │ VARCHAR(255) │ NULL     │ YouTube  │
-│ social_vimeo      │ VARCHAR(255) │ NULL     │ Vimeo    │
-├───────────────────┼──────────────┼──────────┼──────────┤
-│ status            │ ENUM         │ DEFAULT  │ pending/ │
-│                   │              │ 'pending'│ approved/│
-│                   │              │          │ rejected │
-│ status_changed_at │ DATETIME     │ NULL     │ Date chgt│
-│ status_changed_by │ INT          │ FK, NULL │→users.id │
-│ rejection_reason  │ TEXT         │ NULL     │ Motif    │
-│ created_at        │ DATETIME     │ DEF. NOW │ Date     │
-└───────────────────┴──────────────┴──────────┴──────────┘
-Index: idx_status, idx_created_at, idx_director_email
-```
+ENUM award_type: 'grand_prix', 'jury_prize', 'public_prize',
+                 'special_mention', 'gold', 'silver', 'bronze'
 
-### Table: `categories`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                      categories                         │
-├─────────────┬──────────────┬────────────┬──────────────┤
-│ Colonne     │ Type         │ Contrainte │ Description  │
-├─────────────┼──────────────┼────────────┼──────────────┤
-│ id          │ INT          │ PK, AI     │ Identifiant  │
-│ name        │ VARCHAR(100) │ UNIQUE, NN │ Nom          │
-│ description │ TEXT         │ NULL       │ Description  │
-└─────────────┴──────────────┴────────────┴──────────────┘
-Données: Futurisme, Environnement, Société, Technologie, Art
-```
+INDEX: idx_year_rank (year, rank)
+UNIQUE: (film_id, category_id, year)
 
-### Table: `film_categories`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                    film_categories                      │
-├─────────────┬──────────────┬────────────┬──────────────┤
-│ Colonne     │ Type         │ Contrainte │ Description  │
-├─────────────┼──────────────┼────────────┼──────────────┤
-│ film_id     │ INT          │ PK, FK     │ → films.id   │
-│ category_id │ INT          │ PK, FK     │→categories.id│
-└─────────────┴──────────────┴────────────┴──────────────┘
-ON DELETE CASCADE
+FK: film_id → films(id) ON DELETE CASCADE
+FK: category_id → categories(id) ON DELETE SET NULL
 ```
 
 ### Table: `jury_ratings`
+
 ```sql
 ┌─────────────────────────────────────────────────────────┐
 │                     jury_ratings                        │
+│                  Notes des jurys                        │
 ├─────────────┬──────────────┬────────────┬──────────────┤
 │ Colonne     │ Type         │ Contrainte │ Description  │
 ├─────────────┼──────────────┼────────────┼──────────────┤
@@ -360,154 +296,108 @@ ON DELETE CASCADE
 │ created_at  │ DATETIME     │ DEFAULT NOW│ Date         │
 │ updated_at  │ DATETIME     │ ON UPDATE  │ Mise à jour  │
 └─────────────┴──────────────┴────────────┴──────────────┘
-UNIQUE: (film_id, user_id) - Un jury = une note par film
+
 CHECK: rating >= 1 AND rating <= 5
-ON DELETE CASCADE
-```
-
-### Table: `jury_assignments`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                   jury_assignments                      │
-├─────────────┬──────────────┬────────────┬──────────────┤
-│ Colonne     │ Type         │ Contrainte │ Description  │
-├─────────────┼──────────────┼────────────┼──────────────┤
-│ id          │ INT          │ PK, AI     │ Identifiant  │
-│ jury_id     │ INT          │ FK, NN     │ → users.id   │
-│ film_id     │ INT          │ FK, NN     │ → films.id   │
-│ assigned_by │ INT          │ FK, NN     │ → users.id   │
-│ assigned_at │ DATETIME     │ DEFAULT NOW│ Date assign. │
-└─────────────┴──────────────┴────────────┴──────────────┘
-UNIQUE: (jury_id, film_id) - Un film assigné une fois par jury
-ON DELETE CASCADE
-```
-
-### Table: `email_logs`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                      email_logs                         │
-├─────────────────┬──────────────┬──────────┬────────────┤
-│ Colonne         │ Type         │Contrainte│ Description│
-├─────────────────┼──────────────┼──────────┼────────────┤
-│ id              │ INT          │ PK, AI   │ Identifiant│
-│ film_id         │ INT          │ FK, NN   │ → films.id │
-│ recipient_email │ VARCHAR(255) │ NN       │ Destinataire│
-│ email_type      │ ENUM         │ NN       │ Type email │
-│ sent_at         │ DATETIME     │ DEF. NOW │ Date envoi │
-│ success         │ TINYINT(1)   │ DEFAULT 1│ Succès?    │
-│ error_message   │ TEXT         │ NULL     │ Erreur     │
-└─────────────────┴──────────────┴──────────┴────────────┘
-ENUM: 'submission_received', 'status_approved', 'status_rejected'
-```
-
-### Table: `awards`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                        awards                           │
-├─────────────┬──────────────┬────────────┬──────────────┤
-│ Colonne     │ Type         │ Contrainte │ Description  │
-├─────────────┼──────────────┼────────────┼──────────────┤
-│ id          │ INT          │ PK, AI     │ Identifiant  │
-│ award_name  │ VARCHAR(100) │ NN         │ Nom du prix  │
-│ award_type  │ ENUM         │ NN         │ Type         │
-│ film_id     │ INT          │ FK, NULL   │ → films.id   │
-│ year        │ INT          │ NN         │ Année        │
-│ description │ TEXT         │ NULL       │ Description  │
-│ prize_amount│ DECIMAL(10,2)│ NULL       │ Montant €    │
-└─────────────┴──────────────┴────────────┴──────────────┘
-ENUM: 'grand_prix', 'jury_prize', 'public_prize', 'special_mention'
-```
-
-### Table: `festival_config`
-```sql
-┌─────────────────────────────────────────────────────────┐
-│                    festival_config                      │
-├──────────────────┬──────────────┬─────────┬────────────┤
-│ Colonne          │ Type         │Contraint│ Description│
-├──────────────────┼──────────────┼─────────┼────────────┤
-│ id               │ INT          │ PK, AI  │ Identifiant│
-│ submission_start │ DATETIME     │ NN      │ Début      │
-│ submission_end   │ DATETIME     │ NN      │ Fin        │
-│ event_date       │ DATETIME     │ NULL    │ Événement  │
-│ location         │ VARCHAR(255) │ DEFAULT │ Lieu       │
-│ is_active        │ TINYINT(1)   │ DEFAULT 1│ Actif?    │
-└──────────────────┴──────────────┴─────────┴────────────┘
+UNIQUE: (film_id, user_id) -- Un jury = une note par film
 ```
 
 ---
 
-## 4. Diagramme des Relations (Simplifié)
+## 5. Requêtes SQL Utiles
+
+### Calcul de la moyenne par film
+```sql
+SELECT
+    f.id,
+    f.title,
+    AVG(jr.rating) as average_rating,
+    COUNT(jr.id) as rating_count
+FROM films f
+LEFT JOIN jury_ratings jr ON f.id = jr.film_id
+WHERE f.status = 'approved'
+GROUP BY f.id
+ORDER BY average_rating DESC;
+```
+
+### Classement par catégorie
+```sql
+SELECT
+    c.name as category,
+    f.title,
+    AVG(jr.rating) as score,
+    RANK() OVER (PARTITION BY c.id ORDER BY AVG(jr.rating) DESC) as rank
+FROM films f
+JOIN film_categories fc ON f.id = fc.film_id
+JOIN categories c ON fc.category_id = c.id
+JOIN jury_ratings jr ON f.id = jr.film_id
+GROUP BY c.id, f.id
+HAVING COUNT(jr.id) >= 3
+ORDER BY c.name, rank;
+```
+
+### Attribution d'un prix
+```sql
+INSERT INTO awards (film_id, category_id, rank, award_type, award_name, final_score, year)
+SELECT
+    f.id,
+    1, -- category_id
+    1, -- rank (1er)
+    'grand_prix',
+    'Grand Prix Futurisme 2026',
+    AVG(jr.rating),
+    2026
+FROM films f
+JOIN jury_ratings jr ON f.id = jr.film_id
+JOIN film_categories fc ON f.id = fc.film_id
+WHERE fc.category_id = 1
+GROUP BY f.id
+ORDER BY AVG(jr.rating) DESC
+LIMIT 1;
+```
+
+---
+
+## 6. Résumé des Relations
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                     DIAGRAMME DES RELATIONS                                     │
+│                        SCHÉMA SIMPLIFIÉ                                         │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
-
-                          ┌─────────┐
-                          │  roles  │
-                          └────┬────┘
-                               │
-                               │ 1
-                               │
-                               │ N
-                          ┌────┴────┐
-         ┌────────────────┤user_roles├────────────────┐
-         │                └────┬────┘                 │
-         │                     │                      │
-         │ N                   │ N                    │
-         │                     │                      │
-    ┌────┴────┐           ┌────┴────┐           ┌────┴────┐
-    │invitations          │  users  │           │  roles  │
-    └─────────┘           └────┬────┘           └─────────┘
-                               │
-            ┌──────────────────┼──────────────────┐
-            │                  │                  │
-            │ 1                │ 1                │ 1
-            │                  │                  │
-            │ N                │ N                │ N
-       ┌────┴────┐        ┌────┴────┐       ┌────┴────┐
-       │jury_    │        │jury_    │       │  films  │
-       │assign.  │        │ratings  │       └────┬────┘
-       └────┬────┘        └────┬────┘            │
-            │                  │                 │
-            │ N                │ N               │
-            │                  │                 │
-            └─────────────┬────┴─────────────────┤
-                          │                      │
-                     ┌────┴────┐            ┌────┴────┐
-                     │  films  │            │film_cat.│
-                     └────┬────┘            └────┬────┘
-                          │                      │
-                          │ 1                    │ N
-                          │                      │
-                          │ N                    │ 1
-                     ┌────┴────┐            ┌────┴────┐
-                     │email_   │            │category │
-                     │logs     │            └─────────┘
-                     └─────────┘
+    users ◄───── user_roles ─────► roles
+      │
+      ├──────► invitations
+      │
+      ├──────► jury_assignments ──────┐
+      │                               │
+      └──────► jury_ratings ──────────┼──────► films ◄──── film_categories ──► categories
+                    │                 │          │                                  │
+                    │                 │          │                                  │
+                    │   moyenne       │          │                                  │
+                    │      │          │          │                                  │
+                    ▼      ▼          ▼          ▼                                  │
+               ┌─────────────────────────────────────────────────────────────────┐ │
+               │                         awards                                  │ │
+               │                                                                 │◄┘
+               │  film_id ───────────────────► Film gagnant                      │
+               │  category_id ─────────────────► Catégorie du prix               │
+               │  rank ────────────────────────► 1er, 2ème, 3ème                 │
+               │  final_score ─────────────────► Moyenne au moment du prix       │
+               └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 5. Contraintes d'Intégrité
+## 7. Règles Métier
 
-| Contrainte | Table | Description |
-|------------|-------|-------------|
-| `chk_rating_range` | jury_ratings | `rating >= 1 AND rating <= 5` |
-| `unique_jury_film` | jury_ratings | Un jury ne peut noter qu'une fois par film |
-| `unique_jury_assignment` | jury_assignments | Un film assigné une fois par jury |
-| `fk_cascade` | Toutes | Suppression en cascade |
-
----
-
-## 6. Règles Métier
-
-1. **Notation:** Minimum 3 notes différentes par film
-2. **Invitation:** Token expire après 7 jours
-3. **Rôles:** Un utilisateur peut avoir plusieurs rôles
-4. **Upload:** Vidéo max 2GB, Images max 10MB
+| Règle | Description |
+|-------|-------------|
+| **Minimum 3 notes** | Un film doit avoir au moins 3 notes pour être éligible aux prix |
+| **1 note par jury** | Un jury ne peut noter qu'une seule fois par film |
+| **Prix par catégorie** | Chaque catégorie a son propre classement et ses propres prix |
+| **Score final figé** | Le `final_score` est enregistré au moment de l'attribution du prix |
+| **Rang unique** | Un seul film peut avoir le rang 1 dans une catégorie par année |
 
 ---
 
-*Document généré le 27/01/2026 - MarsAI Festival*
+*Document mis à jour le 27/01/2026 - MarsAI Festival v1.1*
