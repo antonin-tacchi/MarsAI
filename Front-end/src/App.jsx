@@ -13,6 +13,7 @@ import ProfileDirector from "./pages/ProfileDirector.jsx";
 import ProfileJury from "./pages/ProfileJury.jsx";
 import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
+import AcceptInvitation from "./pages/AcceptInvitation.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 const ProtectedRoute = ({ children }) => {
@@ -31,6 +32,7 @@ export default function App() {
       <Routes>
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="invite/:token" element={<AcceptInvitation />} />
 
         <Route path="/" element={<RootLayout />}>
           <Route index element={<Home />} />

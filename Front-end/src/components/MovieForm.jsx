@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Input from "./Input";
 import successBg from "../images/fondsoumissionfilm.jpg";
+import { submitFilm } from "../services/filmService";
 
 const Stepper = ({ currentStep }) => {
   const steps = [1, 2, 3];
@@ -71,7 +72,43 @@ export default function MovieForm() {
   const [posterFile, setPosterFile] = useState(null);
   const [thumbFile, setThumbFile] = useState(null);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState(null);
   const formRef = useRef(null);
+
+  const handleSubmit = async () => {
+    if (!validateSection(2)) return;
+
+    setLoading(true);
+    setSubmitError(null);
+
+    try {
+      const formData = new FormData(formRef.current);
+
+      // Build FormData for API
+      const apiFormData = new FormData();
+      apiFormData.append("film", filmFile);
+      apiFormData.append("poster", posterFile);
+      if (thumbFile) apiFormData.append("thumbnail", thumbFile);
+
+      apiFormData.append("title", formData.get("title"));
+      apiFormData.append("country", formData.get("country"));
+      apiFormData.append("description", formData.get("description"));
+      apiFormData.append("ai_tools_used", formData.get("ai_tools") || "");
+      apiFormData.append("ai_certification", formData.get("certify") ? "true" : "false");
+      apiFormData.append("director_firstname", formData.get("fname"));
+      apiFormData.append("director_lastname", formData.get("lname"));
+      apiFormData.append("director_email", formData.get("email"));
+      apiFormData.append("director_bio", formData.get("bio") || "");
+
+      await submitFilm(apiFormData);
+      setStep(3);
+    } catch (error) {
+      console.error("Submission error:", error);
+      setSubmitError(error.message || "Une erreur est survenue lors de la soumission");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateSection = (sectionNumber) => {
     const newErrors = {};
@@ -101,7 +138,7 @@ export default function MovieForm() {
   );
 
   return (
-    <form ref={formRef} onSubmit={(e) => { e.preventDefault(); if(validateSection(2)) { setLoading(true); setTimeout(() => setStep(3), 2000); } }} className="w-full min-h-screen overflow-x-hidden">
+    <form ref={formRef} onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="w-full min-h-screen overflow-x-hidden">
       {step === 1 ? (
         <section className="w-full min-h-screen flex items-center justify-center px-4 py-10 md:py-20 bg-[#8A83DA]" style={{ backgroundImage: `radial-gradient(ellipse at center, #FBD5BD 0%, rgba(138, 131, 218, 0.8) 100%, #8A83DA 50%)` }}>
           <div className="w-full max-w-6xl mx-auto">
@@ -140,11 +177,16 @@ export default function MovieForm() {
               <Input label="Email" name="email" type="email" error={errors.email} />
               <Input label="Bio" name="bio" type="textarea" error={errors.bio} />
             </div>
+            {submitError && (
+              <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                {submitError}
+              </div>
+            )}
             <div className="flex flex-col-reverse md:flex-row gap-6 justify-center items-center">
               <button type="button" onClick={() => setStep(1)} className="text-[#262335] underline font-bold uppercase">Retour</button>
               <button type="submit" disabled={loading} className="w-full md:w-auto bg-[#262335] text-[#FBF5F0] px-16 py-6 rounded-full font-black uppercase shadow-2xl flex items-center justify-center gap-4">
                 {loading && <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />}
-                {loading ? "Chargement..." : "Soumettre le film"}
+                {loading ? "Envoi en cours..." : "Soumettre le film"}
               </button>
             </div>
           </div>

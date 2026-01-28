@@ -5,9 +5,9 @@ import { getAllUsers } from "../controllers/admin.controller.js";
 
 const router = Router();
 
-// Admin only
+// Admin only (role 2)
 router.use(authenticateToken);
-router.use(authorize([3]));
+router.use(authorize([2]));
 
 /**
  * @route   GET /api/admin/users
