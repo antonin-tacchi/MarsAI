@@ -48,10 +48,6 @@ const submitValidation = [
     .optional()
     .isLength({ max: 5000 })
     .withMessage("La description ne doit pas depasser 5000 caracteres"),
-  body("youtube_link")
-    .optional()
-    .isURL()
-    .withMessage("Lien YouTube invalide"),
   body("poster_url")
     .optional()
     .isURL()

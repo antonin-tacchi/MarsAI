@@ -56,11 +56,11 @@ MarsAI est une plateforme web pour un festival de films générés par Intellige
 │ • Futurisme  │      │   │    country                       │
 │ • Environnement     │   │    description                   │
 │ • Société    │      │   │    film_url                      │
-│ • Technologie│      │   │    youtube_link                  │
-│ • Art/Culture│      │   │    poster_url                    │
-└──────────────┘      │   │    thumbnail_url                 │
-        │             │   │    ai_tools_used                 │
+│ • Technologie│      │   │    poster_url                    │
+│ • Art/Culture│      │   │    thumbnail_url                 │
+└──────────────┘      │   │    ai_tools_used                 │
         │             │   │    ai_certification              │
+        │             │   │                                  │
         ▼             │   │                                  │
 ┌──────────────┐      │   │ -- Director Info --              │
 │film_categories      │   │    director_firstname            │

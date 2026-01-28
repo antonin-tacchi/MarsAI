@@ -95,7 +95,6 @@ CREATE TABLE `films` (
   `country` varchar(100) DEFAULT NULL,
   `description` text,
   `film_url` varchar(500) DEFAULT NULL COMMENT 'URL to uploaded film file',
-  `youtube_link` varchar(500) DEFAULT NULL COMMENT 'YouTube link (added later by admin)',
   `poster_url` varchar(500) DEFAULT NULL COMMENT 'Main poster image',
   `thumbnail_url` varchar(500) DEFAULT NULL COMMENT 'Small thumbnail for lists',
   `ai_tools_used` text COMMENT 'AI tools used (free text)',
