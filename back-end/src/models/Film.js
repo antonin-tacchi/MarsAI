@@ -19,7 +19,6 @@ export default class Film {
         country,
         description,
         film_url,
-        youtube_link,
         poster_url,
         thumbnail_url,
         ai_tools_used,
@@ -40,8 +39,7 @@ export default class Film {
       )
       VALUES (
         ?, ?, ?,
-        ?, NULL,
-        ?, ?,
+        ?, ?, ?,
         ?, ?,
 
         ?, ?, ?,
