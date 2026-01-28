@@ -1,28 +1,123 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+// src/services/filmService.js
 
-/**
- * Submit a new film
- * @param {FormData} formData - Film data with files
- * @returns {Promise<Object>} Response with film data
- */
-export const submitFilm = async (formData) => {
-  try {
-    const response = await fetch(`${API_URL}/films`, {
-      method: "POST",
-      body: formData,
-    });
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-    const data = await response.json();
+export async function submitFilm(payload) {
+  const formData = new FormData();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Film submission failed");
-    }
+  // ======================
+  // Text fields – Film
+  // ======================
+  formData.append("title", payload.title);
+  formData.append("country", payload.country);
+  formData.append("description", payload.description);
 
-    return data;
-  } catch (error) {
-    throw error;
+  if (payload.ai_tools_used) {
+    formData.append("ai_tools_used", payload.ai_tools_used);
   }
-};
+
+  if (typeof payload.ai_certification !== "undefined") {
+    formData.append(
+      "ai_certification",
+      String(payload.ai_certification)
+    );
+  }
+
+  // ======================
+  // Director fields
+  // ======================
+  formData.append(
+    "director_firstname",
+    payload.director_firstname
+  );
+  formData.append(
+    "director_lastname",
+    payload.director_lastname
+  );
+  formData.append(
+    "director_email",
+    payload.director_email
+  );
+
+  if (payload.director_bio) {
+    formData.append("director_bio", payload.director_bio);
+  }
+
+  if (payload.director_school) {
+    formData.append(
+      "director_school",
+      payload.director_school
+    );
+  }
+
+  if (payload.director_website) {
+    formData.append(
+      "director_website",
+      payload.director_website
+    );
+  }
+
+  if (payload.social_instagram) {
+    formData.append(
+      "social_instagram",
+      payload.social_instagram
+    );
+  }
+
+  if (payload.social_youtube) {
+    formData.append(
+      "social_youtube",
+      payload.social_youtube
+    );
+  }
+
+  if (payload.social_vimeo) {
+    formData.append(
+      "social_vimeo",
+      payload.social_vimeo
+    );
+  }
+
+  // ======================
+  // Files (multer fields)
+  // ======================
+  formData.append("film", payload.filmFile);
+  formData.append("poster", payload.posterFile);
+
+  if (payload.thumbnailFile) {
+    formData.append(
+      "thumbnail",
+      payload.thumbnailFile
+    );
+  }
+
+  // ======================
+  // API call
+  // ======================
+  const res = await fetch(`${API_BASE_URL}/api/films`, {
+    method: "POST",
+    body: formData,
+    // ❌ ne jamais définir Content-Type avec FormData
+  });
+
+  // Sécurité si le backend renvoie du HTML (500)
+  const contentType = res.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? await res.json()
+    : {
+        success: false,
+        message: await res.text(),
+      };
+
+  if (!res.ok) {
+    throw new Error(
+      data?.message || "Film submission failed"
+    );
+  }
+
+  return data;
+}
 
 /**
  * Get approved films for catalog
@@ -30,7 +125,7 @@ export const submitFilm = async (formData) => {
  */
 export const getApprovedFilms = async () => {
   try {
-    const response = await fetch(`${API_URL}/films/catalog`);
+    const response = await fetch(`${API_BASE_URL}/api/films/catalog`);
     const data = await response.json();
 
     if (!response.ok) {
@@ -50,7 +145,7 @@ export const getApprovedFilms = async () => {
  */
 export const checkFilmStatus = async (email) => {
   try {
-    const response = await fetch(`${API_URL}/films/status?email=${encodeURIComponent(email)}`);
+    const response = await fetch(`${API_BASE_URL}/api/films/status?email=${encodeURIComponent(email)}`);
     const data = await response.json();
 
     if (!response.ok) {
