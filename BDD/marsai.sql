@@ -117,6 +117,7 @@ CREATE TABLE `films` (
   `status_changed_by` int DEFAULT NULL COMMENT 'User ID who changed the status',
   `rejection_reason` text COMMENT 'Reason for rejection (if rejected)',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   PRIMARY KEY (`id`),
   KEY `idx_status` (`status`),
@@ -147,15 +148,17 @@ CREATE TABLE `film_categories` (
 DROP TABLE IF EXISTS `email_logs`;
 CREATE TABLE `email_logs` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `film_id` int NOT NULL,
+  `film_id` int DEFAULT NULL,
   `recipient_email` varchar(255) NOT NULL,
-  `email_type` enum('submission_received', 'status_approved', 'status_rejected') NOT NULL,
+  `subject` varchar(500) DEFAULT NULL,
+  `email_type` varchar(50) NOT NULL COMMENT 'submission_received, status_approved, status_rejected, invitation, film_status',
+  `status` varchar(20) DEFAULT 'sent' COMMENT 'sent, failed, skipped',
   `sent_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `success` tinyint(1) DEFAULT 1,
   `error_message` text,
   PRIMARY KEY (`id`),
   KEY `fk_email_film` (`film_id`),
-  CONSTRAINT `fk_email_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE
+  KEY `idx_recipient` (`recipient_email`),
+  CONSTRAINT `fk_email_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
