@@ -206,21 +206,29 @@ CREATE TABLE `events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: awards
+-- Table: awards (Prix basés sur le classement des notes)
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `awards`;
 CREATE TABLE `awards` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `award_name` varchar(100) NOT NULL,
-  `award_type` enum('grand_prix', 'jury_prize', 'public_prize', 'special_mention') NOT NULL,
-  `film_id` int DEFAULT NULL,
+  `film_id` int NOT NULL COMMENT 'Film gagnant',
+  `category_id` int DEFAULT NULL COMMENT 'Catégorie du prix (NULL = toutes catégories)',
+  `rank` int NOT NULL COMMENT 'Classement: 1=1er, 2=2ème, 3=3ème...',
+  `award_type` enum('grand_prix', 'jury_prize', 'public_prize', 'special_mention', 'gold', 'silver', 'bronze') NOT NULL,
+  `award_name` varchar(100) NOT NULL COMMENT 'Nom du prix affiché',
+  `final_score` decimal(3,2) DEFAULT NULL COMMENT 'Moyenne des notes au moment du prix',
   `year` int NOT NULL,
   `description` text,
-  `prize_amount` decimal(10,2) DEFAULT NULL,
+  `prize_amount` decimal(10,2) DEFAULT NULL COMMENT 'Montant en euros',
+  `awarded_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'Date de remise du prix',
   PRIMARY KEY (`id`),
-  KEY `film_id` (`film_id`),
-  CONSTRAINT `fk_award_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE SET NULL
+  UNIQUE KEY `unique_film_category_year` (`film_id`, `category_id`, `year`),
+  KEY `fk_award_film` (`film_id`),
+  KEY `fk_award_category` (`category_id`),
+  KEY `idx_year_rank` (`year`, `rank`),
+  CONSTRAINT `fk_award_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_award_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
