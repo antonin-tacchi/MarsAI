@@ -156,3 +156,50 @@ export const createFilm = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+import { FILM_STATUS } from "../constants/filmStatus.js";
+import { canChangeFilmStatus } from "../services/filmStatus.service.js";
+
+export const updateFilmStatus = async (req, res) => {
+  try {
+    const filmId = req.params.id;
+    const { status: nextStatus } = req.body;
+
+    if (!Object.values(FILM_STATUS).includes(nextStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
+    const film = await Film.findById(filmId);
+    if (!film) {
+      return res.status(404).json({
+        success: false,
+        message: "Film not found",
+      });
+    }
+
+    if (!canChangeFilmStatus(film.status, nextStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status transition not allowed",
+      });
+    }
+
+    await Film.updateStatus(filmId, nextStatus);
+
+    return res.json({
+      success: true,
+      message: "Film status updated",
+      data: {
+        id: filmId,
+        status: nextStatus,
+      },
+    });
+  } catch (err) {
+    console.error("updateFilmStatus error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+

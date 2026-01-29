@@ -3,7 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import { createFilm } from "../controllers/film.controller.js";
+import { createFilm, updateFilmStatus } from "../controllers/film.controller.js";
 
 const router = express.Router();
 
@@ -117,5 +117,7 @@ const uploadMiddleware = (req, res, next) => {
 };
 
 router.post("/", submitLimiter, uploadMiddleware, createFilm);
+
+router.patch("/films/:id/status", updateFilmStatus);
 
 export default router;
