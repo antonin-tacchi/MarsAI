@@ -1,4 +1,5 @@
 import db from "../config/database.js";
+import { FILM_STATUS } from "../constants/filmStatus.js";
 
 export default class Film {
   static async countRecentByEmail(email, minutes = 60) {
@@ -55,7 +56,7 @@ export default class Film {
         ?, ?, ?,
         ?, ?, ?,
 
-        'pending',
+        ?,
         NOW()
       )
     `;
@@ -80,6 +81,9 @@ export default class Film {
       data.social_instagram,
       data.social_youtube,
       data.social_vimeo,
+
+      
+      FILM_STATUS.PENDING,
     ];
 
     const [result] = await db.query(sql, params);
@@ -87,8 +91,7 @@ export default class Film {
     return {
       id: result.insertId,
       ...data,
-      ai_certification: Film.toTinyInt(data.ai_certification),
-      status: "pending",
+      status: FILM_STATUS.PENDING,
     };
   }
 }
