@@ -15,6 +15,7 @@ import ProfileSuperJury from "./pages/ProfileSuperJury.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
+import AcceptInvitation from "./pages/AcceptInvitation.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 const ProtectedRoute = ({ children }) => {
@@ -32,19 +33,28 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="login" element={<Login />} />
+<<<<<<< HEAD
         <Route path="invite/:token" element={<AcceptInvitation />} />
         <Route path="dashboard" element={<Dashboard />} />
 
         {/* Film submission - without header/footer */}
         <Route path="submit" element={<SubmitFilm />} />
+=======
+        <Route path="register" element={<Register />} />
+        <Route path="invite/:token" element={<AcceptInvitation />} />
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
 
         <Route path="/" element={<RootLayout />}>
           <Route index element={<Home />} />
           <Route path="about" element={<About />} />
           <Route path="catalogs" element={<Catalogs />} />
           <Route path="contact" element={<Contact />} />
+<<<<<<< HEAD
           <Route path="details-film" element={<DetailsFilm />} />
           <Route path="details-film/:id" element={<DetailsFilm />} />
+=======
+          <Route path="film/:id" element={<DetailsFilm />} />
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
           <Route path="prize-list" element={<PrizeList />} />
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />

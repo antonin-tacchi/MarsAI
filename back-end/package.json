@@ -12,9 +12,14 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
+<<<<<<< HEAD
     "multer": "^1.4.5-lts.1",
+=======
+    "multer": "^2.0.2",
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
     "mysql2": "^3.16.1",
     "nodemailer": "^6.9.8",
     "uuid": "^9.0.1"

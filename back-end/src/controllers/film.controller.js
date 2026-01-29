@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { validationResult } from "express-validator";
 import Film from "../models/Film.js";
 import emailService from "../services/email.service.js";
@@ -79,10 +80,177 @@ export const submitFilm = async (req, res) => {
       success: false,
       message: "Erreur lors de la soumission du film",
     });
+=======
+import Film from "../models/Film.js";
+import fs from "fs";
+
+const MAX_TITLE = 255;
+const MAX_COUNTRY = 100;
+const MAX_DESCRIPTION = 2000;
+const MAX_AI_TOOLS = 255;
+const MAX_NAME = 100;
+const MAX_EMAIL = 255;
+const MAX_BIO = 2000;
+const MAX_SCHOOL = 255;
+const MAX_WEBSITE = 255;
+const MAX_SOCIAL = 255;
+
+function safeUnlink(file) {
+  if (!file?.path) return;
+  fs.unlink(file.path, () => {});
+}
+
+export const createFilm = async (req, res) => {
+  try {
+    const posterFile = req.files?.poster?.[0];
+    const filmFile = req.files?.film?.[0];
+    const thumbnailFile = req.files?.thumbnail?.[0];
+
+    if (!posterFile || !filmFile) {
+      safeUnlink(posterFile);
+      safeUnlink(filmFile);
+      safeUnlink(thumbnailFile);
+
+      return res.status(400).json({
+        success: false,
+        message: "poster and film files are required",
+      });
+    }
+
+    const {
+      title,
+      country,
+      description,
+      ai_tools_used,
+      ai_certification,
+      director_firstname,
+      director_lastname,
+      director_email,
+      director_bio,
+      director_school,
+      director_website,
+      social_instagram,
+      social_youtube,
+      social_vimeo,
+    } = req.body;
+
+    if (!title || !country || !description || !director_firstname || !director_lastname || !director_email) {
+      safeUnlink(posterFile);
+      safeUnlink(filmFile);
+      safeUnlink(thumbnailFile);
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "title, country, description, director_firstname, director_lastname, director_email are required",
+      });
+    }
+
+    const tooLong =
+      title.length > MAX_TITLE ||
+      country.length > MAX_COUNTRY ||
+      description.length > MAX_DESCRIPTION ||
+      (ai_tools_used && ai_tools_used.length > MAX_AI_TOOLS) ||
+      director_firstname.length > MAX_NAME ||
+      director_lastname.length > MAX_NAME ||
+      director_email.length > MAX_EMAIL ||
+      (director_bio && director_bio.length > MAX_BIO) ||
+      (director_school && director_school.length > MAX_SCHOOL) ||
+      (director_website && director_website.length > MAX_WEBSITE) ||
+      (social_instagram && social_instagram.length > MAX_SOCIAL) ||
+      (social_youtube && social_youtube.length > MAX_SOCIAL) ||
+      (social_vimeo && social_vimeo.length > MAX_SOCIAL);
+
+    if (tooLong) {
+      safeUnlink(posterFile);
+      safeUnlink(filmFile);
+      safeUnlink(thumbnailFile);
+
+      return res.status(400).json({
+        success: false,
+        message: "One or more fields exceed the allowed length",
+      });
+    }
+
+    const recentCount = await Film.countRecentByEmail(director_email);
+    if (recentCount >= 5) {
+      safeUnlink(posterFile);
+      safeUnlink(filmFile);
+      safeUnlink(thumbnailFile);
+
+      return res.status(429).json({
+        success: false,
+        message: "Too many submissions for this email. Please try again later.",
+      });
+    }
+
+    const filmUrl = `/uploads/films/${filmFile.filename}`;
+    const posterUrl = `/uploads/posters/${posterFile.filename}`;
+    const thumbnailUrl = thumbnailFile ? `/uploads/thumbnails/${thumbnailFile.filename}` : null;
+
+    // Handle ai_certification: can be true, "true", 1, "1"
+    const isAiCert =
+      ai_certification === true ||
+      ai_certification === 1 ||
+      String(ai_certification).toLowerCase() === "true" ||
+      String(ai_certification) === "1";
+
+    // AI certification is required
+    if (!isAiCert) {
+      safeUnlink(posterFile);
+      safeUnlink(filmFile);
+      safeUnlink(thumbnailFile);
+
+      return res.status(400).json({
+        success: false,
+        message: "La certification IA est obligatoire. Veuillez cocher la case.",
+      });
+    }
+
+    const created = await Film.create({
+      title,
+      country,
+      description,
+      film_url: filmUrl,
+      youtube_url: null,
+      poster_url: posterUrl,
+      thumbnail_url: thumbnailUrl,
+      ai_tools_used: ai_tools_used || null,
+      ai_certification: isAiCert,
+      director_firstname,
+      director_lastname,
+      director_email,
+      director_bio: director_bio || null,
+      director_school: director_school || null,
+      director_website: director_website || null,
+      social_instagram: social_instagram || null,
+      social_youtube: social_youtube || null,
+      social_vimeo: social_vimeo || null,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Film submitted",
+      data: created,
+    });
+  } catch (err) {
+    console.error("createFilm error:", err);
+
+    const posterFile = req.files?.poster?.[0];
+    const filmFile = req.files?.film?.[0];
+    const thumbnailFile = req.files?.thumbnail?.[0];
+
+    safeUnlink(posterFile);
+    safeUnlink(filmFile);
+    safeUnlink(thumbnailFile);
+
+    return res.status(500).json({ success: false, message: "Server error" });
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
   }
 };
 
 /**
+<<<<<<< HEAD
  * Get all films (for jury/admin)
  */
 export const getAllFilms = async (req, res) => {
@@ -113,20 +281,34 @@ export const getPendingFilms = async (req, res) => {
   try {
     const films = await Film.getPending();
 
+=======
+ * Get all pending films (Admin only)
+ */
+export const getPendingFilms = async (req, res) => {
+  try {
+    const films = await Film.findAllPending();
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
     return res.status(200).json({
       success: true,
       data: films,
     });
+<<<<<<< HEAD
   } catch (error) {
     console.error("Get pending films error:", error);
     return res.status(500).json({
       success: false,
       message: "Erreur lors de la recuperation des films en attente",
     });
+=======
+  } catch (err) {
+    console.error("getPendingFilms error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
   }
 };
 
 /**
+<<<<<<< HEAD
  * Get approved films (public - for catalog)
  */
 export const getApprovedFilms = async (req, res) => {
@@ -155,20 +337,123 @@ export const getApprovedFilms = async (req, res) => {
       success: false,
       message: "Erreur lors de la recuperation des films",
     });
+=======
+ * Get all approved films (Catalog - Public)
+ */
+export const getApprovedFilms = async (req, res) => {
+  try {
+    const films = await Film.findApproved();
+    return res.status(200).json({
+      success: true,
+      data: films,
+    });
+  } catch (err) {
+    console.error("getApprovedFilms error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
   }
 };
 
 /**
+<<<<<<< HEAD
  * Get a single film by ID
  */
 export const getFilmById = async (req, res) => {
   try {
     const { id } = req.params;
     const film = await Film.findById(id);
+=======
+ * Update film status (Admin only)
+ */
+export const updateFilmStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, rejection_reason } = req.body;
+
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status must be 'approved' or 'rejected'",
+      });
+    }
+
+    const film = await Film.findById(id);
+    if (!film) {
+      return res.status(404).json({
+        success: false,
+        message: "Film not found",
+      });
+    }
+
+    const updated = await Film.updateStatus(id, status, rejection_reason || null);
+
+    if (!updated) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update film status",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Film ${status}`,
+      data: { id, status },
+    });
+  } catch (err) {
+    console.error("updateFilmStatus error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+/**
+ * Get all films (Admin only)
+ */
+export const getAllFilms = async (req, res) => {
+  try {
+    const films = await Film.findAll();
+    return res.status(200).json({
+      success: true,
+      data: films,
+    });
+  } catch (err) {
+    console.error("getAllFilms error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ============ PUBLIC ROUTES ============
+
+/**
+ * Get public catalog of approved films (Public - No auth required)
+ * Returns films with YouTube URLs for public viewing
+ */
+export const getPublicCatalog = async (req, res) => {
+  try {
+    const films = await Film.findForPublicCatalog();
+    return res.status(200).json({
+      success: true,
+      data: films,
+    });
+  } catch (err) {
+    console.error("getPublicCatalog error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+/**
+ * Get single film for public viewing (Public - No auth required)
+ * Returns film with YouTube URL and director info
+ */
+export const getPublicFilm = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const film = await Film.findForPublicView(id);
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
 
     if (!film) {
       return res.status(404).json({
         success: false,
+<<<<<<< HEAD
         message: "Film non trouve",
       });
     }
@@ -177,10 +462,17 @@ export const getFilmById = async (req, res) => {
     const categories = await Film.getCategories(id);
     film.categories = categories;
 
+=======
+        message: "Film not found or not approved",
+      });
+    }
+
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
     return res.status(200).json({
       success: true,
       data: film,
     });
+<<<<<<< HEAD
   } catch (error) {
     console.error("Get film by ID error:", error);
     return res.status(500).json({
@@ -197,11 +489,29 @@ export const approveFilm = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
+=======
+  } catch (err) {
+    console.error("getPublicFilm error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// ============ ADMIN ROUTES ============
+
+/**
+ * Update YouTube URL for a film (Admin only)
+ */
+export const updateYouTubeUrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { youtube_url } = req.body;
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
 
     const film = await Film.findById(id);
     if (!film) {
       return res.status(404).json({
         success: false,
+<<<<<<< HEAD
         message: "Film non trouve",
       });
     }
@@ -653,5 +963,39 @@ export const getJuryAssignedFilms = async (req, res) => {
       success: false,
       message: "Erreur lors de la recuperation des films assignes",
     });
+=======
+        message: "Film not found",
+      });
+    }
+
+    // Validate YouTube URL format if provided
+    if (youtube_url) {
+      const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+      if (!youtubeRegex.test(youtube_url)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid YouTube URL format",
+        });
+      }
+    }
+
+    const updated = await Film.updateYouTubeUrl(id, youtube_url || null);
+
+    if (!updated) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update YouTube URL",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "YouTube URL updated",
+      data: { id, youtube_url },
+    });
+  } catch (err) {
+    console.error("updateYouTubeUrl error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+>>>>>>> thomas/claude/youtube-jury-backup-flqXs
   }
 };
