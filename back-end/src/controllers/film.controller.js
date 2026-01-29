@@ -105,7 +105,24 @@ export const createFilm = async (req, res) => {
     const posterUrl = `/uploads/posters/${posterFile.filename}`;
     const thumbnailUrl = thumbnailFile ? `/uploads/thumbnails/${thumbnailFile.filename}` : null;
 
-    const isAiCert = String(ai_certification).toLowerCase() === "true" || ai_certification === true;
+    // Handle ai_certification: can be true, "true", 1, "1"
+    const isAiCert =
+      ai_certification === true ||
+      ai_certification === 1 ||
+      String(ai_certification).toLowerCase() === "true" ||
+      String(ai_certification) === "1";
+
+    // AI certification is required
+    if (!isAiCert) {
+      safeUnlink(posterFile);
+      safeUnlink(filmFile);
+      safeUnlink(thumbnailFile);
+
+      return res.status(400).json({
+        success: false,
+        message: "La certification IA est obligatoire. Veuillez cocher la case.",
+      });
+    }
 
     const created = await Film.create({
       title,
