@@ -82,7 +82,7 @@ export default class Film {
       data.social_youtube,
       data.social_vimeo,
 
-      
+
       FILM_STATUS.PENDING,
     ];
 
@@ -94,4 +94,21 @@ export default class Film {
       status: FILM_STATUS.PENDING,
     };
   }
+
+  static async findById(id) {
+    const sql = `SELECT * FROM films WHERE id = ? LIMIT 1`;
+    const [rows] = await db.query(sql, [id]);
+    return rows?.[0] ?? null;
+  }
+
+  static async updateStatus(id, status) {
+    const sql = `
+      UPDATE films
+      SET status = ?, updated_at = NOW()
+      WHERE id = ?
+    `;
+    const [result] = await db.query(sql, [status, id]);
+    return result.affectedRows > 0;
+  }
+  
 }
