@@ -1,5 +1,6 @@
 import Film from "../models/Film.js";
 import fs from "fs";
+import { MAX_POSTER_SIZE, MAX_THUMBNAIL_SIZE, MAX_FILM_SIZE } from "../routes/film.routes.js";
 
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
@@ -17,21 +18,39 @@ function safeUnlink(file) {
   fs.unlink(file.path, () => {});
 }
 
+function cleanupFiles(posterFile, filmFile, thumbnailFile) {
+  safeUnlink(posterFile);
+  safeUnlink(filmFile);
+  safeUnlink(thumbnailFile);
+}
+
 export const createFilm = async (req, res) => {
+  const posterFile = req.files?.poster?.[0];
+  const filmFile = req.files?.film?.[0];
+  const thumbnailFile = req.files?.thumbnail?.[0];
+
   try {
-    const posterFile = req.files?.poster?.[0];
-    const filmFile = req.files?.film?.[0];
-    const thumbnailFile = req.files?.thumbnail?.[0];
-
     if (!posterFile || !filmFile) {
-      safeUnlink(posterFile);
-      safeUnlink(filmFile);
-      safeUnlink(thumbnailFile);
-
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
         message: "poster and film files are required",
       });
+    }
+
+    if (posterFile.size > MAX_POSTER_SIZE) {
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
+      return res.status(400).json({ success: false, message: "Poster too large" });
+    }
+
+    if (thumbnailFile && thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
+      return res.status(400).json({ success: false, message: "Thumbnail too large" });
+    }
+
+    if (filmFile.size > MAX_FILM_SIZE) {
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
+      return res.status(400).json({ success: false, message: "Film too large" });
     }
 
     const {
@@ -51,11 +70,15 @@ export const createFilm = async (req, res) => {
       social_vimeo,
     } = req.body;
 
-    if (!title || !country || !description || !director_firstname || !director_lastname || !director_email) {
-      safeUnlink(posterFile);
-      safeUnlink(filmFile);
-      safeUnlink(thumbnailFile);
-
+    if (
+      !title ||
+      !country ||
+      !description ||
+      !director_firstname ||
+      !director_lastname ||
+      !director_email
+    ) {
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
         message:
@@ -79,10 +102,7 @@ export const createFilm = async (req, res) => {
       (social_vimeo && social_vimeo.length > MAX_SOCIAL);
 
     if (tooLong) {
-      safeUnlink(posterFile);
-      safeUnlink(filmFile);
-      safeUnlink(thumbnailFile);
-
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
         message: "One or more fields exceed the allowed length",
@@ -91,10 +111,7 @@ export const createFilm = async (req, res) => {
 
     const recentCount = await Film.countRecentByEmail(director_email);
     if (recentCount >= 5) {
-      safeUnlink(posterFile);
-      safeUnlink(filmFile);
-      safeUnlink(thumbnailFile);
-
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(429).json({
         success: false,
         message: "Too many submissions for this email. Please try again later.",
@@ -103,14 +120,9 @@ export const createFilm = async (req, res) => {
 
     const filmUrl = `/uploads/films/${filmFile.filename}`;
     const posterUrl = `/uploads/posters/${posterFile.filename}`;
-    const thumbnailUrl = thumbnailFile ? `/uploads/thumbnails/${thumbnailFile.filename}` : null;
-
-    const isAiCert =
-    ai_certification === 1 ||
-    ai_certification === "1" ||
-    ai_certification === true ||
-    String(ai_certification).toLowerCase() === "true" ||
-    String(ai_certification).toLowerCase() === "on";
+    const thumbnailUrl = thumbnailFile
+      ? `/uploads/thumbnails/${thumbnailFile.filename}`
+      : null;
 
     const created = await Film.create({
       title,
@@ -121,7 +133,7 @@ export const createFilm = async (req, res) => {
       poster_url: posterUrl,
       thumbnail_url: thumbnailUrl,
       ai_tools_used: ai_tools_used || null,
-      ai_certification: isAiCert,
+      ai_certification: ai_certification,
       director_firstname,
       director_lastname,
       director_email,
@@ -140,15 +152,7 @@ export const createFilm = async (req, res) => {
     });
   } catch (err) {
     console.error("createFilm error:", err);
-
-    const posterFile = req.files?.poster?.[0];
-    const filmFile = req.files?.film?.[0];
-    const thumbnailFile = req.files?.thumbnail?.[0];
-
-    safeUnlink(posterFile);
-    safeUnlink(filmFile);
-    safeUnlink(thumbnailFile);
-
+    cleanupFiles(posterFile, filmFile, thumbnailFile);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
