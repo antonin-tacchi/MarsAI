@@ -1,1 +1,8 @@
 node_modules
+.env.local
+.env.*.local
+.env.back-end.local
+.env.front-end.local
+.env.example
+.env
+.env.*

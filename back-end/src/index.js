@@ -13,13 +13,27 @@ dotenv.config();
 
 const app = express();
 
-// CORS must be first!
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`), false);
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+app.options("*", cors());
 
 app.use(express.json());
 
@@ -37,7 +51,6 @@ app.use("/api/admin", adminRoutes);
 
 const port = Number(process.env.PORT) || 5000;
 
-// Test database connection and start server
 testConnection().then((success) => {
   if (!success) {
     console.log("⚠️  Server starting without database connection");
@@ -45,5 +58,6 @@ testConnection().then((success) => {
 
   app.listen(port, () => {
     console.log(`✅ API running on http://localhost:${port}`);
+    console.log(`✅ CORS allowed origins: ${allowedOrigins.join(", ")}`);
   });
 });

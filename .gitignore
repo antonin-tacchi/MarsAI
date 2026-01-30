@@ -141,3 +141,11 @@ docker-compose.override.yml
 
 # BDD 
 db/
+
+
+.env.local
+back-end/.env
+.front-end/.env
+front-end/.env
+.env.*
+.env
