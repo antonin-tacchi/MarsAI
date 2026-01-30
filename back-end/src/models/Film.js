@@ -12,6 +12,15 @@ export default class Film {
     return rows?.[0]?.total ?? 0;
   }
 
+  static toTinyInt(v) {
+    const s = String(v ?? "").trim().toLowerCase();
+
+    if (v === 1 || v === true) return 1;
+    if (s === "1" || s === "true" || s === "on") return 1;
+
+    return 0;
+  }
+
   static async create(data) {
     const sql = `
       INSERT INTO films (
@@ -60,7 +69,7 @@ export default class Film {
       data.thumbnail_url,
 
       data.ai_tools_used,
-      data.ai_certification ? 1 : 0,
+      Film.toTinyInt(data.ai_certification),
 
       data.director_firstname,
       data.director_lastname,
@@ -78,6 +87,7 @@ export default class Film {
     return {
       id: result.insertId,
       ...data,
+      ai_certification: Film.toTinyInt(data.ai_certification),
       status: "pending",
     };
   }

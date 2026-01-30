@@ -118,13 +118,9 @@ const FileUploadZone = ({
 export default function MovieForm({ onFinalSubmit }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-
-  // Files
   const [filmFile, setFilmFile] = useState(null);
   const [posterFile, setPosterFile] = useState(null);
   const [thumbFile, setThumbFile] = useState(null);
-
-  // ✅ Text fields (state) -> plus de champs NULL en DB
   const [fields, setFields] = useState({
     title: "",
     country: "",
@@ -151,7 +147,6 @@ export default function MovieForm({ onFinalSubmit }) {
     setFields((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Petite sécurité: si Input ne propage pas onChange/value, on récupère quand même depuis le DOM
   const getFieldValue = (name) => {
     const fromState = fields[name];
     if (typeof fromState === "string" && fromState.trim() !== "") return fromState;
@@ -161,7 +156,6 @@ export default function MovieForm({ onFinalSubmit }) {
       formRef.current?.querySelector(`[name="${name}"]`) ||
       formRef.current?.elements?.namedItem?.(name);
 
-    // textarea/input
     return el?.value ?? "";
   };
 
@@ -200,26 +194,23 @@ export default function MovieForm({ onFinalSubmit }) {
   };
 
   const handleSubmitToApi = async () => {
-    // ✅ On construit le payload avec nos valeurs sûres
     const payload = {
-      // Film
       title: getFieldValue("title"),
       country: getFieldValue("country"),
       description: getFieldValue("description"),
       ai_tools_used: getFieldValue("ai_tools"),
-      ai_certification: fields.certify ? 1 : 0,
-
-      // Director
+      ai_certification: fields.certify === true ? 1 : 0,
       director_firstname: getFieldValue("fname"),
       director_lastname: getFieldValue("lname"),
       director_email: getFieldValue("email"),
       director_bio: getFieldValue("bio"),
-
-      // Files (IMPORTANT: names mapped inside service to poster/film/thumbnail)
       posterFile,
       filmFile,
       thumbnailFile: thumbFile,
     };
+
+    console.log("CERTIFY (state):", fields.certify);
+    console.log("AI_CERTIFICATION (payload):", fields.certify ? 1 : 0);
 
     const result = await submitFilm(payload);
     return { payload, result };
@@ -256,7 +247,6 @@ export default function MovieForm({ onFinalSubmit }) {
       onSubmit={async (e) => {
         e.preventDefault();
 
-        // On valide la partie réalisateur (step 2)
         if (!validateSection(2)) return;
 
         try {
@@ -362,9 +352,10 @@ export default function MovieForm({ onFinalSubmit }) {
                     type="checkbox"
                     name="certify"
                     checked={fields.certify}
-                    onChange={setField("certify")}
+                    onChange={(e) => setFields((prev) => ({ ...prev, certify: e.target.checked }))}
                     className="mt-1 w-6 h-6 accent-[#463699]"
                   />
+
                   <span className="text-sm italic text-[#262335]">
                     Je certifie que ce film respecte les règles du festival.
                   </span>
