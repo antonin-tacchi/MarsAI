@@ -39,8 +39,6 @@ export const register = async (req, res) => {
       name,
     });
 
-    // By default : director (1)
-    await User.assignRole(user.id, 1);
 
     const rolesRaw = await User.getRoleIds(user.id);
     const roles = normalizeRoleIds(rolesRaw);
