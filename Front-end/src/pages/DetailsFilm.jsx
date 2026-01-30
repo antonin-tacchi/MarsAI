@@ -190,7 +190,7 @@ export default function DetailsFilm() {
 
                 <div
                   className="
-                    w-[660px] h-[80px]
+                    w-[600px] h-[80px]
                     flex items-center justify-between
                     px-[27px]
                     bg-black/10
