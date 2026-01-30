@@ -105,7 +105,12 @@ export const createFilm = async (req, res) => {
     const posterUrl = `/uploads/posters/${posterFile.filename}`;
     const thumbnailUrl = thumbnailFile ? `/uploads/thumbnails/${thumbnailFile.filename}` : null;
 
-    const isAiCert = String(ai_certification).toLowerCase() === "true" || ai_certification === true;
+    const isAiCert =
+    ai_certification === 1 ||
+    ai_certification === "1" ||
+    ai_certification === true ||
+    String(ai_certification).toLowerCase() === "true" ||
+    String(ai_certification).toLowerCase() === "on";
 
     const created = await Film.create({
       title,
