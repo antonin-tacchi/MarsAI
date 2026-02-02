@@ -1,4 +1,4 @@
-import { ALLOWED_TRANSITIONS } from "../constants/filmStatus";
+import { ALLOWED_TRANSITIONS } from "../constants/filmStatus.js";
 
 export function canChangeFilmStatus(currentStatus, nextStatus) {
     if (!ALLOWED_TRANSITIONS[currentStatus]) {
