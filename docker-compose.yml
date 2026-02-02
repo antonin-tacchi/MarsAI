@@ -3,10 +3,10 @@ services:
     image: mysql:8.0
     container_name: marsai-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: marsai
+      MYSQL_USER: marsai_user
+      MYSQL_PASSWORD: marsai_password
     ports:
       - "${MYSQL_PORT}:3306"
     volumes:
@@ -40,11 +40,11 @@ services:
     environment:
       PORT: "5000"
       CORS_ORIGIN: "http://localhost:5173"
-      DB_HOST: ${DB_HOST}
+      DB_HOST: mysql
       DB_PORT: "3306"
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_NAME: marsai
       JWT_SECRET: ${JWT_SECRET}
     ports:
       - "${BACKEND_PORT}:5000"
