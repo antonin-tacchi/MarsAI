@@ -59,6 +59,7 @@ export default class Film {
         NOW()
       )
     `;
+    
 
     const params = [
       data.title,
@@ -91,4 +92,23 @@ export default class Film {
       status: "pending",
     };
   }
+
+static async findAll({ limit, offset, sortField, sortOrder }) {
+  const sqlData = `
+    SELECT id, title, country, poster_url, director_firstname, director_lastname, created_at
+    FROM films
+    ORDER BY ${sortField} ${sortOrder}
+    LIMIT ? OFFSET ?
+  `;
+
+  const sqlCount = `SELECT COUNT(*) AS total FROM films`;
+
+  const [rows] = await db.query(sqlData, [limit, offset]);
+  const [countResult] = await db.query(sqlCount);
+
+  return {
+    rows,
+    count: countResult[0].total
+  };
+}
 }
