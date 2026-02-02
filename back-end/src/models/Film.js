@@ -99,7 +99,15 @@ export default class Film {
 
 static async findAll({ limit, offset, sortField, sortOrder }) {
   const sqlData = `
-    SELECT id, title, country, poster_url, director_firstname, director_lastname, created_at
+    SELECT
+      id,
+      title,
+      country,
+      poster_url,
+      thumbnail_url,
+      director_firstname,
+      director_lastname,
+      created_at
     FROM films
     ORDER BY ${sortField} ${sortOrder}
     LIMIT ? OFFSET ?
