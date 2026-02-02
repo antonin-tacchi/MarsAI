@@ -1,6 +1,10 @@
 import Film from "../models/Film.js";
 import fs from "fs";
-import { MAX_POSTER_SIZE, MAX_THUMBNAIL_SIZE, MAX_FILM_SIZE } from "../routes/film.routes.js";
+import {
+  MAX_POSTER_SIZE,
+  MAX_THUMBNAIL_SIZE,
+  MAX_FILM_SIZE,
+} from "../routes/film.routes.js";
 
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
@@ -40,17 +44,23 @@ export const createFilm = async (req, res) => {
 
     if (posterFile.size > MAX_POSTER_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Poster too large" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Poster too large" });
     }
 
     if (thumbnailFile && thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Thumbnail too large" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Thumbnail too large" });
     }
 
     if (filmFile.size > MAX_FILM_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Film too large" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Film too large" });
     }
 
     const {
@@ -157,49 +167,40 @@ export const createFilm = async (req, res) => {
   }
 };
 
-import { FILM_STATUS } from "../constants/filmStatus.js";
-import { canChangeFilmStatus } from "../services/filmStatus.service.js";
-
-export const updateFilmStatus = async (req, res) => {
+export const getFilms = async (req, res) => {
   try {
-    const filmId = req.params.id;
-    const { status: nextStatus } = req.body;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const offset = (page - 1) * limit;
 
-    if (!Object.values(FILM_STATUS).includes(nextStatus)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid status",
-      });
+    let sortOrder = "DESC"; 
+    
+    if (req.query.sortBy === "oldest") {
+      sortOrder = "ASC";
     }
 
-    const film = await Film.findById(filmId);
-    if (!film) {
-      return res.status(404).json({
-        success: false,
-        message: "Film not found",
-      });
-    }
+    const { rows, count } = await Film.findAll({
+      limit,
+      offset,
+      sortField: "created_at", 
+      sortOrder,
+    });
 
-    if (!canChangeFilmStatus(film.status, nextStatus)) {
-      return res.status(400).json({
-        success: false,
-        message: "Status transition not allowed",
-      });
-    }
-
-    await Film.updateStatus(filmId, nextStatus);
-
-    return res.json({
+    return res.status(200).json({
       success: true,
-      message: "Film status updated",
-      data: {
-        id: filmId,
-        status: nextStatus,
+      pagination: {
+        totalItems: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        itemsPerPage: limit,
       },
+      data: rows,
     });
   } catch (err) {
-    console.error("updateFilmStatus error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    console.error("getFilms error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la récupération des films",
+    });
   }
 };
-

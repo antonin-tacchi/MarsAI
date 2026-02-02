@@ -3,7 +3,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import { createFilm, updateFilmStatus } from "../controllers/film.controller.js";
+import { createFilm } from "../controllers/film.controller.js";
+import { getFilms } from "../controllers/film.controller.js";
 
 const router = express.Router();
 
@@ -49,7 +50,7 @@ const storage = multer.diskStorage({
       null,
       `${file.fieldname}_${Date.now()}_${Math.random()
         .toString(16)
-        .slice(2)}${ext}`
+        .slice(2)}${ext}`,
     );
   },
 });
@@ -103,7 +104,8 @@ const uploadMiddleware = (req, res, next) => {
 
     const code = String(err.message || "UPLOAD_ERROR");
     const map = {
-      INVALID_IMAGE_TYPE: "Invalid image type (poster/thumbnail). Allowed: jpg, jpeg, png, webp",
+      INVALID_IMAGE_TYPE:
+        "Invalid image type (poster/thumbnail). Allowed: jpg, jpeg, png, webp",
       INVALID_VIDEO_TYPE: "Invalid video type (film). Allowed: mp4, webm, mov",
       UNEXPECTED_FIELD: "Unexpected upload field",
       UPLOAD_ERROR: "Invalid file upload",
@@ -116,8 +118,16 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
-router.post("/", submitLimiter, uploadMiddleware, createFilm);
+router.get("/", getFilms);
 
-router.patch("/films/:id/status", updateFilmStatus);
-
+router.post(
+  "/",
+  submitLimiter,
+  upload.fields([
+    { name: "poster", maxCount: 1 },
+    { name: "film", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  createFilm,
+);
 export default router;
