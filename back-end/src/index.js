@@ -47,6 +47,7 @@ app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/films", filmRoutes);
+app.use("/api/stats", statsRoutes);
 app.use("/api/admin", adminRoutes);
 
 const port = Number(process.env.PORT) || 5000;
