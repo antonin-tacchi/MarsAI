@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import FilmCard from "../components/FilmCard";
 import SearchBar from "../components/SearchBar";
 
@@ -7,9 +7,6 @@ const PER_PAGE = 20;
 
 export default function Catalogs() {
   const [films, setFilms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
   const [query, setQuery] = useState("");
 
   const [page, setPage] = useState(1);
@@ -20,50 +17,53 @@ export default function Catalogs() {
     itemsPerPage: PER_PAGE,
   });
 
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState("");
+
+  const fetchFilms = useCallback(async (p, signal) => {
+    setStatus("loading");
+    setError("");
+
+    const res = await fetch(`${API_URL}/api/films?page=${p}&limit=${PER_PAGE}`, {
+      signal,
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message || "Failed to load films");
+
+    setFilms(data?.data || []);
+    setPagination(
+      data?.pagination || {
+        totalItems: 0,
+        totalPages: 1,
+        currentPage: p,
+        itemsPerPage: PER_PAGE,
+      }
+    );
+
+    setStatus("success");
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
 
-    async function loadFilms() {
+    (async () => {
       try {
-        setLoading(true);
-        setError("");
-
-        const res = await fetch(
-          `${API_URL}/api/films?page=${page}&limit=${PER_PAGE}`,
-          { signal: controller.signal }
-        );
-
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data?.message || "Failed to load films");
-
-        if (!isMounted) return;
-
-        setFilms(data?.data || []);
-        setPagination(
-          data?.pagination || {
-            totalItems: 0,
-            totalPages: 1,
-            currentPage: page,
-            itemsPerPage: PER_PAGE,
-          }
-        );
+        await fetchFilms(page, controller.signal);
       } catch (err) {
         if (!isMounted) return;
         if (err?.name === "AbortError") return;
+        setStatus("error");
         setError(err?.message || "Unknown error");
-      } finally {
-        if (isMounted) setLoading(false);
       }
-    }
-
-    loadFilms();
+    })();
 
     return () => {
       isMounted = false;
       controller.abort();
     };
-  }, [page]);
+  }, [page, fetchFilms]);
 
   useEffect(() => {
     if (page > pagination.totalPages) {
@@ -72,6 +72,7 @@ export default function Catalogs() {
   }, [pagination.totalPages, page]);
 
   const filteredFilms = useMemo(() => {
+    if (status !== "success") return [];
     const q = query.trim().toLowerCase();
     if (!q) return films;
 
@@ -86,33 +87,20 @@ export default function Catalogs() {
         `${first} ${last}`.includes(q)
       );
     });
-  }, [films, query]);
+  }, [films, query, status]);
 
   const canPrev = pagination.currentPage > 1;
   const canNext = pagination.currentPage < pagination.totalPages;
 
-  const goFirst = () => {
-    if (!canPrev) return;
-    setPage(1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const goLast = () => {
-    if (!canNext) return;
-    setPage(pagination.totalPages);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const goFirst = () => canPrev && (setPage(1), scrollTop());
+  const goLast = () => canNext && (setPage(pagination.totalPages), scrollTop());
+  const goPrev = () => canPrev && (setPage((p) => Math.max(1, p - 1)), scrollTop());
+  const goNext = () => canNext && (setPage((p) => Math.min(pagination.totalPages, p + 1)), scrollTop());
 
-  const goPrev = () => {
-    if (!canPrev) return;
-    setPage((p) => Math.max(1, p - 1));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const goNext = () => {
-    if (!canNext) return;
-    setPage((p) => Math.min(pagination.totalPages, p + 1));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const retry = () => {
+    setPage((p) => p);
   };
 
   return (
@@ -124,21 +112,25 @@ export default function Catalogs() {
 
           <div className="w-full flex">
             <div className="w-full max-w-[700px]">
-              <SearchBar value={query} onChange={setQuery} />
+              <SearchBar
+                value={query}
+                onChange={setQuery}
+                loading={status === "loading"}
+                error={status === "error" ? error : ""}
+              />
             </div>
           </div>
         </div>
 
-        {!loading && !error && pagination.totalPages > 1 && (
+        {/* Pagination */}
+        {status === "success" && pagination.totalPages > 1 && (
           <div className="flex items-center justify-center mt-8">
-            <div className="inline-flex items-center rounded-[14px]">
+            <div className="inline-flex items-center rounded-[14px] gap-4">
               <button
                 onClick={goFirst}
                 disabled={!canPrev}
                 className={`text-xl leading-none select-none ${
-                  canPrev
-                    ? "text-[#262335]"
-                    : "text-[#9A95A1] opacity-75 cursor-not-allowed"
+                  canPrev ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
                 }`}
                 aria-label="Première page"
               >
@@ -149,9 +141,7 @@ export default function Catalogs() {
                 onClick={goPrev}
                 disabled={!canPrev}
                 className={`text-xl leading-none select-none ${
-                  canPrev
-                    ? "text-[#262335]"
-                    : "text-[#9A95A1] opacity-75 cursor-not-allowed"
+                  canPrev ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
                 }`}
                 aria-label="Page précédente"
               >
@@ -166,9 +156,7 @@ export default function Catalogs() {
                 onClick={goNext}
                 disabled={!canNext}
                 className={`text-xl leading-none select-none ${
-                  canNext
-                    ? "text-[#262335]"
-                    : "text-[#9A95A1] opacity-75 cursor-not-allowed"
+                  canNext ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
                 }`}
                 aria-label="Page suivante"
               >
@@ -179,9 +167,7 @@ export default function Catalogs() {
                 onClick={goLast}
                 disabled={!canNext}
                 className={`text-xl leading-none select-none ${
-                  canNext
-                    ? "text-[#262335]"
-                    : "text-[#9A95A1] opacity-75 cursor-not-allowed"
+                  canNext ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
                 }`}
                 aria-label="Dernière page"
               >
@@ -193,33 +179,46 @@ export default function Catalogs() {
 
         {/* Content */}
         <div className="mt-8">
-          {loading && <p className="text-[#262335]">Chargement des films…</p>}
-
-          {!loading && error && <p className="text-red-600">Erreur : {error}</p>}
-
-          {!loading && !error && filteredFilms.length === 0 && (
-            <p className="text-[#262335]">
-              Aucun résultat pour “{query}”.
-            </p>
+          {status === "loading" && (
+            <div className="text-[#262335]">
+              <p>Chargement des films…</p>
+            </div>
           )}
 
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
-            {filteredFilms.map((film) => (
-              <FilmCard key={film.id} film={film} apiUrl={API_URL} />
-            ))}
-          </div>
+          {status === "error" && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+              <p className="text-red-700 font-medium">Erreur : {error}</p>
+              <button
+                onClick={retry}
+                className="mt-3 inline-flex items-center rounded-lg bg-[#262335] px-4 py-2 text-white"
+              >
+                Réessayer
+              </button>
+            </div>
+          )}
+
+          {status === "success" && filteredFilms.length === 0 && (
+            <p className="text-[#262335]">Aucun résultat pour “{query}”.</p>
+          )}
+
+          {status === "success" && (
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
+              {filteredFilms.map((film) => (
+                <FilmCard key={film.id} film={film} apiUrl={API_URL} />
+              ))}
+            </div>
+          )}
         </div>
 
-        {!loading && !error && pagination.totalPages > 1 && (
+        {/* Pagination */}
+        {status === "success" && pagination.totalPages > 1 && (
           <div className="flex items-center justify-center mt-8">
-            <div className="inline-flex items-center rounded-[14px]">
+            <div className="inline-flex items-center rounded-[14px] gap-4">
               <button
                 onClick={goFirst}
                 disabled={!canPrev}
                 className={`text-xl leading-none select-none ${
-                  canPrev
-                    ? "text-[#262335]"
-                    : "text-[#9A95A1] opacity-75 cursor-not-allowed"
+                  canPrev ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
                 }`}
                 aria-label="Première page"
               >
@@ -230,9 +229,7 @@ export default function Catalogs() {
                 onClick={goPrev}
                 disabled={!canPrev}
                 className={`text-xl leading-none select-none ${
-                  canPrev
-                    ? "text-[#262335]"
-                    : "text-[#9A95A1] opacity-75 cursor-not-allowed"
+                  canPrev ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
                 }`}
                 aria-label="Page précédente"
               >
@@ -247,9 +244,7 @@ export default function Catalogs() {
                 onClick={goNext}
                 disabled={!canNext}
                 className={`text-xl leading-none select-none ${
-                  canNext
-                    ? "text-[#262335]"
-                    : "text-[#9A95A1] opacity-75 cursor-not-allowed"
+                  canNext ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
                 }`}
                 aria-label="Page suivante"
               >
@@ -260,9 +255,7 @@ export default function Catalogs() {
                 onClick={goLast}
                 disabled={!canNext}
                 className={`text-xl leading-none select-none ${
-                  canNext
-                    ? "text-[#262335]"
-                    : "text-[#9A95A1] opacity-75 cursor-not-allowed"
+                  canNext ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
                 }`}
                 aria-label="Dernière page"
               >
