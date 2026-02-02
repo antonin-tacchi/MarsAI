@@ -1,4 +1,5 @@
-import db from "../db.js";
+import pool from "../config/database.js";
+
 
 export const getAllUsers = async (req, res, next) => {
   try {

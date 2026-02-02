@@ -15,6 +15,6 @@ router.use(authorize([3]));
  * @access  Admin
  */
 
-router.get("/users",authenticateToken, getAllUsers);
+router.get("/users", getAllUsers);
 
 export default router;
