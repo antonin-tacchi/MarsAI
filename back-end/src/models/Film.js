@@ -60,6 +60,7 @@ export default class Film {
         NOW()
       )
     `;
+    
 
     const params = [
       data.title,
@@ -91,24 +92,27 @@ export default class Film {
     return {
       id: result.insertId,
       ...data,
-      status: FILM_STATUS.PENDING,
+      ai_certification: Film.toTinyInt(data.ai_certification),
+      status: "pending",
     };
   }
 
-  static async findById(id) {
-    const sql = `SELECT * FROM films WHERE id = ? LIMIT 1`;
-    const [rows] = await db.query(sql, [id]);
-    return rows?.[0] ?? null;
-  }
+static async findAll({ limit, offset, sortField, sortOrder }) {
+  const sqlData = `
+    SELECT id, title, country, poster_url, director_firstname, director_lastname, created_at
+    FROM films
+    ORDER BY ${sortField} ${sortOrder}
+    LIMIT ? OFFSET ?
+  `;
 
-  static async updateStatus(id, status) {
-    const sql = `
-      UPDATE films
-      SET status = ?, updated_at = NOW()
-      WHERE id = ?
-    `;
-    const [result] = await db.query(sql, [status, id]);
-    return result.affectedRows > 0;
-  }
-  
+  const sqlCount = `SELECT COUNT(*) AS total FROM films`;
+
+  const [rows] = await db.query(sqlData, [limit, offset]);
+  const [countResult] = await db.query(sqlCount);
+
+  return {
+    rows,
+    count: countResult[0].total
+  };
+}
 }
