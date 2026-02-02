@@ -21,6 +21,7 @@ export const authenticateToken = (req, res, next) => {
       });
     }
 
+  
     req.user = {
       userId: decoded.userId,
       email: decoded.email,

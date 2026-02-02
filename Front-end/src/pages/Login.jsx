@@ -79,7 +79,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Right side - Form */}
+        {/* Right side - F orm */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-8 lg:p-12 bg-[#FBF5F0]">
           <div className="w-full max-w-xl px-4 md:px-6">
             {/* Tab Toggle */}
