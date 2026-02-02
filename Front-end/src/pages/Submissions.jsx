@@ -4,7 +4,7 @@ export default function Submission() {
   return (
     <div className="submission-page">
       <div className="movieForm-container">
-        <MovieForm onFinalSubmit={handleFinalSubmit} />
+        <MovieForm />
       </div>
     </div>
   );
