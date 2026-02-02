@@ -56,9 +56,6 @@ export const googleAuth = async (req, res) => {
         name,
         password: `google_${googleId}_${Date.now()}`, // Random password (user won't use it)
       });
-
-      // Assign default role: director (1)
-      await User.assignRole(user.id, 1);
     }
 
     // Get user roles
