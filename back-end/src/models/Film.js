@@ -97,7 +97,20 @@ export default class Film {
     };
   }
 
-static async findAll({ limit, offset, sortField, sortOrder }) {
+static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrder = "DESC" } = {}) {
+  const allowedSortFields = new Set([
+    "created_at",
+    "title",
+    "country",
+    "id",
+  ]);
+
+  const safeField = allowedSortFields.has(sortField) ? sortField : "created_at";
+  const safeOrder = String(sortOrder).toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+  const safeLimit = Math.min(50, Math.max(1, parseInt(limit, 10) || 12));
+  const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
+
   const sqlData = `
     SELECT
       id,
@@ -109,18 +122,19 @@ static async findAll({ limit, offset, sortField, sortOrder }) {
       director_lastname,
       created_at
     FROM films
-    ORDER BY ${sortField} ${sortOrder}
+    ORDER BY ${safeField} ${safeOrder}
     LIMIT ? OFFSET ?
   `;
 
   const sqlCount = `SELECT COUNT(*) AS total FROM films`;
 
-  const [rows] = await db.query(sqlData, [limit, offset]);
+  const [rows] = await db.query(sqlData, [safeLimit, safeOffset]);
   const [countResult] = await db.query(sqlCount);
 
   return {
     rows,
-    count: countResult[0].total
+    count: countResult?.[0]?.total ?? 0,
   };
 }
+
 }
