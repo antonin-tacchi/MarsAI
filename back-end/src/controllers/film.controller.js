@@ -1,7 +1,9 @@
 import Film from "../models/Film.js";
 import fs from "fs";
-import FilmRepository from "../repositories/film.repository.js";
+import FilmsRepository from "../repositories/films.repository.js";
 import { MAX_POSTER_SIZE, MAX_THUMBNAIL_SIZE, MAX_FILM_SIZE } from "../routes/film.routes.js";
+import { FILM_STATUS } from "../constants/filmStatus.js";
+import { canChangeFilmStatus } from "../services/filmStatus.service.js";
 
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
@@ -71,14 +73,7 @@ export const createFilm = async (req, res) => {
       social_vimeo,
     } = req.body;
 
-    if (
-      !title ||
-      !country ||
-      !description ||
-      !director_firstname ||
-      !director_lastname ||
-      !director_email
-    ) {
+    if (!title || !country || !description || !director_firstname || !director_lastname || !director_email) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
@@ -134,7 +129,7 @@ export const createFilm = async (req, res) => {
       poster_url: posterUrl,
       thumbnail_url: thumbnailUrl,
       ai_tools_used: ai_tools_used || null,
-      ai_certification: ai_certification,
+      ai_certification,
       director_firstname,
       director_lastname,
       director_email,
@@ -157,9 +152,6 @@ export const createFilm = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-import { FILM_STATUS } from "../constants/filmStatus.js";
-import { canChangeFilmStatus } from "../services/filmStatus.service.js";
 
 export const updateFilmStatus = async (req, res) => {
   try {
@@ -202,7 +194,7 @@ export const updateFilmStatus = async (req, res) => {
     console.error("updateFilmStatus error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
-
+};
 
 export const getAllFilms = async (req, res) => {
   try {
@@ -213,14 +205,20 @@ export const getAllFilms = async (req, res) => {
 
     const filters = {
       q: req.query.q?.trim() || null,
-      countries: req.query.countries ? req.query.countries.split(",").map(s => s.trim()).filter(Boolean) : [],
-      categories: req.query.categories ? req.query.categories.split(",").map(s => s.trim()).filter(Boolean) : [],
-      ai_tools: req.query.ai_tools ? req.query.ai_tools.split(",").map(s => s.trim()).filter(Boolean) : [],
+      countries: req.query.countries
+        ? req.query.countries.split(",").map(s => s.trim()).filter(Boolean)
+        : [],
+      categories: req.query.categories
+        ? req.query.categories.split(",").map(s => s.trim()).filter(Boolean)
+        : [],
+      ai_tools: req.query.ai_tools
+        ? req.query.ai_tools.split(",").map(s => s.trim()).filter(Boolean)
+        : [],
     };
 
     const sort = req.query.sort || "recent";
-
-    const { items, total } = await FilmRepository.findAll({ filters, sort, limit, offset });
+    const { rows, total } = await FilmsRepository.findAll({ filters, sort, limit, offset });
+    const items = rows.map(Film.toPublicDTO);
 
     return res.json({
       success: true,
@@ -237,7 +235,3 @@ export const getAllFilms = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-  
-};
-

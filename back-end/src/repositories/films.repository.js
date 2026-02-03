@@ -1,39 +1,37 @@
 import pool from "../config/database.js";
-import Film from "../models/Film.js";
 
 function buildWhere(filters) {
   const where = [];
   const params = [];
 
-  // IMPORTANT : catalogue public => filtre par status "APPROVED" (adapte)
   where.push("f.status = ?");
   params.push("APPROVED");
 
-  if (filters.q) {
+  if (filters?.q) {
     where.push("(f.title LIKE ? OR f.description LIKE ?)");
     params.push(`%${filters.q}%`, `%${filters.q}%`);
   }
 
-  if (filters.countries?.length) {
+  if (filters?.countries?.length) {
     where.push(`f.country IN (${filters.countries.map(() => "?").join(",")})`);
     params.push(...filters.countries);
   }
 
-  if (filters.categories?.length) {
-    // si tu as category (string). Sinon category_id.
-    where.push(`f.category IN (${filters.categories.map(() => "?").join(",")})`);
+  if (filters?.categories?.length) {
+    where.push(`c.id IN (${filters.categories.map(() => "?").join(",")})`);
     params.push(...filters.categories);
   }
 
-  if (filters.ai_tools?.length) {
-    // Si ai_tools_used est une string libre, on fait un OR de LIKE.
-    // (Idéalement, tu normalises plus tard en table film_ai_tools)
+  if (filters?.ai_tools?.length) {
     const likes = filters.ai_tools.map(() => "f.ai_tools_used LIKE ?");
     where.push(`(${likes.join(" OR ")})`);
     params.push(...filters.ai_tools.map(t => `%${t}%`));
   }
 
-  return { whereSql: where.length ? `WHERE ${where.join(" AND ")}` : "", params };
+  return {
+    whereSql: where.length ? `WHERE ${where.join(" AND ")}` : "",
+    params,
+  };
 }
 
 function buildOrderBy(sort) {
@@ -43,23 +41,39 @@ function buildOrderBy(sort) {
 }
 
 export default class FilmRepository {
-  static async findAll({ filters, sort, limit, offset }) {
+  static async findAll({ filters = {}, sort, limit = 20, offset = 0 }) {
     const { whereSql, params } = buildWhere(filters);
     const orderBy = buildOrderBy(sort);
 
+    // COUNT
     const [countRows] = await pool.query(
-      `SELECT COUNT(*) AS total FROM films f ${whereSql}`,
+      `
+      SELECT COUNT(DISTINCT f.id) AS total
+      FROM films f
+      JOIN film_categories fc ON fc.film_id = f.id
+      JOIN categories c ON c.id = fc.category_id
+      ${whereSql}
+      `,
       params
     );
+
     const total = countRows?.[0]?.total || 0;
 
+    // DATA
     const [rows] = await pool.query(
       `
       SELECT
-        f.id, f.title, f.country, f.category,
-        f.poster_url, f.thumbnail_url,
-        f.ai_tools_used, f.created_at
+        f.id,
+        f.title,
+        f.country,
+        c.name AS category,
+        f.poster_url,
+        f.thumbnail_url,
+        f.ai_tools_used,
+        f.created_at
       FROM films f
+      JOIN film_categories fc ON fc.film_id = f.id
+      JOIN categories c ON c.id = fc.category_id
       ${whereSql}
       ${orderBy}
       LIMIT ? OFFSET ?
@@ -67,9 +81,6 @@ export default class FilmRepository {
       [...params, limit, offset]
     );
 
-    return {
-      total,
-      items: rows.map(Film.toPublicDTO), // mapping centralisé dans le Model
-    };
+    return { rows, total };
   }
 }
