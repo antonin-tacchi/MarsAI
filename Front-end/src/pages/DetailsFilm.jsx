@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import FilmPlayer from "../components/FilmPlayer";
 import FilmCard from "../components/FilmCard";
+import { isAdminOrJury } from "../utils/roles";
 
 function formatDateFR(iso) {
   if (!iso) return "";
@@ -177,6 +178,8 @@ export default function DetailsFilm() {
 
   const views = film?.views ? `${film.views} vues` : "Vues";
 
+  const canReview = isAdminOrJury();
+
   return (
     <div className="bg-white">
       <div
@@ -258,6 +261,7 @@ export default function DetailsFilm() {
                     </p>
                   </div>
 
+                  {canReview && (
                   <div className="mt-12 mb-16 flex flex-col gap-10 md:flex-row md:items-end">
                     <div className="md:flex-1 min-w-0">
                       <h2 className="mb-4 text-[16px] font-medium text-[#262335]">
@@ -307,6 +311,7 @@ export default function DetailsFilm() {
                       </div>
                     </div>
                   </div>
+                  )}
                 </div>
               </div>
 
@@ -343,6 +348,7 @@ export default function DetailsFilm() {
                   </p>
                 </div>
 
+                {canReview && (
                 <div className="mt-12 flex flex-col gap-10 md:flex-row items-end mb-[69px]">
                   <div className="md:flex-1">
                     <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
@@ -390,6 +396,7 @@ export default function DetailsFilm() {
                     </div>
                   </div>
                 </div>
+                )}
               </div>
             </div>
 
