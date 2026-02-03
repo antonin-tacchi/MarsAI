@@ -1,270 +1,132 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import FilmCard from "../components/FilmCard";
 import SearchBar from "../components/SearchBar";
+import Button from "../components/Button";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const PER_PAGE = 20;
 
+// --- COMPOSANT SKELETON (ÉTAT DE CHARGEMENT) ---
+const SkeletonCard = () => (
+  <div className="block w-[260px]">
+    <div className="w-full h-[160px] rounded-lg animate-shimmer mb-4" />
+    <div className="h-6 animate-shimmer rounded w-3/4 mb-2" />
+    <div className="h-4 animate-shimmer rounded w-1/2" />
+  </div>
+);
+
 export default function Catalogs() {
   const [films, setFilms] = useState([]);
   const [query, setQuery] = useState("");
-
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({
-    totalItems: 0,
-    totalPages: 1,
-    currentPage: 1,
-    itemsPerPage: PER_PAGE,
-  });
-
-  const [status, setStatus] = useState("idle");
+  const [status, setStatus] = useState("loading"); // On commence en loading
   const [error, setError] = useState("");
 
-  const fetchFilms = useCallback(async (p, signal) => {
+  const fetchFilms = useCallback(async (p) => {
     setStatus("loading");
     setError("");
+    try {
+      const res = await fetch(
+        `${API_URL}/api/films?page=${p}&limit=${PER_PAGE}`,
+      );
+      const data = await res.json();
 
-    const res = await fetch(`${API_URL}/api/films?page=${p}&limit=${PER_PAGE}`, {
-      signal,
-    });
+      if (!res.ok)
+        throw new Error(data?.message || "Erreur lors du chargement");
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.message || "Failed to load films");
-
-    setFilms(data?.data || []);
-    setPagination(
-      data?.pagination || {
-        totalItems: 0,
-        totalPages: 1,
-        currentPage: p,
-        itemsPerPage: PER_PAGE,
-      }
-    );
-
-    setStatus("success");
+      setFilms(data?.data || []);
+      setStatus("idle");
+    } catch (err) {
+      console.error(err);
+      setError("Impossible de se connecter au serveur.");
+      setStatus("idle");
+    }
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
-    (async () => {
-      try {
-        await fetchFilms(page, controller.signal);
-      } catch (err) {
-        if (!isMounted) return;
-        if (err?.name === "AbortError") return;
-        setStatus("error");
-        setError(err?.message || "Unknown error");
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
+    fetchFilms(page);
   }, [page, fetchFilms]);
 
-  useEffect(() => {
-    if (page > pagination.totalPages) {
-      setPage(Math.max(1, pagination.totalPages));
-    }
-  }, [pagination.totalPages, page]);
-
-  const filteredFilms = useMemo(() => {
-    if (status !== "success") return [];
-    const q = query.trim().toLowerCase();
-    if (!q) return films;
-
-    return films.filter((f) => {
-      const title = (f?.title || "").toLowerCase();
-      const first = (f?.director_firstname || "").toLowerCase();
-      const last = (f?.director_lastname || "").toLowerCase();
-      return (
-        title.includes(q) ||
-        first.includes(q) ||
-        last.includes(q) ||
-        `${first} ${last}`.includes(q)
-      );
-    });
-  }, [films, query, status]);
-
-  const canPrev = pagination.currentPage > 1;
-  const canNext = pagination.currentPage < pagination.totalPages;
-
-  const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-
-  const goFirst = () => canPrev && (setPage(1), scrollTop());
-  const goLast = () => canNext && (setPage(pagination.totalPages), scrollTop());
-  const goPrev = () => canPrev && (setPage((p) => Math.max(1, p - 1)), scrollTop());
-  const goNext = () => canNext && (setPage((p) => Math.min(pagination.totalPages, p + 1)), scrollTop());
-
-  const retry = () => {
-    setPage((p) => p);
-  };
+  // Filtrage local simple pour la démo (UX réactive)
+  const filteredFilms = films.filter((f) =>
+    f.title.toLowerCase().includes(query.toLowerCase()),
+  );
 
   return (
-    <div className="w-full">
-      <div className="mx-auto w-full max-w-[1200px] px-6 md:px-10 py-10">
-        {/* Header */}
-        <div className="flex flex-col items-center gap-5">
-          <h1 className="text-[#262335] w-full text-left">CATALOGUES</h1>
+    <main className="min-h-screen bg-[#FBF5F0] px-6 py-12">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-12 text-center">
+          <h1 className="text-4xl font-black text-[#262335] uppercase tracking-tighter mb-8 italic">
+            Catalogue
+          </h1>
+          <SearchBar value={query} onChange={setQuery} />
+        </header>
 
-          <div className="w-full flex">
-            <div className="w-full max-w-[700px]">
-              <SearchBar
-                value={query}
-                onChange={setQuery}
-                loading={status === "loading"}
-                error={status === "error" ? error : ""}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Pagination */}
-        {status === "success" && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-center mt-8">
-            <div className="inline-flex items-center rounded-[14px] gap-4">
-              <button
-                onClick={goFirst}
-                disabled={!canPrev}
-                className={`text-xl leading-none select-none ${
-                  canPrev ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
-                }`}
-                aria-label="Première page"
-              >
-                ≪
-              </button>
-
-              <button
-                onClick={goPrev}
-                disabled={!canPrev}
-                className={`text-xl leading-none select-none ${
-                  canPrev ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
-                }`}
-                aria-label="Page précédente"
-              >
-                ‹
-              </button>
-
-              <span className="flex items-center justify-center min-w-[2rem] px-2 text-[#262335] text-xl font-medium">
-                {pagination.currentPage}
-              </span>
-
-              <button
-                onClick={goNext}
-                disabled={!canNext}
-                className={`text-xl leading-none select-none ${
-                  canNext ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
-                }`}
-                aria-label="Page suivante"
-              >
-                ›
-              </button>
-
-              <button
-                onClick={goLast}
-                disabled={!canNext}
-                className={`text-xl leading-none select-none ${
-                  canNext ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
-                }`}
-                aria-label="Dernière page"
-              >
-                ≫
-              </button>
-            </div>
+        {/* --- 1. ÉTAT ERREUR API --- */}
+        {error && (
+          <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
+            <div className="text-5xl mb-4 text-red-400">⚠️</div>
+            <h2 className="text-2xl font-black text-[#262335] uppercase mb-2">
+              Erreur Serveur
+            </h2>
+            <p className="text-[#262335]/70 mb-6">{error}</p>
+            <Button onClick={() => fetchFilms(page)}>Réessayer</Button>
           </div>
         )}
 
-        {/* Content */}
-        <div className="mt-8">
-          {status === "loading" && (
-            <div className="text-[#262335]">
-              <p>Chargement des films…</p>
+        {/* --- 2. ÉTAT CHARGEMENT (SKELETONS) --- */}
+        {status === "loading" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
+            {[...Array(8)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        )}
+
+        {/* --- GESTION DES ÉTATS VIDES ET RECHERCHE --- */}
+        {status === "idle" && !error && filteredFilms.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-[#262335]/10 rounded-[2.5rem] bg-[#FBF5F0]/50">
+            <div className="text-6xl mb-6 opacity-30">
+              {query ? "🔍" : "🎬"}
             </div>
-          )}
 
-          {status === "error" && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-              <p className="text-red-700 font-medium">Erreur : {error}</p>
-              <button
-                onClick={retry}
-                className="mt-3 inline-flex items-center rounded-lg bg-[#262335] px-4 py-2 text-white"
-              >
-                Réessayer
-              </button>
-            </div>
-          )}
+            {query ? (
+              /* MESSAGE : Aucun résultat pour la recherche */
+              <>
+                <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
+                  Aucun résultat pour cette recherche
+                </h2>
+                <p className="mt-4 text-[#262335]/60 max-w-md mx-auto">
+                  Nous n'avons trouvé aucun film correspondant à "
+                  <span className="font-bold text-[#262335]">{query}</span>".
+                </p>
+                <Button onClick={() => setQuery("")} className="mt-8 scale-90">
+                  Effacer la recherche
+                </Button>
+              </>
+            ) : (
+              /* MESSAGE : Catalogue totalement vide */
+              <>
+                <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
+                  Aucun film dans le catalogue
+                </h2>
+                <p className="mt-4 text-[#262335]/60 max-w-md mx-auto">
+                  La pellicule est vide pour le moment. Revenez bientôt !
+                </p>
+              </>
+            )}
+          </div>
+        )}
 
-          {status === "success" && filteredFilms.length === 0 && (
-            <p className="text-[#262335]">Aucun résultat pour “{query}”.</p>
-          )}
-
-          {status === "success" && (
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
-              {filteredFilms.map((film) => (
-                <FilmCard key={film.id} film={film} apiUrl={API_URL} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Pagination */}
-        {status === "success" && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-center mt-8">
-            <div className="inline-flex items-center rounded-[14px] gap-4">
-              <button
-                onClick={goFirst}
-                disabled={!canPrev}
-                className={`text-xl leading-none select-none ${
-                  canPrev ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
-                }`}
-                aria-label="Première page"
-              >
-                ≪
-              </button>
-
-              <button
-                onClick={goPrev}
-                disabled={!canPrev}
-                className={`text-xl leading-none select-none ${
-                  canPrev ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
-                }`}
-                aria-label="Page précédente"
-              >
-                ‹
-              </button>
-
-              <span className="flex items-center justify-center min-w-[2rem] px-2 text-[#262335] text-xl font-medium">
-                {pagination.currentPage}
-              </span>
-
-              <button
-                onClick={goNext}
-                disabled={!canNext}
-                className={`text-xl leading-none select-none ${
-                  canNext ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
-                }`}
-                aria-label="Page suivante"
-              >
-                ›
-              </button>
-
-              <button
-                onClick={goLast}
-                disabled={!canNext}
-                className={`text-xl leading-none select-none ${
-                  canNext ? "text-[#262335]" : "text-[#9A95A1] opacity-75 cursor-not-allowed"
-                }`}
-                aria-label="Dernière page"
-              >
-                ≫
-              </button>
-            </div>
+        {/* --- 4. ÉTAT SUCCÈS (AFFICHAGE DES FILMS) --- */}
+        {status === "idle" && filteredFilms.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
+            {filteredFilms.map((film) => (
+              <FilmCard key={film.id} film={film} apiUrl={API_URL} />
+            ))}
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }
