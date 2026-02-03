@@ -91,10 +91,12 @@ export default function FilmPlayer({
       {!videoError && mode === "video" && (
         <video
           key={aiAbs}
+          autoPlay
+          muted
           controls
           playsInline
-          preload="metadata"
-          poster={previewImage} // ✅ thumbnail en preview
+          preload="auto"
+          poster={previewImage}
           className="w-full h-full object-cover bg-black"
           onError={() => setVideoError(true)}
         >
