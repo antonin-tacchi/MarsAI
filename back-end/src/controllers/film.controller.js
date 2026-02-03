@@ -1,5 +1,6 @@
 import Film from "../models/Film.js";
 import fs from "fs";
+import FilmRepository from "../repositories/film.repository.js";
 import { MAX_POSTER_SIZE, MAX_THUMBNAIL_SIZE, MAX_FILM_SIZE } from "../routes/film.routes.js";
 
 const MAX_TITLE = 255;
@@ -201,5 +202,42 @@ export const updateFilmStatus = async (req, res) => {
     console.error("updateFilmStatus error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
+
+
+export const getAllFilms = async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page || "1", 10), 1);
+    const limitRaw = parseInt(req.query.limit || "20", 10);
+    const limit = Math.min(Math.max(limitRaw, 1), 100);
+    const offset = (page - 1) * limit;
+
+    const filters = {
+      q: req.query.q?.trim() || null,
+      countries: req.query.countries ? req.query.countries.split(",").map(s => s.trim()).filter(Boolean) : [],
+      categories: req.query.categories ? req.query.categories.split(",").map(s => s.trim()).filter(Boolean) : [],
+      ai_tools: req.query.ai_tools ? req.query.ai_tools.split(",").map(s => s.trim()).filter(Boolean) : [],
+    };
+
+    const sort = req.query.sort || "recent";
+
+    const { items, total } = await FilmRepository.findAll({ filters, sort, limit, offset });
+
+    return res.json({
+      success: true,
+      data: items,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err) {
+    console.error("getAllFilms error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+  
 };
 

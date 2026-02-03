@@ -4,6 +4,10 @@ import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
 import { createFilm, updateFilmStatus } from "../controllers/film.controller.js";
+import { getAllFilms } from "../controllers/film.controller.js";
+
+router.get("/", getAllFilms);
+
 
 const router = express.Router();
 

@@ -95,6 +95,8 @@ export default class Film {
     };
   }
 
+  
+
   static async findById(id) {
     const sql = `SELECT * FROM films WHERE id = ? LIMIT 1`;
     const [rows] = await db.query(sql, [id]);
@@ -110,5 +112,22 @@ export default class Film {
     const [result] = await db.query(sql, [status, id]);
     return result.affectedRows > 0;
   }
+
+  static toPublicDTO(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    country: row.country,
+    description: row.description,
+    posterUrl: row.poster_url,
+    thumbnailUrl: row.thumbnail_url,
+    filmUrl: row.film_url,
+    aiToolsUsed: row.ai_tools_used,
+    aiCertification: Boolean(row.ai_certification),
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
   
 }
