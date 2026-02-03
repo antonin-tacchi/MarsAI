@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
 import {createFilm, updateFilmStatus,getAllFilms,} from "../controllers/film.controller.js";
+import { getCatalogStats } from "../controllers/catalogStats.controller.js";
 
 const router = express.Router();
 const submitLimiter = rateLimit({
@@ -100,6 +101,9 @@ const uploadMiddleware = (req, res, next) => {
 
 // catalogue
 router.get("/", getAllFilms);
+
+//stats
+router.get("/stats", getCatalogStats);
 
 // submission
 router.post("/", submitLimiter, uploadMiddleware, createFilm);

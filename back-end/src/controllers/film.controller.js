@@ -54,7 +54,7 @@ export const createFilm = async (req, res) => {
     if (filmFile.size > MAX_FILM_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({ success: false, message: "Film too large" });
-    }
+    }XMLDocument
 
     const {
       title,
