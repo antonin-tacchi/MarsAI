@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 function isVideoFile(url = "") {
   return /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(url);
@@ -35,7 +35,6 @@ function absolutize(url = "", base = "") {
   if (!url) return "";
   const u = String(url).trim();
 
-  // already absolute (http/https/blob/data)
   if (/^(https?:)?\/\//i.test(u) || /^(blob:|data:)/i.test(u)) return u;
 
   const cleanBase = String(base || "").replace(/\/$/, "");
@@ -52,21 +51,17 @@ export default function FilmPlayer({
   posterUrl,
   apiUrl,
 }) {
-  const API_URL = apiUrl || import.meta.env.VITE_API_URL || "http://localhost:5001";
+  const API_URL =
+    apiUrl || import.meta.env.VITE_API_URL || "http://localhost:5001";
 
   const [videoError, setVideoError] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  // ✅ on transforme TOUT en URL absolue
+  const videoRef = useRef(null);
+
   const aiAbs = useMemo(() => absolutize(aiUrl, API_URL), [aiUrl, API_URL]);
-  const thumbAbs = useMemo(
-    () => absolutize(thumbnailUrl, API_URL),
-    [thumbnailUrl, API_URL]
-  );
-  const posterAbs = useMemo(
-    () => absolutize(posterUrl, API_URL),
-    [posterUrl, API_URL]
-  );
+  const thumbAbs = useMemo(() => absolutize(thumbnailUrl, API_URL), [thumbnailUrl, API_URL]);
+  const posterAbs = useMemo(() => absolutize(posterUrl, API_URL), [posterUrl, API_URL]);
 
   const mode = useMemo(() => {
     if (!aiAbs) return "image";
@@ -75,7 +70,77 @@ export default function FilmPlayer({
     return "iframe";
   }, [aiAbs]);
 
-  const previewImage = (thumbAbs || posterAbs || "/placeholder.jpg");
+  const previewImage = thumbAbs || posterAbs || "/placeholder.jpg";
+
+  // 🔑 clés de persistance (unique par URL)
+  const storageKeyTime = useMemo(() => `filmplayer:time:${aiAbs}`, [aiAbs]);
+  const storageKeyPlaying = useMemo(() => `filmplayer:playing:${aiAbs}`, [aiAbs]);
+
+  useEffect(() => {
+    if (mode !== "video") return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    const saveTime = () => {
+      try {
+        localStorage.setItem(storageKeyTime, String(video.currentTime || 0));
+      } catch {}
+    };
+
+    const savePlaying = () => {
+      try {
+        localStorage.setItem(storageKeyPlaying, video.paused ? "0" : "1");
+      } catch {}
+    };
+
+    const restore = async () => {
+      // attendre metadata pour pouvoir set currentTime
+      const tRaw = localStorage.getItem(storageKeyTime);
+      const wasPlaying = localStorage.getItem(storageKeyPlaying) === "1";
+
+      const t = tRaw ? Number(tRaw) : 0;
+      if (Number.isFinite(t) && t > 0) {
+        // si la durée est connue, clamp
+        const safeTime =
+          Number.isFinite(video.duration) && video.duration > 0
+            ? Math.min(t, Math.max(0, video.duration - 0.25))
+            : t;
+
+        try {
+          video.currentTime = safeTime;
+        } catch {}
+      }
+
+      // si elle était en lecture avant reload, on relance
+      // ⚠️ autoplay sera de toute façon soumis aux règles navigateur (muted => OK)
+      if (wasPlaying) {
+        try {
+          await video.play();
+        } catch {
+          // ignore: navigateur peut bloquer si conditions pas remplies
+        }
+      }
+    };
+
+    const onLoadedMetadata = () => restore();
+
+    video.addEventListener("timeupdate", saveTime);
+    video.addEventListener("pause", savePlaying);
+    video.addEventListener("play", savePlaying);
+    video.addEventListener("loadedmetadata", onLoadedMetadata);
+
+    // au cas où l’onglet se ferme (dernier save)
+    window.addEventListener("beforeunload", saveTime);
+
+    return () => {
+      video.removeEventListener("timeupdate", saveTime);
+      video.removeEventListener("pause", savePlaying);
+      video.removeEventListener("play", savePlaying);
+      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      window.removeEventListener("beforeunload", saveTime);
+    };
+  }, [mode, storageKeyTime, storageKeyPlaying]);
 
   return (
     <div className="w-full h-full rounded-[18px] overflow-hidden bg-black/10 border border-[#262335]/10">
@@ -90,6 +155,7 @@ export default function FilmPlayer({
 
       {!videoError && mode === "video" && (
         <video
+          ref={videoRef}
           key={aiAbs}
           autoPlay
           muted
