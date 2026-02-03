@@ -29,17 +29,16 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
 
   return (
     <Link to={`/details-film/${film?.id ?? ""}`} className="block w-[260px] cursor-pointer">
-      <div className="group">
-        <div className="relative w-full h-[160px] rounded-lg overflow-hidden bg-[#C7C2CE]">
+      <div className="group h-full flex flex-col">
+        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-[#C7C2CE]">
           {imgStatus === "loading" && (
             <div className="absolute inset-0 animate-pulse bg-[#C7C2CE]" />
           )}
 
-          {/* Image */}
           <img
             src={src}
             alt={title}
-            className={`w-full h-[160px] object-cover transition-transform duration-200 group-hover:scale-[1.03]
+            className={`w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.03]
               ${imgStatus === "loaded" ? "opacity-100" : "opacity-0"}`}
             onLoad={() => setImgStatus("loaded")}
             onError={(e) => {
