@@ -204,3 +204,21 @@ export const getFilms = async (req, res) => {
     });
   }
 };
+
+export async function getFilmById(req, res) {
+  try {
+    const id = Number(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Invalid film id" });
+    }
+
+    const film = await Film.findById(id);
+    if (!film) {
+      return res.status(404).json({ success: false, message: "Film not found" });
+    }
+
+    return res.json({ success: true, data: film });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}

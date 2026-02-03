@@ -137,4 +137,10 @@ static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrd
   };
 }
 
+static async findById(id) {
+    const sql = `SELECT * FROM films WHERE id = ? LIMIT 1`;
+    const [rows] = await db.query(sql, [id]);
+    return rows?.[0] || null;
+}
+
 }
