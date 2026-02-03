@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
+  const imgRef = useRef(null);
   const [imgStatus, setImgStatus] = useState("loading");
 
   const filePath = useMemo(() => {
@@ -16,11 +17,23 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
 
   const src = useMemo(() => {
     if (!filePath) return "/placeholder.jpg";
-    return filePath.startsWith("http") ? filePath : `${apiUrl}${filePath}`;
+
+    if (/^https?:\/\//i.test(filePath)) return filePath;
+
+    try {
+      return new URL(filePath, apiUrl).href;
+    } catch {
+      return `${apiUrl}${filePath}`;
+    }
   }, [filePath, apiUrl]);
 
   useEffect(() => {
     setImgStatus("loading");
+
+    const el = imgRef.current;
+    if (el && el.complete && el.naturalWidth > 0) {
+      setImgStatus("loaded");
+    }
   }, [src]);
 
   const title = film?.title || "Titre inconnu";
@@ -28,14 +41,19 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
   const directorLast = film?.director_lastname || "Nom";
 
   return (
-    <Link to={`/details-film/${film?.id ?? ""}`} className="block w-[260px] cursor-pointer">
+    <Link
+      to={`/details-film/${film?.id ?? ""}`}
+      className="block w-[260px] cursor-pointer"
+    >
       <div className="group h-full flex flex-col">
         <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-[#C7C2CE]">
-          {imgStatus === "loading" && (
+          {imgStatus !== "loaded" && (
             <div className="absolute inset-0 animate-pulse bg-[#C7C2CE]" />
           )}
 
           <img
+            key={src}
+            ref={imgRef}
             src={src}
             alt={title}
             className={`w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.03]
@@ -45,7 +63,8 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
               setImgStatus("error");
               e.currentTarget.src = "/placeholder.jpg";
             }}
-            loading="lazy"
+            loading="eager"
+            decoding="async"
           />
 
           {imgStatus === "error" && (
@@ -56,7 +75,6 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
         </div>
 
         <p className="text-[#262335] mt-2 font-semibold">{title}</p>
-
         <p className="text-sm text-[#262335]/80">
           {directorFirst} {directorLast}
         </p>
