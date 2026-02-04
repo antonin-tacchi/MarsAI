@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import FilmCard from "../components/FilmCard";
 import SearchBar from "../components/SearchBar";
 import Button from "../components/Button";
+import FilmFilters from "../components/FilmFilters";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const PER_PAGE = 20;
@@ -18,21 +19,31 @@ const SkeletonCard = () => (
 export default function Catalogs() {
   const [films, setFilms] = useState([]);
   const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const [status, setStatus] = useState("loading"); // On commence en loading
+  const [page] = useState(1);
+  const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
 
+  // --- FILTRES ---
+  const [filters, setFilters] = useState({
+    selected: "all",
+    country: "",
+    ai: "",
+  });
+
+  // --- FETCH FILMS ---
   const fetchFilms = useCallback(async (p) => {
     setStatus("loading");
     setError("");
+
     try {
       const res = await fetch(
         `${API_URL}/api/films?page=${p}&limit=${PER_PAGE}`,
       );
       const data = await res.json();
 
-      if (!res.ok)
+      if (!res.ok) {
         throw new Error(data?.message || "Erreur lors du chargement");
+      }
 
       setFilms(data?.data || []);
       setStatus("idle");
@@ -47,22 +58,70 @@ export default function Catalogs() {
     fetchFilms(page);
   }, [page, fetchFilms]);
 
-  // Filtrage local simple pour la démo (UX réactive)
-  const filteredFilms = films.filter((f) =>
-    f.title.toLowerCase().includes(query.toLowerCase()),
-  );
+  // --- PAYS UNIQUES ---
+  const countries = useMemo(() => {
+    return [...new Set(films.map((f) => f.country).filter(Boolean))].sort();
+  }, [films]);
+
+  // --- OUTILS IA UNIQUES ---
+  const aiTools = useMemo(() => {
+    return [
+      ...new Set(
+        films
+          .map((f) => f.ai_tools_used)
+          .filter(Boolean)
+          .flatMap((tools) => tools.split(",").map((t) => t.trim())),
+      ),
+    ].sort();
+  }, [films]);
+
+  // --- FILTRAGE FINAL ---
+  const filteredFilms = useMemo(() => {
+    return films.filter((film) => {
+      if (filters.selected === "selected" && film.status !== "selected")
+        return false;
+
+      if (filters.country && film.country !== filters.country) return false;
+
+      if (
+        filters.ai &&
+        !film.ai_tools_used
+          ?.toLowerCase()
+          .includes(filters.ai.toLowerCase())
+      )
+        return false;
+
+      if (
+        query &&
+        !film.title.toLowerCase().includes(query.toLowerCase())
+      )
+        return false;
+
+      return true;
+    });
+  }, [films, filters, query]);
 
   return (
     <main className="min-h-screen bg-[#FBF5F0] px-6 py-12">
       <div className="max-w-7xl mx-auto">
-        <header className="mb-12 text-center">
-          <h1 className="text-4xl font-black text-[#262335] uppercase tracking-tighter mb-8 italic">
-            Catalogue
+        <header className="mb-12">
+          <h1 className="text-4xl font-black text-[#262335] uppercase tracking-tighter mb-8 p-6 italic ">
+             Catalogue
           </h1>
-          <SearchBar value={query} onChange={setQuery} />
+  
+          <div className="max-w-2xl mb-8 p-6">
+            <SearchBar value={query} onChange={setQuery} />
+          </div>
+  
+          <FilmFilters
+            filters={filters}
+            onChange={setFilters}
+            countries={countries}
+            aiTools={aiTools}
+          />
         </header>
 
-        {/* --- 1. ÉTAT ERREUR API --- */}
+        {/* --- ERREUR API --- */}
         {error && (
           <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
             <div className="text-5xl mb-4 text-red-400">⚠️</div>
@@ -74,7 +133,7 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- 2. ÉTAT CHARGEMENT (SKELETONS) --- */}
+        {/* --- CHARGEMENT --- */}
         {status === "loading" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
             {[...Array(8)].map((_, i) => (
@@ -83,7 +142,7 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- GESTION DES ÉTATS VIDES ET RECHERCHE --- */}
+        {/* --- ÉTAT VIDE --- */}
         {status === "idle" && !error && filteredFilms.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-[#262335]/10 rounded-[2.5rem] bg-[#FBF5F0]/50">
             <div className="text-6xl mb-6 opacity-30">
@@ -91,34 +150,25 @@ export default function Catalogs() {
             </div>
 
             {query ? (
-              /* MESSAGE : Aucun résultat pour la recherche */
               <>
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
                   Aucun résultat pour cette recherche
                 </h2>
-                <p className="mt-4 text-[#262335]/60 max-w-md mx-auto">
-                  Nous n'avons trouvé aucun film correspondant à "
-                  <span className="font-bold text-[#262335]">{query}</span>".
-                </p>
                 <Button onClick={() => setQuery("")} className="mt-8 scale-90">
                   Effacer la recherche
                 </Button>
               </>
             ) : (
-              /* MESSAGE : Catalogue totalement vide */
               <>
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
                   Aucun film dans le catalogue
                 </h2>
-                <p className="mt-4 text-[#262335]/60 max-w-md mx-auto">
-                  La pellicule est vide pour le moment. Revenez bientôt !
-                </p>
               </>
             )}
           </div>
         )}
 
-        {/* --- 4. ÉTAT SUCCÈS (AFFICHAGE DES FILMS) --- */}
+        {/* --- SUCCÈS --- */}
         {status === "idle" && filteredFilms.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
             {filteredFilms.map((film) => (
