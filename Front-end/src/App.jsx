@@ -38,7 +38,7 @@ export default function App() {
           <Route path="about" element={<About />} />
           <Route path="catalogs" element={<Catalogs />} />
           <Route path="contact" element={<Contact />} />
-          <Route path="details-film" element={<DetailsFilm />} />
+          <Route path="details-film/:id" element={<DetailsFilm />} />
           <Route path="prize-list" element={<PrizeList />} />
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />

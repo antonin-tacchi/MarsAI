@@ -60,6 +60,7 @@ export default class Film {
         NOW()
       )
     `;
+    
 
     const params = [
       data.title,
@@ -91,7 +92,8 @@ export default class Film {
     return {
       id: result.insertId,
       ...data,
-      status: FILM_STATUS.PENDING,
+      ai_certification: Film.toTinyInt(data.ai_certification),
+      status: "pending",
     };
   }
 
@@ -100,8 +102,8 @@ export default class Film {
   static async findById(id) {
     const sql = `SELECT * FROM films WHERE id = ? LIMIT 1`;
     const [rows] = await db.query(sql, [id]);
-    return rows?.[0] ?? null;
-  }
+    return rows?.[0] || null;
+}
 
   static async updateStatus(id, status) {
     const sql = `
