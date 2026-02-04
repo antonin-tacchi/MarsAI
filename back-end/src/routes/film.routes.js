@@ -3,7 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import {createFilm, updateFilmStatus,getAllFilms,} from "../controllers/film.controller.js";
+import { createFilm, updateFilmStatus, getFilms } from "../controllers/film.controller.js";
 import { getCatalogStats } from "../controllers/catalogStats.controller.js";
 
 const router = express.Router();
@@ -99,19 +99,15 @@ const uploadMiddleware = (req, res, next) => {
 
 /* ROUTES */
 
-// catalogue
-router.get("/", getAllFilms);
-
-//stats
-router.get("/stats", (req, res) => {
-  console.log("HIT /api/films/stats route");
-  return getCatalogStats(req, res);
-});
+// catalog
+router.get("/", getFilms);
+router.get("/stats", getCatalogStats);
 
 // submission
 router.post("/", submitLimiter, uploadMiddleware, createFilm);
 
 // admin
 router.patch("/:id/status", updateFilmStatus);
+
 
 export default router;

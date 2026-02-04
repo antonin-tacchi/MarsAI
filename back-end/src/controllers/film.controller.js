@@ -1,7 +1,7 @@
 import Film from "../models/Film.js";
 import fs from "fs";
+import { MAX_POSTER_SIZE, MAX_THUMBNAIL_SIZE, MAX_FILM_SIZE} from "../routes/film.routes.js";
 import FilmsRepository from "../repositories/films.repository.js";
-import { MAX_POSTER_SIZE, MAX_THUMBNAIL_SIZE, MAX_FILM_SIZE } from "../routes/film.routes.js";
 import { FILM_STATUS } from "../constants/filmStatus.js";
 import { canChangeFilmStatus } from "../services/filmStatus.service.js";
 
@@ -43,18 +43,24 @@ export const createFilm = async (req, res) => {
 
     if (posterFile.size > MAX_POSTER_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Poster too large" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Poster too large" });
     }
 
     if (thumbnailFile && thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Thumbnail too large" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Thumbnail too large" });
     }
 
     if (filmFile.size > MAX_FILM_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Film too large" });
-    }XMLDocument
+      return res
+        .status(400)
+        .json({ success: false, message: "Film too large" });
+    }
 
     const {
       title,
@@ -73,7 +79,14 @@ export const createFilm = async (req, res) => {
       social_vimeo,
     } = req.body;
 
-    if (!title || !country || !description || !director_firstname || !director_lastname || !director_email) {
+    if (
+      !title ||
+      !country ||
+      !description ||
+      !director_firstname ||
+      !director_lastname ||
+      !director_email
+    ) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
@@ -153,6 +166,62 @@ export const createFilm = async (req, res) => {
   }
 };
 
+export const getFilms = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const offset = (page - 1) * limit;
+
+    let sortOrder = "DESC";
+
+    if (req.query.sortBy === "oldest") {
+      sortOrder = "ASC";
+    }
+
+    const { rows, total } = await FilmsRepository.findAll({
+      filters: {},
+      sort: sortOrder === "ASC" ? "oldest" : "recent",
+      limit,
+      offset,
+    });
+
+    return res.status(200).json({
+      success: true,
+      pagination: {
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+      data: rows,
+    });
+  } catch (err) {
+    console.error("getFilms error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la récupération des films",
+    });
+  }
+};
+
+export async function getFilmById(req, res) {
+  try {
+    const id = Number(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Invalid film id" });
+    }
+
+    const film = await Film.findById(id);
+    if (!film) {
+      return res.status(404).json({ success: false, message: "Film not found" });
+    }
+
+    return res.json({ success: true, data: film });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
 export const updateFilmStatus = async (req, res) => {
   try {
     const filmId = req.params.id;
@@ -192,46 +261,6 @@ export const updateFilmStatus = async (req, res) => {
     });
   } catch (err) {
     console.error("updateFilmStatus error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-export const getAllFilms = async (req, res) => {
-  try {
-    const page = Math.max(parseInt(req.query.page || "1", 10), 1);
-    const limitRaw = parseInt(req.query.limit || "20", 10);
-    const limit = Math.min(Math.max(limitRaw, 1), 100);
-    const offset = (page - 1) * limit;
-
-    const filters = {
-      q: req.query.q?.trim() || null,
-      countries: req.query.countries
-        ? req.query.countries.split(",").map(s => s.trim()).filter(Boolean)
-        : [],
-      categories: req.query.categories
-        ? req.query.categories.split(",").map(s => s.trim()).filter(Boolean)
-        : [],
-      ai_tools: req.query.ai_tools
-        ? req.query.ai_tools.split(",").map(s => s.trim()).filter(Boolean)
-        : [],
-    };
-
-    const sort = req.query.sort || "recent";
-    const { rows, total } = await FilmsRepository.findAll({ filters, sort, limit, offset });
-    const items = rows.map(Film.toPublicDTO);
-
-    return res.json({
-      success: true,
-      data: items,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (err) {
-    console.error("getAllFilms error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
