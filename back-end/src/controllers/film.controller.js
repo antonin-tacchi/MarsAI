@@ -1,10 +1,9 @@
 import Film from "../models/Film.js";
 import fs from "fs";
-import {
-  MAX_POSTER_SIZE,
-  MAX_THUMBNAIL_SIZE,
-  MAX_FILM_SIZE,
-} from "../routes/film.routes.js";
+import { MAX_POSTER_SIZE, MAX_THUMBNAIL_SIZE, MAX_FILM_SIZE} from "../routes/film.routes.js";
+import FilmsRepository from "../repositories/films.repository.js";
+import { FILM_STATUS } from "../constants/filmStatus.js";
+import { canChangeFilmStatus } from "../services/filmStatus.service.js";
 
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
@@ -143,7 +142,7 @@ export const createFilm = async (req, res) => {
       poster_url: posterUrl,
       thumbnail_url: thumbnailUrl,
       ai_tools_used: ai_tools_used || null,
-      ai_certification: ai_certification,
+      ai_certification,
       director_firstname,
       director_lastname,
       director_email,
@@ -168,6 +167,62 @@ export const createFilm = async (req, res) => {
 };
 
 export const getFilms = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const offset = (page - 1) * limit;
+
+    let sortOrder = "DESC";
+
+    if (req.query.sortBy === "oldest") {
+      sortOrder = "ASC";
+    }
+
+    const { rows, total } = await FilmsRepository.findAll({
+      filters: {},
+      sort: sortOrder === "ASC" ? "oldest" : "recent",
+      limit,
+      offset,
+    });
+
+    return res.status(200).json({
+      success: true,
+      pagination: {
+        totalItems: total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+      data: rows,
+    });
+  } catch (err) {
+    console.error("getFilms error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la récupération des films",
+    });
+  }
+};
+
+export async function getFilmById(req, res) {
+  try {
+    const id = Number(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Invalid film id" });
+    }
+
+    const film = await Film.findById(id);
+    if (!film) {
+      return res.status(404).json({ success: false, message: "Film not found" });
+    }
+
+    return res.json({ success: true, data: film });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}
+
+export const updateFilmStatus = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 12;
@@ -204,21 +259,3 @@ export const getFilms = async (req, res) => {
     });
   }
 };
-
-export async function getFilmById(req, res) {
-  try {
-    const id = Number(req.params.id);
-    if (!id) {
-      return res.status(400).json({ success: false, message: "Invalid film id" });
-    }
-
-    const film = await Film.findById(id);
-    if (!film) {
-      return res.status(404).json({ success: false, message: "Film not found" });
-    }
-
-    return res.json({ success: true, data: film });
-  } catch (err) {
-    return res.status(500).json({ success: false, message: "Server error" });
-  }
-}

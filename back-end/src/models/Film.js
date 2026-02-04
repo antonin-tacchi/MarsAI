@@ -97,50 +97,39 @@ export default class Film {
     };
   }
 
-static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrder = "DESC" } = {}) {
-  const allowedSortFields = new Set([
-    "created_at",
-    "title",
-    "country",
-    "id",
-  ]);
+  
 
-  const safeField = allowedSortFields.has(sortField) ? sortField : "created_at";
-  const safeOrder = String(sortOrder).toUpperCase() === "ASC" ? "ASC" : "DESC";
-
-  const safeLimit = Math.min(50, Math.max(1, parseInt(limit, 10) || 12));
-  const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
-
-  const sqlData = `
-    SELECT
-      id,
-      title,
-      country,
-      poster_url,
-      thumbnail_url,
-      director_firstname,
-      director_lastname,
-      created_at
-    FROM films
-    ORDER BY ${safeField} ${safeOrder}
-    LIMIT ? OFFSET ?
-  `;
-
-  const sqlCount = `SELECT COUNT(*) AS total FROM films`;
-
-  const [rows] = await db.query(sqlData, [safeLimit, safeOffset]);
-  const [countResult] = await db.query(sqlCount);
-
-  return {
-    rows,
-    count: countResult?.[0]?.total ?? 0,
-  };
-}
-
-static async findById(id) {
+  static async findById(id) {
     const sql = `SELECT * FROM films WHERE id = ? LIMIT 1`;
     const [rows] = await db.query(sql, [id]);
     return rows?.[0] || null;
 }
 
+  static async updateStatus(id, status) {
+    const sql = `
+      UPDATE films
+      SET status = ?, updated_at = NOW()
+      WHERE id = ?
+    `;
+    const [result] = await db.query(sql, [status, id]);
+    return result.affectedRows > 0;
+  }
+
+  static toPublicDTO(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    country: row.country,
+    description: row.description,
+    posterUrl: row.poster_url,
+    thumbnailUrl: row.thumbnail_url,
+    filmUrl: row.film_url,
+    aiToolsUsed: row.ai_tools_used,
+    aiCertification: Boolean(row.ai_certification),
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+  
 }
