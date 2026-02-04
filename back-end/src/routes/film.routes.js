@@ -103,7 +103,10 @@ const uploadMiddleware = (req, res, next) => {
 router.get("/", getAllFilms);
 
 //stats
-router.get("/stats", getCatalogStats);
+router.get("/stats", (req, res) => {
+  console.log("HIT /api/films/stats route");
+  return getCatalogStats(req, res);
+});
 
 // submission
 router.post("/", submitLimiter, uploadMiddleware, createFilm);

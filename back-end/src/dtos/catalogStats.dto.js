@@ -8,7 +8,7 @@ export function toCatalogStatsDTO({
   return {
     total: Number(total),
 
-    // byStatus: byStatus.map(r => ({
+    // byStatus: byStatus.map(r => ({     //50 films catalog
     //   status: r.status,
     //   count: Number(r.count),
     // })),

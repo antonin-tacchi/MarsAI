@@ -1,18 +1,30 @@
-import FilmRepository from "../repositories/films.repository.js";
+// src/controllers/catalogStats.controller.js
+import CatalogRepository from "../repositories/catalogStats.repository.js";
 import { toCatalogStatsDTO } from "../dtos/catalogStats.dto.js";
 
 export async function getCatalogStats(req, res) {
-  const total = await FilmRepository.countAll();
-  const byCategory = await FilmRepository.countByCategory();
-  const byCountry = await FilmRepository.countByCountry();
-  const byAiTool = await FilmRepository.countByAiTool();
+  try {
+    console.log("HIT stats");
 
-  const data = toCatalogStatsDTO({
-    total,
-    byCategory,
-    byCountry,
-    byAiTool,
-  });
+    const total = await CatalogRepository.countAll();
+    const byCategory = await CatalogRepository.countByCategory();
+    const byCountry = await CatalogRepository.countByCountry();
+    const byAiTool = await CatalogRepository.countByAiTool();
 
-  res.json({ success: true, data });
+    const data = toCatalogStatsDTO({
+      total,
+      byCategory,
+      byCountry,
+      byAiTool,
+    });
+
+    return res.json({ success: true, data });
+  } catch (err) {
+    console.error("❌ getCatalogStats error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Catalog stats failed",
+      error: err?.message,
+    });
+  }
 }
