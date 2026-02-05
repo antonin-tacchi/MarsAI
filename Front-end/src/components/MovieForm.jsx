@@ -119,12 +119,10 @@ export default function MovieForm({ onFinalSubmit }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Files
   const [filmFile, setFilmFile] = useState(null);
   const [posterFile, setPosterFile] = useState(null);
   const [thumbFile, setThumbFile] = useState(null);
 
-  // ✅ Text fields (state) -> plus de champs NULL en DB
   const [fields, setFields] = useState({
     title: "",
     country: "",
@@ -138,6 +136,9 @@ export default function MovieForm({ onFinalSubmit }) {
   });
 
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
+  const [apiHint, setApiHint] = useState("");
+
   const formRef = useRef(null);
 
   const setField = (name) => (valueOrEvent) => {
@@ -151,7 +152,6 @@ export default function MovieForm({ onFinalSubmit }) {
     setFields((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Petite sécurité: si Input ne propage pas onChange/value, on récupère quand même depuis le DOM
   const getFieldValue = (name) => {
     const fromState = fields[name];
     if (typeof fromState === "string" && fromState.trim() !== "") return fromState;
@@ -161,7 +161,6 @@ export default function MovieForm({ onFinalSubmit }) {
       formRef.current?.querySelector(`[name="${name}"]`) ||
       formRef.current?.elements?.namedItem?.(name);
 
-    // textarea/input
     return el?.value ?? "";
   };
 
@@ -199,23 +198,50 @@ export default function MovieForm({ onFinalSubmit }) {
     return Object.keys(newErrors).length === 0;
   };
 
+  const mapApiError = (err) => {
+    const status = err?.status;
+    const raw = (err?.message || "").toLowerCase();
+
+    const fieldErrors = {};
+    if (raw.includes("poster too large")) fieldErrors.poster = "Poster trop lourd (max 5 Mo).";
+    else if (raw.includes("thumbnail too large")) fieldErrors.thumb = "Miniature trop lourde (max 3 Mo).";
+    else if (raw.includes("film too large") || raw.includes("file too large"))
+      fieldErrors.film = "Vidéo trop lourde (max 800 Mo).";
+    else if (raw.includes("invalid image type"))
+      fieldErrors.poster = "Format image invalide (jpg, jpeg, png, webp).";
+    else if (raw.includes("invalid video type"))
+      fieldErrors.film = "Format vidéo invalide (mp4, webm, mov).";
+    else if (raw.includes("poster and film files are required")) {
+      fieldErrors.poster = "Poster obligatoire";
+      fieldErrors.film = "Vidéo obligatoire";
+    }
+    if (status === 429 || raw.includes("too many")) {
+      return {
+        banner: "Trop de soumissions : attends un peu et réessaye.",
+        hint: "Tu es limité à 5 envois (fenêtre de 15 min environ).",
+        fieldErrors,
+      };
+    }
+    return {
+      banner: err?.message || "Erreur lors de l’envoi du film.",
+      hint: "",
+      fieldErrors,
+    };
+  };
+
   const handleSubmitToApi = async () => {
-    // ✅ On construit le payload avec nos valeurs sûres
     const payload = {
-      // Film
       title: getFieldValue("title"),
       country: getFieldValue("country"),
       description: getFieldValue("description"),
       ai_tools_used: getFieldValue("ai_tools"),
-      ai_certification: fields.certify ? 1 : 0,
+      ai_certification: fields.certify === true ? 1 : 0,
 
-      // Director
       director_firstname: getFieldValue("fname"),
       director_lastname: getFieldValue("lname"),
       director_email: getFieldValue("email"),
       director_bio: getFieldValue("bio"),
 
-      // Files (IMPORTANT: names mapped inside service to poster/film/thumbnail)
       posterFile,
       filmFile,
       thumbnailFile: thumbFile,
@@ -255,8 +281,9 @@ export default function MovieForm({ onFinalSubmit }) {
       ref={formRef}
       onSubmit={async (e) => {
         e.preventDefault();
+        setApiError("");
+        setApiHint("");
 
-        // On valide la partie réalisateur (step 2)
         if (!validateSection(2)) return;
 
         try {
@@ -271,13 +298,32 @@ export default function MovieForm({ onFinalSubmit }) {
           setStep(3);
         } catch (err) {
           console.error("Erreur soumission film :", err);
-          alert(err?.message || "Erreur lors de l'envoi du film");
+
+          const { banner, hint, fieldErrors } = mapApiError(err);
+          setApiError(banner);
+          setApiHint(hint);
+          setErrors((prev) => ({ ...prev, ...fieldErrors }));
+
+          if (fieldErrors.film || fieldErrors.poster || fieldErrors.thumb) {
+            setStep(1);
+            window.scrollTo(0, 0);
+          }
         } finally {
           setLoading(false);
         }
       }}
       className="w-full min-h-screen overflow-x-hidden"
     >
+      {apiError && (
+        <div className="mx-auto mt-6 max-w-6xl px-4">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-[#262335]">
+            <p className="font-black uppercase text-sm">Erreur</p>
+            <p className="mt-1 font-bold">{apiError}</p>
+            {apiHint && <p className="mt-2 text-sm opacity-80">{apiHint}</p>}
+          </div>
+        </div>
+      )}
+
       {step === 1 ? (
         <section
           className="w-full min-h-screen flex items-center justify-center px-4 py-10 md:py-20 bg-[#8A83DA]"
@@ -362,9 +408,15 @@ export default function MovieForm({ onFinalSubmit }) {
                     type="checkbox"
                     name="certify"
                     checked={fields.certify}
-                    onChange={setField("certify")}
+                    onChange={(e) =>
+                      setFields((prev) => ({
+                        ...prev,
+                        certify: e.target.checked,
+                      }))
+                    }
                     className="mt-1 w-6 h-6 accent-[#463699]"
                   />
+
                   <span className="text-sm italic text-[#262335]">
                     Je certifie que ce film respecte les règles du festival.
                   </span>
@@ -372,6 +424,9 @@ export default function MovieForm({ onFinalSubmit }) {
                 <button
                   type="button"
                   onClick={() => {
+                    setApiError("");
+                    setApiHint("");
+
                     if (validateSection(1)) {
                       setStep(2);
                       window.scrollTo(0, 0);

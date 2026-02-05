@@ -21,9 +21,10 @@ export const authenticateToken = (req, res, next) => {
       });
     }
 
-    // 🔑 ICI que tout se joue
+  
     req.user = {
-      id: decoded.userId,
+      userId: decoded.userId,
+      email: decoded.email,
       roles: decoded.roles || [],
     };
 
