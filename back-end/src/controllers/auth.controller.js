@@ -6,11 +6,6 @@ import User from "../models/User.js";
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 const JWT_EXPIRES_IN = "24h";
 
-const normalizeRoleIds = (rolesRaw) => {
-  if (!Array.isArray(rolesRaw)) return [];
-  return rolesRaw.map((r) => Number(r?.role_id ?? r?.id ?? r)).filter((n) => Number.isFinite(n));
-};
-
 /**
  * Register a new user
  */
@@ -39,9 +34,9 @@ export const register = async (req, res) => {
       name,
     });
 
-
-    const rolesRaw = await User.getRoleIds(user.id);
-    const roles = normalizeRoleIds(rolesRaw);
+    // Single query: fetch user + roles via JOIN (was 2 separate queries)
+    const userWithRoles = await User.findByIdWithRoles(user.id);
+    const roles = userWithRoles?.roles || [];
 
     const token = jwt.sign(
       { userId: user.id, email: user.email, roles },
@@ -49,7 +44,7 @@ export const register = async (req, res) => {
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    const { password: _password, ...userWithoutPassword } = user;
+    const { password: _password, roles: _roles, ...userWithoutPassword } = userWithRoles || user;
 
     return res.status(201).json({
       success: true,
@@ -73,7 +68,8 @@ export const login = async (req, res) => {
 
     const { email, password } = req.body;
 
-    const user = await User.findByEmail(email);
+    // Single query: fetch user + roles via JOIN (was 2 separate queries)
+    const user = await User.findByEmailWithRoles(email);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -89,8 +85,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const rolesRaw = await User.getRoleIds(user.id);
-    const roles = normalizeRoleIds(rolesRaw);
+    const roles = user.roles || [];
 
     const token = jwt.sign(
       { userId: user.id, email: user.email, roles },
@@ -98,7 +93,7 @@ export const login = async (req, res) => {
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    const { password: _password, ...userWithoutPassword } = user;
+    const { password: _password, roles: _roles, ...userWithoutPassword } = user;
 
     return res.status(200).json({
       success: true,

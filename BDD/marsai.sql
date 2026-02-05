@@ -123,6 +123,12 @@ CREATE TABLE `films` (
   KEY `idx_created_at` (`created_at`),
   KEY `idx_director_email` (`director_email`),
   KEY `fk_status_changed_by` (`status_changed_by`),
+  KEY `idx_films_status_created_at` (`status`, `created_at` DESC),
+  KEY `idx_films_email_created` (`director_email`, `created_at`),
+  KEY `idx_films_country` (`country`),
+  KEY `idx_films_title` (`title`),
+  FULLTEXT KEY `ft_films_search` (`title`, `description`),
+  FULLTEXT KEY `ft_films_ai_tools` (`ai_tools_used`),
   CONSTRAINT `fk_status_changed_by` FOREIGN KEY (`status_changed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -155,6 +161,8 @@ CREATE TABLE `email_logs` (
   `error_message` text,
   PRIMARY KEY (`id`),
   KEY `fk_email_film` (`film_id`),
+  KEY `idx_email_logs_recipient` (`recipient_email`, `email_type`),
+  KEY `idx_email_logs_film_sent` (`film_id`, `sent_at`),
   CONSTRAINT `fk_email_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -201,7 +209,9 @@ CREATE TABLE `events` (
   `event_date` datetime NOT NULL,
   `location` varchar(255) DEFAULT NULL,
   `max_attendees` int DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_events_event_date` (`event_date`),
+  KEY `idx_events_event_type` (`event_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -268,6 +278,7 @@ CREATE TABLE `jury_ratings` (
   UNIQUE KEY `unique_jury_film` (`film_id`, `user_id`),
   KEY `fk_rating_film` (`film_id`),
   KEY `fk_rating_user` (`user_id`),
+  KEY `idx_jury_ratings_film_rating` (`film_id`, `rating`),
   CONSTRAINT `fk_rating_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_rating_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chk_rating_range` CHECK (`rating` >= 1 AND `rating` <= 5)
@@ -292,6 +303,8 @@ CREATE TABLE `invitations` (
   UNIQUE KEY `token` (`token`),
   KEY `fk_inv_role` (`role_id`),
   KEY `fk_inv_user` (`invited_by`),
+  KEY `idx_invitations_email` (`email`),
+  KEY `idx_invitations_email_expires` (`email`, `expires_at`),
   CONSTRAINT `fk_inv_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`),
   CONSTRAINT `fk_inv_user` FOREIGN KEY (`invited_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

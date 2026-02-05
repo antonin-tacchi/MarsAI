@@ -17,6 +17,34 @@ class UserModel {
     }
   }
 
+  /**
+   * Find user by email and fetch roles in a single query (optimized for login).
+   * Avoids a second round-trip to the database for getRoleIds().
+   */
+  async findByEmailWithRoles(email) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT u.*, GROUP_CONCAT(ur.role_id) AS role_ids
+         FROM users u
+         LEFT JOIN user_roles ur ON ur.user_id = u.id
+         WHERE u.email = ?
+         GROUP BY u.id`,
+        [email]
+      );
+      if (!rows[0]) return null;
+
+      const user = rows[0];
+      user.roles = user.role_ids
+        ? user.role_ids.split(",").map(Number)
+        : [];
+      delete user.role_ids;
+      return user;
+    } catch (error) {
+      console.error("Error finding user by email with roles:", error);
+      throw error;
+    }
+  }
+
   async findById(id) {
     try {
       const [rows] = await pool.execute(
@@ -26,6 +54,34 @@ class UserModel {
       return rows[0] || null;
     } catch (error) {
       console.error("Error finding user by ID:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Find user by ID and fetch roles in a single query (optimized).
+   * Avoids a second round-trip to the database for getRoleIds().
+   */
+  async findByIdWithRoles(id) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT u.*, GROUP_CONCAT(ur.role_id) AS role_ids
+         FROM users u
+         LEFT JOIN user_roles ur ON ur.user_id = u.id
+         WHERE u.id = ?
+         GROUP BY u.id`,
+        [id]
+      );
+      if (!rows[0]) return null;
+
+      const user = rows[0];
+      user.roles = user.role_ids
+        ? user.role_ids.split(",").map(Number)
+        : [];
+      delete user.role_ids;
+      return user;
+    } catch (error) {
+      console.error("Error finding user by ID with roles:", error);
       throw error;
     }
   }

@@ -1,16 +1,15 @@
-// src/repositories/films.repository.js
+// src/repositories/catalogStats.repository.js
 import pool from "../config/database.js";
 
 function buildWhere(filters) {
   const where = [];
   const params = [];
-
-  // NOTE: on ne filtre plus par status (on compte tout)
-  // Si tu veux filtrer plus tard, tu le rajouteras côté endpoint.
+  let needsCategoryJoin = false;
 
   if (filters?.q) {
-    where.push("(f.title LIKE ? OR f.description LIKE ?)");
-    params.push(`%${filters.q}%`, `%${filters.q}%`);
+    // Use FULLTEXT index instead of LIKE '%...%' for better performance
+    where.push("MATCH(f.title, f.description) AGAINST(? IN BOOLEAN MODE)");
+    params.push(`*${filters.q}*`);
   }
 
   if (filters?.countries?.length) {
@@ -19,6 +18,7 @@ function buildWhere(filters) {
   }
 
   if (filters?.categories?.length) {
+    needsCategoryJoin = true;
     where.push(`c.id IN (${filters.categories.map(() => "?").join(",")})`);
     params.push(...filters.categories);
   }
@@ -32,6 +32,7 @@ function buildWhere(filters) {
   return {
     whereSql: where.length ? `WHERE ${where.join(" AND ")}` : "",
     params,
+    needsCategoryJoin,
   };
 }
 
@@ -44,27 +45,29 @@ function buildOrderBy(sort) {
 export default class FilmRepository {
   // ---------- CATALOG LIST ----------
   static async findAll({ filters = {}, sort, limit = 20, offset = 0 }) {
-    const { whereSql, params } = buildWhere(filters);
+    const { whereSql, params, needsCategoryJoin } = buildWhere(filters);
     const orderBy = buildOrderBy(sort);
 
-    // COUNT (avec JOIN catégorie si tu filtres categories)
+    // Optimization: skip category JOIN in COUNT when not filtering by category
+    const categoryJoin = needsCategoryJoin
+      ? `LEFT JOIN film_categories fc ON fc.film_id = f.id
+         LEFT JOIN categories c ON c.id = fc.category_id`
+      : "";
+
+    // COUNT
     const [countRows] = await pool.query(
-      `
-      SELECT COUNT(DISTINCT f.id) AS total
-      FROM films f
-      LEFT JOIN film_categories fc ON fc.film_id = f.id
-      LEFT JOIN categories c ON c.id = fc.category_id
-      ${whereSql}
-      `,
+      `SELECT COUNT(DISTINCT f.id) AS total
+       FROM films f
+       ${categoryJoin}
+       ${whereSql}`,
       params
     );
 
     const total = countRows?.[0]?.total ?? 0;
 
-    // DATA
+    // DATA - always JOIN for category display
     const [rows] = await pool.query(
-      `
-      SELECT
+      `SELECT
         f.id,
         f.title,
         f.country,
@@ -79,26 +82,26 @@ export default class FilmRepository {
       LEFT JOIN categories c ON c.id = fc.category_id
       ${whereSql}
       ${orderBy}
-      LIMIT ? OFFSET ?
-      `,
+      LIMIT ? OFFSET ?`,
       [...params, limit, offset]
     );
 
     return { rows, total };
   }
 
-  // ---------- STATS (catalog) ----------
+  // ---------- STATS ----------
+
   static async countAll() {
-    const [rows] = await pool.query(`
-      SELECT COUNT(*) AS count
-      FROM films
-    `);
+    // Simple COUNT(*) on PK - very fast, uses clustered index
+    const [rows] = await pool.query(
+      `SELECT COUNT(*) AS count FROM films`
+    );
     return rows?.[0]?.count ?? 0;
   }
 
   static async countByCategory() {
-    // Compte tous les films liés à chaque catégorie.
-    // Note: si un film est dans plusieurs catégories, il comptera dans chacune (logique).
+    // LEFT JOIN ensures categories with 0 films still appear.
+    // Uses PK indexes on categories and film_categories.
     const [rows] = await pool.query(`
       SELECT
         c.id AS categoryId,
@@ -113,6 +116,7 @@ export default class FilmRepository {
   }
 
   static async countByCountry() {
+    // Uses idx_films_country for the GROUP BY operation
     const [rows] = await pool.query(`
       SELECT
         COALESCE(NULLIF(TRIM(f.country), ''), 'Unknown') AS country,
@@ -124,16 +128,15 @@ export default class FilmRepository {
     return rows;
   }
 
-static async countByAiTool() {
-  const [rows] = await pool.query(`
-    SELECT
-      COALESCE(NULLIF(TRIM(ai_tools_used), ''), 'Unknown') AS tool,
-      COUNT(*) AS count
-    FROM films
-    GROUP BY COALESCE(NULLIF(TRIM(ai_tools_used), ''), 'Unknown')
-    ORDER BY count DESC
-  `);
-  return rows;
-}
-
+  static async countByAiTool() {
+    const [rows] = await pool.query(`
+      SELECT
+        COALESCE(NULLIF(TRIM(ai_tools_used), ''), 'Unknown') AS tool,
+        COUNT(*) AS count
+      FROM films
+      GROUP BY COALESCE(NULLIF(TRIM(ai_tools_used), ''), 'Unknown')
+      ORDER BY count DESC
+    `);
+    return rows;
+  }
 }
