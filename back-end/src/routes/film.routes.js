@@ -3,10 +3,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import { createFilm, updateFilmStatus, getFilms } from "../controllers/film.controller.js";
+import { createFilm, getFilms } from "../controllers/film.controller.js";
 import { getCatalogStats } from "../controllers/catalogStats.controller.js";
-import { createFilm } from "../controllers/film.controller.js";
-import { getFilms } from "../controllers/film.controller.js";
 import { getFilmById } from "../controllers/film.controller.js";
 
 const router = express.Router();
@@ -117,7 +115,7 @@ router.get("/stats", getCatalogStats);
 router.post("/", submitLimiter, uploadMiddleware, createFilm);
 
 // admin
-router.patch("/:id/status", updateFilmStatus);
+router.patch("/:id/status");
 
 router.post(
   "/",
