@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import { createFilm } from "../controllers/film.controller.js";
 import { getFilms } from "../controllers/film.controller.js";
 import { getFilmById } from "../controllers/film.controller.js";
+import { getFilmStats} from "../controllers/film.controller.js";
 
 const router = express.Router();
 
@@ -120,6 +121,7 @@ const uploadMiddleware = (req, res, next) => {
 };
 
 router.get("/", getFilms);
+router.get("/stats", getFilmStats);
 router.get("/:id", getFilmById);
 
 router.post(

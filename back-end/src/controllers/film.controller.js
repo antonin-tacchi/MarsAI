@@ -169,30 +169,37 @@ export const createFilm = async (req, res) => {
 
 export const getFilms = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
-    const offset = (page - 1) * limit;
+    // Front: 20 max/page, pagination => accès à tous via pages
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const all = String(req.query.all || "") === "1";
 
-    let sortOrder = "DESC"; 
-    
-    if (req.query.sortBy === "oldest") {
-      sortOrder = "ASC";
-    }
+    const limit = all
+      ? 50
+      : Math.min(20, Math.max(1, parseInt(req.query.limit, 10) || 20));
+
+    const offset = all ? 0 : (page - 1) * limit;
+
+    // Tri (safe côté model via allowedSortFields)
+    const sortField = req.query.sortField || "created_at";
+    const sortOrder = req.query.sortOrder || "DESC";
 
     const { rows, count } = await Film.findAll({
       limit,
       offset,
-      sortField: "created_at", 
+      sortField,
       sortOrder,
+      status: "approved",
     });
 
     return res.status(200).json({
       success: true,
       pagination: {
         totalItems: count,
-        totalPages: Math.ceil(count / limit),
-        currentPage: page,
+        totalPages: Math.max(1, Math.ceil(count / limit)),
+        currentPage: all ? 1 : page,
         itemsPerPage: limit,
+        hasNextPage: all ? false : page < Math.ceil(count / limit),
+        hasPrevPage: all ? false : page > 1,
       },
       data: rows,
     });
@@ -209,12 +216,16 @@ export async function getFilmById(req, res) {
   try {
     const id = Number(req.params.id);
     if (!id) {
-      return res.status(400).json({ success: false, message: "Invalid film id" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid film id" });
     }
 
     const film = await Film.findById(id);
     if (!film) {
-      return res.status(404).json({ success: false, message: "Film not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Film not found" });
     }
 
     return res.json({ success: true, data: film });
@@ -222,3 +233,20 @@ export async function getFilmById(req, res) {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 }
+
+export const getFilmStats = async (req, res) => {
+  try {
+    const stats = await Film.getStats();
+
+    return res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (err) {
+    console.error("getFilmStats error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la récupération des statistiques",
+    });
+  }
+};
