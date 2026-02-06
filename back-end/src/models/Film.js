@@ -119,6 +119,8 @@ static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrd
       country,
       poster_url,
       thumbnail_url,
+      youtube_url,
+      ai_tools_used,
       director_firstname,
       director_lastname,
       created_at
