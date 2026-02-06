@@ -33,11 +33,12 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
   }, [film, imageVariant]);
 
   const src = useMemo(() => {
-    // If no local file, try YouTube thumbnail
-    if (!filePath && youtubeId) {
+    // Priority 1: If YouTube URL exists, use YouTube thumbnail
+    if (youtubeId) {
       return `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
     }
 
+    // Priority 2: Use local thumbnail/poster from DB
     if (!filePath) return "/placeholder.jpg";
 
     if (/^https?:\/\//i.test(filePath)) return filePath;
@@ -82,9 +83,12 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
               ${imgStatus === "loaded" ? "opacity-100" : "opacity-0"}`}
             onLoad={() => setImgStatus("loaded")}
             onError={(e) => {
-              // Try YouTube thumbnail as fallback
-              if (youtubeId && !e.currentTarget.src.includes("youtube.com")) {
-                e.currentTarget.src = `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
+              // If YouTube thumbnail fails, try local file as fallback
+              if (e.currentTarget.src.includes("youtube.com") && filePath) {
+                const localUrl = /^https?:\/\//i.test(filePath)
+                  ? filePath
+                  : `${apiUrl}${filePath}`;
+                e.currentTarget.src = localUrl;
                 return;
               }
               setImgStatus("error");
