@@ -217,6 +217,7 @@ export default function DetailsFilm() {
                     <FilmPlayer
                       title={film?.title}
                       aiUrl={film?.film_url}
+                      youtubeUrl={film?.youtube_url}
                       thumbnailUrl={film?.thumbnail_url}
                       posterUrl={film?.poster_url}
                       apiUrl={API_URL}
@@ -322,6 +323,7 @@ export default function DetailsFilm() {
                     <FilmPlayer
                       title={title}
                       aiUrl={aiUrl}
+                      youtubeUrl={film?.youtube_url}
                       thumbnailUrl={film?.thumbnail_url}
                       posterUrl={film?.poster_url}
                       apiUrl={API_URL}

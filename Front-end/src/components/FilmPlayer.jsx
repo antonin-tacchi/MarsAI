@@ -47,6 +47,7 @@ function absolutize(url = "", base = "") {
 export default function FilmPlayer({
   title,
   aiUrl,
+  youtubeUrl,
   thumbnailUrl,
   posterUrl,
   apiUrl,
@@ -63,12 +64,21 @@ export default function FilmPlayer({
   const thumbAbs = useMemo(() => absolutize(thumbnailUrl, API_URL), [thumbnailUrl, API_URL]);
   const posterAbs = useMemo(() => absolutize(posterUrl, API_URL), [posterUrl, API_URL]);
 
+  // Priority: YouTube URL > local video file > iframe
   const mode = useMemo(() => {
+    // If YouTube URL exists, prioritize it
+    if (youtubeUrl && isYouTube(youtubeUrl)) return "youtube";
     if (!aiAbs) return "image";
     if (isVideoFile(aiAbs)) return "video";
     if (isYouTube(aiAbs)) return "youtube";
     return "iframe";
-  }, [aiAbs]);
+  }, [aiAbs, youtubeUrl]);
+
+  // Use YouTube URL if available, otherwise use aiUrl
+  const effectiveUrl = useMemo(() => {
+    if (youtubeUrl && isYouTube(youtubeUrl)) return youtubeUrl;
+    return aiAbs;
+  }, [youtubeUrl, aiAbs]);
 
   const previewImage = thumbAbs || posterAbs || "/placeholder.jpg";
 
@@ -173,9 +183,9 @@ export default function FilmPlayer({
 
       {mode === "youtube" && (
         <iframe
-          key={aiAbs}
+          key={effectiveUrl}
           title={title || "Film"}
-          src={toYouTubeEmbed(aiAbs)}
+          src={toYouTubeEmbed(effectiveUrl)}
           className="w-full h-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
