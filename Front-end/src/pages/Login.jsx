@@ -53,7 +53,18 @@ export default function Login() {
     try {
       const response = await login(formData);
       console.log("Login successful:", response);
-      navigate("/");
+
+      // Redirect based on user role
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const roles = user?.roles || [];
+
+      if (roles.includes(2)) {
+        navigate("/profile-admin");
+      } else if (roles.includes(1) || roles.includes(3)) {
+        navigate("/profile-jury");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       setApiError(error.message || "La connexion a échoué. Veuillez réessayer.");
     } finally {

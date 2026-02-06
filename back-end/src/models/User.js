@@ -32,19 +32,12 @@ class UserModel {
 
   async create(userData) {
     try {
-      const {
-        name,
-        email,
-        password,
-        bio = null,
-        country = null,
-        school = null,
-      } = userData;
+      const { name, email, password } = userData;
 
       const [result] = await pool.execute(
-        `INSERT INTO users (name, email, password, bio, country, school, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-        [name, email, password, bio, country, school]
+        `INSERT INTO users (name, email, password, created_at)
+         VALUES (?, ?, ?, NOW())`,
+        [name, email, password]
       );
 
       return await this.findById(result.insertId);

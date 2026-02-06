@@ -39,6 +39,8 @@ export const register = async (req, res) => {
       name,
     });
 
+    // Assign default Jury role (role_id = 1) to new users
+    await User.assignRole(user.id, 1);
 
     const rolesRaw = await User.getRoleIds(user.id);
     const roles = normalizeRoleIds(rolesRaw);
@@ -100,9 +102,10 @@ export const login = async (req, res) => {
 
     const { password: _password, ...userWithoutPassword } = user;
 
+    // Include roles in the user object for frontend
     return res.status(200).json({
       success: true,
-      data: { user: userWithoutPassword, token },
+      data: { user: { ...userWithoutPassword, roles }, token },
     });
   } catch (error) {
     console.error("Login error:", error);

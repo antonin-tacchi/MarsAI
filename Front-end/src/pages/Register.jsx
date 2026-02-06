@@ -78,7 +78,8 @@ export default function Register() {
       };
       const response = await register(registerData);
       console.log("Registration successful:", response);
-      navigate("/");
+      // New users get Jury role by default, redirect to jury dashboard
+      navigate("/profile-jury");
     } catch (error) {
       setApiError(error.message || "L'inscription a échoué. Veuillez réessayer.");
     } finally {

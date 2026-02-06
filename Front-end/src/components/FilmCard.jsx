@@ -1,9 +1,26 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+// Extract YouTube video ID from various URL formats
+const getYouTubeId = (url) => {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/,
+    /youtube\.com\/shorts\/([^&?/]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+};
+
 export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
   const imgRef = useRef(null);
   const [imgStatus, setImgStatus] = useState("loading");
+
+  // Get YouTube thumbnail as fallback
+  const youtubeId = useMemo(() => getYouTubeId(film?.youtube_url), [film?.youtube_url]);
 
   const filePath = useMemo(() => {
     const thumb = film?.thumbnail_url || "";
@@ -16,6 +33,12 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
   }, [film, imageVariant]);
 
   const src = useMemo(() => {
+    // Priority 1: If YouTube URL exists, use YouTube thumbnail
+    if (youtubeId) {
+      return `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
+    }
+
+    // Priority 2: Use local thumbnail/poster from DB
     if (!filePath) return "/placeholder.jpg";
 
     if (/^https?:\/\//i.test(filePath)) return filePath;
@@ -25,7 +48,7 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
     } catch {
       return `${apiUrl}${filePath}`;
     }
-  }, [filePath, apiUrl]);
+  }, [filePath, apiUrl, youtubeId]);
 
   useEffect(() => {
     setImgStatus("loading");
@@ -60,6 +83,14 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
               ${imgStatus === "loaded" ? "opacity-100" : "opacity-0"}`}
             onLoad={() => setImgStatus("loaded")}
             onError={(e) => {
+              // If YouTube thumbnail fails, try local file as fallback
+              if (e.currentTarget.src.includes("youtube.com") && filePath) {
+                const localUrl = /^https?:\/\//i.test(filePath)
+                  ? filePath
+                  : `${apiUrl}${filePath}`;
+                e.currentTarget.src = localUrl;
+                return;
+              }
               setImgStatus("error");
               e.currentTarget.src = "/placeholder.jpg";
             }}

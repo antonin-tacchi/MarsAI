@@ -1,16 +1,38 @@
 import { Router } from "express";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/authorize.middleware.js";
+import {
+  getFilmsForJury,
+  getFilmForJury,
+  submitRating,
+  getMyRatings,
+  deleteRating,
+} from "../controllers/jury.controller.js";
 
 const router = Router();
 
-// Jury(2) + Admin(3)
+// Jury(1) + Admin(2) + Super Jury(3)
 router.use(authenticateToken);
-router.use(authorize([2, 3]));
+router.use(authorize([1, 2, 3]));
 
-//test
+// Test access
 router.get("/access", (req, res) => {
   res.json({ success: true, zone: "jury", user: req.user });
 });
+
+// Get all films for jury to rate
+router.get("/films", getFilmsForJury);
+
+// Get single film with rating details
+router.get("/films/:id", getFilmForJury);
+
+// Submit or update a rating (0-10)
+router.post("/films/:id/rate", submitRating);
+
+// Get current user's rating history
+router.get("/my-ratings", getMyRatings);
+
+// Delete a rating
+router.delete("/films/:id/rate", deleteRating);
 
 export default router;
