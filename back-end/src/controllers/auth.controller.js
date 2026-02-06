@@ -102,9 +102,10 @@ export const login = async (req, res) => {
 
     const { password: _password, ...userWithoutPassword } = user;
 
+    // Include roles in the user object for frontend
     return res.status(200).json({
       success: true,
-      data: { user: userWithoutPassword, token },
+      data: { user: { ...userWithoutPassword, roles }, token },
     });
   } catch (error) {
     console.error("Login error:", error);
