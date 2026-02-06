@@ -19,15 +19,17 @@ const SkeletonCard = () => (
 export default function Catalogs() {
   const [films, setFilms] = useState([]);
   const [query, setQuery] = useState("");
-  const [page] = useState(1);
+  const [page, setPage] = useState(1);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
+  const [stats, setStats] = useState(null);
 
   // --- FILTRES ---
   const [filters, setFilters] = useState({
     selected: "all",
     country: "",
     ai: "",
+    category: "",
   });
 
   // --- FETCH FILMS ---
@@ -36,9 +38,7 @@ export default function Catalogs() {
     setError("");
 
     try {
-      const res = await fetch(
-        `${API_URL}/api/films?page=${p}&limit=${PER_PAGE}`,
-      );
+      const res = await fetch(`${API_URL}/api/films?all=1`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -48,32 +48,44 @@ export default function Catalogs() {
       setFilms(data?.data || []);
       setStatus("idle");
     } catch (err) {
-      console.error(err);
       setError("Impossible de se connecter au serveur.");
       setStatus("idle");
     }
+  }, []);
+
+  // --- FETCH STATS ---
+  useEffect(() => {
+    fetch(`${API_URL}/api/films/stats`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setStats(data.data);
+        }
+      });
   }, []);
 
   useEffect(() => {
     fetchFilms(page);
   }, [page, fetchFilms]);
 
-  // --- PAYS UNIQUES ---
+  // --- PAYS DEPUIS STATS ---
   const countries = useMemo(() => {
-    return [...new Set(films.map((f) => f.country).filter(Boolean))].sort();
-  }, [films]);
+    return stats?.byCountry.map(c => c.country) || [];
+  }, [stats]);
 
-  // --- OUTILS IA UNIQUES ---
+  // --- OUTILS IA DEPUIS STATS ---
   const aiTools = useMemo(() => {
-    return [
-      ...new Set(
-        films
-          .map((f) => f.ai_tools_used)
-          .filter(Boolean)
-          .flatMap((tools) => tools.split(",").map((t) => t.trim())),
-      ),
-    ].sort();
-  }, [films]);
+    return stats?.byAITool.map(t => t.tool) || [];
+  }, [stats]);
+
+  // --- CATÉGORIES DEPUIS STATS ---
+  const categories = useMemo(() => {
+    return stats?.byCategory.map(c => ({
+      id: c.category_id,
+      name: c.category_name,
+      count: c.count
+    })) || [];
+  }, [stats]);
 
   // --- FILTRAGE FINAL ---
   const filteredFilms = useMemo(() => {
@@ -81,20 +93,19 @@ export default function Catalogs() {
       if (filters.selected === "selected" && film.status !== "selected")
         return false;
 
-      if (filters.country && film.country !== filters.country) return false;
-
-      if (
-        filters.ai &&
-        !film.ai_tools_used
-          ?.toLowerCase()
-          .includes(filters.ai.toLowerCase())
-      )
+      if (filters.country && film.country !== filters.country) 
         return false;
 
-      if (
-        query &&
-        !film.title.toLowerCase().includes(query.toLowerCase())
-      )
+      if (filters.ai && !film.ai_tools_used?.toLowerCase().includes(filters.ai.toLowerCase()))
+        return false;
+
+      // Filtre par catégorie
+      if (filters.category && film.categories) {
+        if (!film.categories.toLowerCase().includes(filters.category.toLowerCase()))
+          return false;
+      }
+
+      if (query && !film.title.toLowerCase().includes(query.toLowerCase()))
         return false;
 
       return true;
@@ -106,7 +117,7 @@ export default function Catalogs() {
       <div className="max-w-7xl mx-auto">
         <header className="mb-12">
           <h1 className="text-4xl font-black text-[#262335] uppercase tracking-tighter mb-8 p-6 italic ">
-             Catalogue
+            Catalogue
           </h1>
   
           <div className="max-w-2xl mb-8 p-6">
@@ -118,6 +129,8 @@ export default function Catalogs() {
             onChange={setFilters}
             countries={countries}
             aiTools={aiTools}
+            categories={categories}
+            stats={stats}
           />
         </header>
 
@@ -171,9 +184,11 @@ export default function Catalogs() {
         {/* --- SUCCÈS --- */}
         {status === "idle" && filteredFilms.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
-            {filteredFilms.map((film) => (
-              <FilmCard key={film.id} film={film} apiUrl={API_URL} />
-            ))}
+            {filteredFilms
+              .slice((page - 1) * PER_PAGE, page * PER_PAGE)
+              .map((film) => (
+                <FilmCard key={film.id} film={film} apiUrl={API_URL} />
+              ))}
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function FilmFilters({ filters, onChange, countries, aiTools }) {
+export default function FilmFilters({ filters, onChange, countries, aiTools, categories, stats }) {
   const [openDropdown, setOpenDropdown] = useState(null);
 
   const toggle = (key, value) => {
@@ -8,6 +8,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools }) {
       ...prev,
       [key]: prev[key] === value ? "" : value,
     }));
+    setOpenDropdown(null);
   };
 
   const baseBtn =
@@ -15,10 +16,6 @@ export default function FilmFilters({ filters, onChange, countries, aiTools }) {
 
   const inactive = "bg-[#FBF5F0] text-[#463699] border border-[#463699] hover:bg-[#463699]/10";
   const active = "bg-[#463699] text-[#FBF5F0] border-0";
-
-  // Exemples de données
-  const exampleCountries = countries.length > 0 ? countries : ["Brésil", "Madrid", "Inde"];
-  const exampleAiTools = aiTools.length > 0 ? aiTools : ["ChatGPT", "Midjourney", "Stable Diffusion"];
 
   const toggleDropdown = (dropdown) => {
     setOpenDropdown(openDropdown === dropdown ? null : dropdown);
@@ -35,17 +32,49 @@ export default function FilmFilters({ filters, onChange, countries, aiTools }) {
           Films sélectionnés
         </button>
 
-        {/* Séparateur visuel */}
+        <div className="h-6 w-px bg-[#262335]/20"></div>
+
+        {/* Dropdown Catégories */}
+        <div className="relative">
+          <button
+            onClick={() => toggleDropdown("categories")}
+            className={`${baseBtn} ${filters.category ? active : inactive} flex items-center gap-2`}
+          >
+            {filters.category || "Catégories"}
+            <svg
+              className={`w-4 h-4 transition-transform ${openDropdown === "categories" ? "rotate-180" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {openDropdown === "categories" && (
+            <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[250px] z-10 max-h-[300px] overflow-y-auto">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => toggle("category", cat.name)}
+                  className="w-full text-left px-4 py-2 text-sm text-[#262335] font-[Saira] hover:bg-[#463699]/10 transition-colors"
+                >
+                  {cat.name} ({cat.count})
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="h-6 w-px bg-[#262335]/20"></div>
 
         {/* Dropdown Pays */}
         <div className="relative">
           <button
             onClick={() => toggleDropdown("pays")}
-            className={`${baseBtn} ${inactive} flex items-center gap-2`}
-            disabled={countries.length === 0}
+            className={`${baseBtn} ${filters.country ? active : inactive} flex items-center gap-2`}
           >
-            Pays
+            {filters.country || "Pays"}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "pays" ? "rotate-180" : ""}`}
               fill="none"
@@ -57,30 +86,32 @@ export default function FilmFilters({ filters, onChange, countries, aiTools }) {
           </button>
 
           {openDropdown === "pays" && (
-            <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10">
-              {exampleCountries.map((country) => (
-                <div
-                  key={country}
-                  className="px-4 py-2 text-sm text-[#262335]/60 font-[Saira] cursor-not-allowed hover:bg-gray-50"
-                >
-                  {country}
-                </div>
-              ))}
+            <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10 max-h-[300px] overflow-y-auto">
+              {countries.map((country) => {
+                const countryData = stats?.byCountry.find(c => c.country === country);
+                return (
+                  <button
+                    key={country}
+                    onClick={() => toggle("country", country)}
+                    className="w-full text-left px-4 py-2 text-sm text-[#262335] font-[Saira] hover:bg-[#463699]/10 transition-colors"
+                  >
+                    {country} ({countryData?.count || 0})
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* Séparateur visuel */}
         <div className="h-6 w-px bg-[#262335]/20"></div>
 
         {/* Dropdown Outils IA */}
         <div className="relative">
           <button
             onClick={() => toggleDropdown("outils")}
-            className={`${baseBtn} ${inactive} flex items-center gap-2`}
-            disabled={aiTools.length === 0}
+            className={`${baseBtn} ${filters.ai ? active : inactive} flex items-center gap-2`}
           >
-            Outils IA
+            {filters.ai || "Outils IA"}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "outils" ? "rotate-180" : ""}`}
               fill="none"
@@ -92,15 +123,19 @@ export default function FilmFilters({ filters, onChange, countries, aiTools }) {
           </button>
 
           {openDropdown === "outils" && (
-            <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10">
-              {exampleAiTools.map((tool) => (
-                <div
-                  key={tool}
-                  className="px-4 py-2 text-sm text-[#262335]/60 font-[Saira] cursor-not-allowed hover:bg-gray-50"
-                >
-                  {tool}
-                </div>
-              ))}
+            <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10 max-h-[300px] overflow-y-auto">
+              {aiTools.map((tool) => {
+                const toolData = stats?.byAITool.find(t => t.tool === tool);
+                return (
+                  <button
+                    key={tool}
+                    onClick={() => toggle("ai", tool)}
+                    className="w-full text-left px-4 py-2 text-sm text-[#262335] font-[Saira] hover:bg-[#463699]/10 transition-colors"
+                  >
+                    {tool} ({toolData?.count || 0})
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
