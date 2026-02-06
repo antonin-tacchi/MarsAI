@@ -29,6 +29,7 @@ export default class Film {
         country,
         description,
         film_url,
+        youtube_url,
         poster_url,
         thumbnail_url,
         ai_tools_used,
@@ -51,6 +52,7 @@ export default class Film {
         ?, ?, ?,
         ?, ?, ?,
         ?, ?,
+        ?,
 
         ?, ?, ?,
         ?, ?, ?,
@@ -60,13 +62,13 @@ export default class Film {
         NOW()
       )
     `;
-    
 
     const params = [
       data.title,
       data.country,
       data.description,
       data.film_url,
+      data.youtube_url || null,
       data.poster_url,
       data.thumbnail_url,
 
@@ -82,7 +84,6 @@ export default class Film {
       data.social_instagram,
       data.social_youtube,
       data.social_vimeo,
-
 
       FILM_STATUS.PENDING,
     ];
@@ -143,4 +144,42 @@ static async findById(id) {
     return rows?.[0] || null;
 }
 
+  static async findAllApproved() {
+    const sql = `
+      SELECT * FROM films
+      WHERE status = 'approved'
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
+  }
+
+  static async findForPublicCatalog() {
+    const sql = `
+      SELECT id, title, country, description, poster_url, thumbnail_url,
+             youtube_url, ai_tools_used, director_firstname, director_lastname,
+             director_school, created_at
+      FROM films
+      WHERE status = 'approved'
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
+  }
+
+  static async findForPublicView(id) {
+    const sql = `
+      SELECT id, title, country, description, film_url, youtube_url,
+             poster_url, thumbnail_url, ai_tools_used, ai_certification,
+             director_firstname, director_lastname, director_email,
+             director_bio, director_school, director_website,
+             social_instagram, social_youtube, social_vimeo,
+             created_at
+      FROM films
+      WHERE id = ? AND status = 'approved'
+      LIMIT 1
+    `;
+    const [rows] = await db.query(sql, [id]);
+    return rows?.[0] || null;
+  }
 }

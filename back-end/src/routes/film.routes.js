@@ -3,9 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import { createFilm } from "../controllers/film.controller.js";
-import { getFilms } from "../controllers/film.controller.js";
-import { getFilmById } from "../controllers/film.controller.js";
+import { createFilm, getFilms, getFilmById, getPublicCatalog, getPublicFilm } from "../controllers/film.controller.js";
 
 const router = express.Router();
 
@@ -119,6 +117,11 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
+// Public routes (no auth)
+router.get("/public/catalog", getPublicCatalog);
+router.get("/public/:id", getPublicFilm);
+
+// Regular routes
 router.get("/", getFilms);
 router.get("/:id", getFilmById);
 
