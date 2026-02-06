@@ -1,9 +1,26 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+// Extract YouTube video ID from various URL formats
+const getYouTubeId = (url) => {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/,
+    /youtube\.com\/shorts\/([^&?/]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+};
+
 export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
   const imgRef = useRef(null);
   const [imgStatus, setImgStatus] = useState("loading");
+
+  // Get YouTube thumbnail as fallback
+  const youtubeId = useMemo(() => getYouTubeId(film?.youtube_url), [film?.youtube_url]);
 
   const filePath = useMemo(() => {
     const thumb = film?.thumbnail_url || "";
@@ -16,6 +33,11 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
   }, [film, imageVariant]);
 
   const src = useMemo(() => {
+    // If no local file, try YouTube thumbnail
+    if (!filePath && youtubeId) {
+      return `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
+    }
+
     if (!filePath) return "/placeholder.jpg";
 
     if (/^https?:\/\//i.test(filePath)) return filePath;
@@ -25,7 +47,7 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
     } catch {
       return `${apiUrl}${filePath}`;
     }
-  }, [filePath, apiUrl]);
+  }, [filePath, apiUrl, youtubeId]);
 
   useEffect(() => {
     setImgStatus("loading");
@@ -60,6 +82,11 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
               ${imgStatus === "loaded" ? "opacity-100" : "opacity-0"}`}
             onLoad={() => setImgStatus("loaded")}
             onError={(e) => {
+              // Try YouTube thumbnail as fallback
+              if (youtubeId && !e.currentTarget.src.includes("youtube.com")) {
+                e.currentTarget.src = `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`;
+                return;
+              }
               setImgStatus("error");
               e.currentTarget.src = "/placeholder.jpg";
             }}
