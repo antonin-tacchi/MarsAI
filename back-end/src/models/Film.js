@@ -60,6 +60,23 @@ export default class Film {
         NOW()
       )
     `;
+
+   static async updateStatus(filmId, newStatus) {
+    if (!['approved', 'rejected'].includes(newStatus)) {
+       throw new Error('Invalid status');
+    }
+
+    const sql = `
+        UPDATE films
+        SET status = ?
+        WHERE id = ?
+    `;
+
+    const [result] = await db.query(sql, [newStatus, filmId]);
+
+    return result; // tu peux aussi renvoyer affectedRows ou faire un SELECT après
+}
+
     
     const params = [
       data.title,
