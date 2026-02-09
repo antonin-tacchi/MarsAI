@@ -90,7 +90,7 @@ export default function Catalogs() {
   // --- FILTRAGE FINAL ---
   const filteredFilms = useMemo(() => {
     return films.filter((film) => {
-      if (filters.selected === "selected" && film.status !== "selected")
+      if (filters.selected === "selected" && film.status !== "approved")
         return false;
 
       if (filters.country && film.country !== filters.country) 

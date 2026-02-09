@@ -167,6 +167,73 @@ export const createFilm = async (req, res) => {
   }
 };
 
+export const updateFilmStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: "Status is required",
+      });
+    }
+
+    const userId = req.user?.userId || null;
+    const updatedFilm = await Film.updateStatus(id, status, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: `Film status updated to "${status}"`,
+      data: updatedFilm,
+    });
+
+  } catch (error) {
+    if (error.message.includes("Invalid status")) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message.includes("Film not found")) {
+      return res.status(404).json({
+        success: false,
+        message: "Film not found",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update film status",
+      error: error.message,
+    });
+  }
+};
+
+export const getApprovedFilms = async (req, res) => {
+  try {
+    const { limit = 50, offset = 0 } = req.query;
+
+    const films = await Film.findApproved({
+      limit: parseInt(limit, 10),
+      offset: parseInt(offset, 10),
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: films, 
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch approved films",
+      error: error.message,
+    });
+  }
+};
+
 export const getFilms = async (req, res) => {
   try {
     // Front: 20 max/page, pagination => accès à tous via pages

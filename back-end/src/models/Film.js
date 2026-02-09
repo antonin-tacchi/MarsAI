@@ -61,23 +61,6 @@ export default class Film {
       )
     `;
 
-   static async updateStatus(filmId, newStatus) {
-    if (!['approved', 'rejected'].includes(newStatus)) {
-       throw new Error('Invalid status');
-    }
-
-    const sql = `
-        UPDATE films
-        SET status = ?
-        WHERE id = ?
-    `;
-
-    const [result] = await db.query(sql, [newStatus, filmId]);
-
-    return result; // tu peux aussi renvoyer affectedRows ou faire un SELECT après
-}
-
-    
     const params = [
       data.title,
       data.country,
@@ -110,6 +93,34 @@ export default class Film {
       ai_certification: Film.toTinyInt(data.ai_certification),
       status: "pending",
     };
+  }
+
+  // Méthode pour changer le statut d'un film (approved ou rejected)
+  static async updateStatus(filmId, newStatus, userId = null) {
+    // Validation stricte : seulement "approved" ou "rejected"
+    if (!['approved', 'rejected'].includes(newStatus)) {
+      throw new Error('Invalid status. Only "approved" or "rejected" are allowed.');
+    }
+
+    const sql = `
+      UPDATE films
+      SET status = ?,
+          status_changed_at = NOW(),
+          status_changed_by = ?
+      WHERE id = ?
+    `;
+
+    const [result] = await db.query(sql, [newStatus, userId, filmId]);
+
+    // Vérifie si un film a bien été modifié
+    if (result.affectedRows === 0) {
+      throw new Error('Film not found or no changes made.');
+    }
+
+    // Récupère le film mis à jour pour confirmer le changement
+    const updatedFilm = await Film.findById(filmId);
+    
+    return updatedFilm;
   }
   
   static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrder = "DESC" } = {}) {
@@ -162,6 +173,34 @@ export default class Film {
     const sql = `SELECT * FROM films WHERE id = ? LIMIT 1`;
     const [rows] = await db.query(sql, [id]);
     return rows?.[0] || null;
+  }
+
+  // Récupère uniquement les films approuvés (sélection finale)
+  static async findApproved({ limit = 50, offset = 0 } = {}) {
+    const sql = `
+      SELECT
+        f.id,
+        f.title,
+        f.country,
+        f.description,
+        f.poster_url,
+        f.thumbnail_url,
+        f.director_firstname,
+        f.director_lastname,
+        f.created_at,
+        f.ai_tools_used,
+        GROUP_CONCAT(c.name SEPARATOR ', ') as categories
+      FROM films f
+      LEFT JOIN film_categories fc ON f.id = fc.film_id
+      LEFT JOIN categories c ON fc.category_id = c.id
+      WHERE f.status = 'approved'
+      GROUP BY f.id
+      ORDER BY f.created_at DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const [rows] = await db.query(sql, [limit, offset]);
+    return rows;
   }
 
   static async getStats() {

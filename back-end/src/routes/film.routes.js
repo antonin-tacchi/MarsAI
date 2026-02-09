@@ -3,10 +3,14 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
+import { authenticateToken } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/authorize.middleware.js";
 import { createFilm } from "../controllers/film.controller.js";
+import { updateFilmStatus } from "../controllers/film.controller.js";
 import { getFilms } from "../controllers/film.controller.js";
 import { getFilmById } from "../controllers/film.controller.js";
 import { getFilmStats} from "../controllers/film.controller.js";
+import { getApprovedFilms } from "../controllers/film.controller.js";
 
 const router = express.Router();
 
@@ -120,10 +124,6 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
-router.get("/", getFilms);
-router.get("/stats", getFilmStats);
-router.get("/:id", getFilmById);
-
 router.post(
   "/",
   submitLimiter,
@@ -134,4 +134,18 @@ router.post(
   ]),
   createFilm,
 );
+
+router.patch(
+  "/:id/status",
+  authenticateToken,
+  authorize([1, 2, 3]), //Jury (1), Admin (2), SuperJury(3)
+  updateFilmStatus
+);
+
+
+router.get("/", getFilms);
+router.get("/stats", getFilmStats);
+router.get("/:id", getFilmById);
+router.get("/selection/approved", getApprovedFilms); //Official selection
+
 export default router;
