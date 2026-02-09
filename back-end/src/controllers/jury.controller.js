@@ -4,22 +4,8 @@ import Film from "../models/Film.js";
 // Get all approved films for jury to rate
 export const getFilmsForJury = async (req, res) => {
   try {
-    const films = await Film.findAllApproved();
     const userId = req.user.userId;
-
-    const filmsWithRatings = await Promise.all(
-      films.map(async (film) => {
-        const rating = await JuryRating.findByFilmAndUser(film.id, userId);
-        const avgData = await JuryRating.getAverageRating(film.id);
-        return {
-          ...film,
-          user_rating: rating?.rating ?? null,
-          user_comment: rating?.comment ?? null,
-          average_rating: avgData.average,
-          total_ratings: avgData.count,
-        };
-      })
-    );
+    const filmsWithRatings = await Film.findApprovedWithRatings(userId);
 
     return res.status(200).json({
       success: true,
@@ -37,25 +23,14 @@ export const getFilmForJury = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.userId;
 
-    const film = await Film.findById(id);
+    const film = await Film.findByIdWithRatings(id, userId);
     if (!film) {
       return res.status(404).json({ success: false, message: "Film not found" });
     }
 
-    const rating = await JuryRating.findByFilmAndUser(id, userId);
-    const avgData = await JuryRating.getAverageRating(id);
-    const allRatings = await JuryRating.findByFilm(id);
-
     return res.status(200).json({
       success: true,
-      data: {
-        ...film,
-        user_rating: rating?.rating ?? null,
-        user_comment: rating?.comment ?? null,
-        average_rating: avgData.average,
-        total_ratings: avgData.count,
-        all_ratings: allRatings,
-      },
+      data: film,
     });
   } catch (err) {
     console.error("getFilmForJury error:", err);

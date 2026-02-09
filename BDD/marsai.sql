@@ -123,6 +123,8 @@ CREATE TABLE `films` (
   KEY `idx_status` (`status`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_director_email` (`director_email`),
+  KEY `idx_status_created` (`status`, `created_at`),
+  KEY `idx_director_email_created` (`director_email`, `created_at`),
   KEY `fk_status_changed_by` (`status_changed_by`),
   CONSTRAINT `fk_status_changed_by` FOREIGN KEY (`status_changed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -156,6 +158,7 @@ CREATE TABLE `email_logs` (
   `error_message` text,
   PRIMARY KEY (`id`),
   KEY `fk_email_film` (`film_id`),
+  KEY `idx_recipient_email` (`recipient_email`),
   CONSTRAINT `fk_email_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -269,6 +272,7 @@ CREATE TABLE `jury_ratings` (
   UNIQUE KEY `unique_jury_film` (`film_id`, `user_id`),
   KEY `fk_rating_film` (`film_id`),
   KEY `fk_rating_user` (`user_id`),
+  KEY `idx_user_updated` (`user_id`, `updated_at`),
   CONSTRAINT `fk_rating_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_rating_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chk_rating_range` CHECK (`rating` >= 0 AND `rating` <= 10)
@@ -291,6 +295,7 @@ CREATE TABLE `invitations` (
   `accepted_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`),
+  KEY `idx_inv_email` (`email`),
   KEY `fk_inv_role` (`role_id`),
   KEY `fk_inv_user` (`invited_by`),
   CONSTRAINT `fk_inv_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`),

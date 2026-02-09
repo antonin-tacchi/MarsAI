@@ -18,7 +18,8 @@ export default class JuryRating {
   // Find rating by film and user
   static async findByFilmAndUser(filmId, userId) {
     const sql = `
-      SELECT * FROM jury_ratings
+      SELECT id, film_id, user_id, rating, comment, created_at, updated_at
+      FROM jury_ratings
       WHERE film_id = ? AND user_id = ?
       LIMIT 1
     `;
