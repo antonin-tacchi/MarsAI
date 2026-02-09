@@ -3,7 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import { createFilm, getFilms, getFilmById, getPublicCatalog, getPublicFilm } from "../controllers/film.controller.js";
+import { createFilm, getFilms, getFilmById, getPublicCatalog, getPublicFilm, getFilmStats } from "../controllers/film.controller.js";
 
 const router = express.Router();
 
@@ -123,6 +123,7 @@ router.get("/public/:id", getPublicFilm);
 
 // Regular routes
 router.get("/", getFilms);
+router.get("/stats", getFilmStats);
 router.get("/:id", getFilmById);
 
 router.post(
