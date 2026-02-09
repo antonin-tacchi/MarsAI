@@ -29,6 +29,7 @@ export default class Film {
         country,
         description,
         film_url,
+        youtube_url,
         poster_url,
         thumbnail_url,
         ai_tools_used,
@@ -51,6 +52,7 @@ export default class Film {
         ?, ?, ?,
         ?, ?, ?,
         ?, ?,
+        ?,
 
         ?, ?, ?,
         ?, ?, ?,
@@ -60,13 +62,13 @@ export default class Film {
         NOW()
       )
     `;
-    
 
     const params = [
       data.title,
       data.country,
       data.description,
       data.film_url,
+      data.youtube_url || null,
       data.poster_url,
       data.thumbnail_url,
 
@@ -82,7 +84,6 @@ export default class Film {
       data.social_instagram,
       data.social_youtube,
       data.social_vimeo,
-
 
       FILM_STATUS.PENDING,
     ];
@@ -111,7 +112,7 @@ static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrd
   const safeLimit = Math.min(50, Math.max(1, parseInt(limit, 10) || 12));
   const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
 
-  const sqlData = `
+  const sql = `
     SELECT
       id,
       title,
@@ -120,20 +121,21 @@ static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrd
       thumbnail_url,
       director_firstname,
       director_lastname,
-      created_at
+      created_at,
+      COUNT(*) OVER() AS total
     FROM films
     ORDER BY ${safeField} ${safeOrder}
     LIMIT ? OFFSET ?
   `;
 
-  const sqlCount = `SELECT COUNT(*) AS total FROM films`;
+  const [rows] = await db.query(sql, [safeLimit, safeOffset]);
+  const count = rows.length > 0 ? rows[0].total : 0;
 
-  const [rows] = await db.query(sqlData, [safeLimit, safeOffset]);
-  const [countResult] = await db.query(sqlCount);
+  const cleanRows = rows.map(({ total, ...rest }) => rest);
 
   return {
-    rows,
-    count: countResult?.[0]?.total ?? 0,
+    rows: cleanRows,
+    count,
   };
 }
 
@@ -143,4 +145,104 @@ static async findById(id) {
     return rows?.[0] || null;
 }
 
+  static async findAllApproved() {
+    const sql = `
+      SELECT * FROM films
+      WHERE status = 'approved'
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
+  }
+
+  static async findApprovedWithRatings(userId) {
+    const sql = `
+      SELECT
+        f.id, f.title, f.country, f.description,
+        f.film_url, f.youtube_url, f.poster_url, f.thumbnail_url,
+        f.ai_tools_used, f.ai_certification,
+        f.director_firstname, f.director_lastname, f.director_email,
+        f.director_bio, f.director_school, f.director_website,
+        f.social_instagram, f.social_youtube, f.social_vimeo,
+        f.status, f.created_at,
+        jr.rating   AS user_rating,
+        jr.comment  AS user_comment,
+        ROUND(AVG(jr_all.rating), 1) AS average_rating,
+        COUNT(jr_all.id)              AS total_ratings
+      FROM films f
+      LEFT JOIN jury_ratings jr
+        ON jr.film_id = f.id AND jr.user_id = ?
+      LEFT JOIN jury_ratings jr_all
+        ON jr_all.film_id = f.id
+      WHERE f.status = 'approved'
+      GROUP BY f.id, jr.rating, jr.comment
+      ORDER BY f.created_at DESC
+    `;
+    const [rows] = await db.query(sql, [userId]);
+    return rows;
+  }
+
+  static async findForPublicCatalog() {
+    const sql = `
+      SELECT id, title, country, description, poster_url, thumbnail_url,
+             youtube_url, ai_tools_used, director_firstname, director_lastname,
+             director_school, created_at
+      FROM films
+      WHERE status = 'approved'
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
+  }
+
+  static async findByIdWithRatings(filmId, userId) {
+    const sqlFilm = `
+      SELECT
+        f.*,
+        jr.rating   AS user_rating,
+        jr.comment  AS user_comment,
+        ROUND(AVG(jr_all.rating), 1) AS average_rating,
+        COUNT(jr_all.id)              AS total_ratings
+      FROM films f
+      LEFT JOIN jury_ratings jr
+        ON jr.film_id = f.id AND jr.user_id = ?
+      LEFT JOIN jury_ratings jr_all
+        ON jr_all.film_id = f.id
+      WHERE f.id = ?
+      GROUP BY f.id, jr.rating, jr.comment
+      LIMIT 1
+    `;
+    const sqlAllRatings = `
+      SELECT jr.id, jr.film_id, jr.user_id, jr.rating, jr.comment,
+             jr.created_at, jr.updated_at, u.name AS user_name
+      FROM jury_ratings jr
+      JOIN users u ON u.id = jr.user_id
+      WHERE jr.film_id = ?
+      ORDER BY jr.created_at DESC
+    `;
+    const [[filmRows], [allRatings]] = await Promise.all([
+      db.query(sqlFilm, [userId, filmId]),
+      db.query(sqlAllRatings, [filmId]),
+    ]);
+    const film = filmRows?.[0] || null;
+    if (!film) return null;
+    film.all_ratings = allRatings;
+    return film;
+  }
+
+  static async findForPublicView(id) {
+    const sql = `
+      SELECT id, title, country, description, film_url, youtube_url,
+             poster_url, thumbnail_url, ai_tools_used, ai_certification,
+             director_firstname, director_lastname, director_email,
+             director_bio, director_school, director_website,
+             social_instagram, social_youtube, social_vimeo,
+             created_at
+      FROM films
+      WHERE id = ? AND status = 'approved'
+      LIMIT 1
+    `;
+    const [rows] = await db.query(sql, [id]);
+    return rows?.[0] || null;
+  }
 }
