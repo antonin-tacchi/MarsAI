@@ -95,6 +95,7 @@ CREATE TABLE `films` (
   `country` varchar(100) DEFAULT NULL,
   `description` text,
   `film_url` varchar(500) DEFAULT NULL COMMENT 'URL to uploaded film file',
+  `youtube_url` varchar(500) DEFAULT NULL COMMENT 'YouTube video URL for public viewing',
   `poster_url` varchar(500) DEFAULT NULL COMMENT 'Main poster image',
   `thumbnail_url` varchar(500) DEFAULT NULL COMMENT 'Small thumbnail for lists',
   `ai_tools_used` text COMMENT 'AI tools used (free text)',
@@ -122,6 +123,8 @@ CREATE TABLE `films` (
   KEY `idx_status` (`status`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_director_email` (`director_email`),
+  KEY `idx_status_created` (`status`, `created_at`),
+  KEY `idx_director_email_created` (`director_email`, `created_at`),
   KEY `fk_status_changed_by` (`status_changed_by`),
   CONSTRAINT `fk_status_changed_by` FOREIGN KEY (`status_changed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -155,6 +158,7 @@ CREATE TABLE `email_logs` (
   `error_message` text,
   PRIMARY KEY (`id`),
   KEY `fk_email_film` (`film_id`),
+  KEY `idx_recipient_email` (`recipient_email`),
   CONSTRAINT `fk_email_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -260,7 +264,7 @@ CREATE TABLE `jury_ratings` (
   `id` int NOT NULL AUTO_INCREMENT,
   `film_id` int NOT NULL,
   `user_id` int NOT NULL COMMENT 'Jury member who rated',
-  `rating` int NOT NULL COMMENT 'Rating from 1 to 5',
+  `rating` int NOT NULL COMMENT 'Rating from 0 to 10',
   `comment` text COMMENT 'Optional comment',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -268,9 +272,10 @@ CREATE TABLE `jury_ratings` (
   UNIQUE KEY `unique_jury_film` (`film_id`, `user_id`),
   KEY `fk_rating_film` (`film_id`),
   KEY `fk_rating_user` (`user_id`),
+  KEY `idx_user_updated` (`user_id`, `updated_at`),
   CONSTRAINT `fk_rating_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_rating_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `chk_rating_range` CHECK (`rating` >= 1 AND `rating` <= 5)
+  CONSTRAINT `chk_rating_range` CHECK (`rating` >= 0 AND `rating` <= 10)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -290,11 +295,22 @@ CREATE TABLE `invitations` (
   `accepted_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`),
+  KEY `idx_inv_email` (`email`),
   KEY `fk_inv_role` (`role_id`),
   KEY `fk_inv_user` (`invited_by`),
   CONSTRAINT `fk_inv_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`),
   CONSTRAINT `fk_inv_user` FOREIGN KEY (`invited_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+-- Sample films for testing
+-- --------------------------------------------------------
+
+INSERT INTO `films` (`title`, `country`, `description`, `youtube_url`, `ai_tools_used`, `ai_certification`, `director_firstname`, `director_lastname`, `director_email`, `director_school`, `status`, `created_at`) VALUES
+('Sunspring', 'United States', 'A sci-fi short film written entirely by an AI named Benjamin. The AI was fed dozens of sci-fi screenplays and generated this bizarre, fascinating script that human actors brought to life.', 'https://www.youtube.com/watch?v=LY7x2Ihqjmc', 'GPT-2, Neural Network Scriptwriting', 1, 'Oscar', 'Sharp', 'oscar.sharp@example.com', 'NYU Tisch', 'approved', NOW()),
+('The Frost', 'France', 'An experimental animated short exploring themes of climate change through AI-generated imagery. Each frame was created using Midjourney and assembled into a haunting visual narrative about our frozen future.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Midjourney, Runway ML, Stable Diffusion', 1, 'Marie', 'Dubois', 'marie.dubois@example.com', 'Les Gobelins', 'approved', NOW()),
+('Digital Dreams', 'Japan', 'A short documentary about the intersection of traditional Japanese art and artificial intelligence, featuring interviews with artists who use AI as a creative partner.', 'https://www.youtube.com/watch?v=LY7x2Ihqjmc', 'DALL-E, ChatGPT, Suno AI', 1, 'Yuki', 'Tanaka', 'yuki.tanaka@example.com', 'Tokyo University of the Arts', 'approved', NOW()),
+('Mars Colony 2084', 'Germany', 'A speculative fiction piece imagining life on Mars, where AI systems manage the colony ecosystem. Created using a combination of AI video generation and traditional filmmaking techniques.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Sora, ElevenLabs, Midjourney', 1, 'Hans', 'Mueller', 'hans.mueller@example.com', 'Filmakademie Baden-Wuerttemberg', 'approved', NOW());
 
 COMMIT;
 

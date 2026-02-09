@@ -39,6 +39,8 @@ export const register = async (req, res) => {
       name,
     });
 
+    // Assign default Jury role (role_id = 1) to new users
+    await User.assignRole(user.id, 1);
 
     const rolesRaw = await User.getRoleIds(user.id);
     const roles = normalizeRoleIds(rolesRaw);

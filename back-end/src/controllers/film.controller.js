@@ -139,7 +139,7 @@ export const createFilm = async (req, res) => {
       country,
       description,
       film_url: filmUrl,
-      youtube_link: null,
+      youtube_url: null,
       poster_url: posterUrl,
       thumbnail_url: thumbnailUrl,
       ai_tools_used: ai_tools_used || null,
@@ -233,6 +233,37 @@ export async function getFilmById(req, res) {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 }
+
+// Public catalog - no auth required
+export const getPublicCatalog = async (req, res) => {
+  try {
+    const films = await Film.findForPublicCatalog();
+    return res.status(200).json({ success: true, data: films });
+  } catch (err) {
+    console.error("getPublicCatalog error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Public single film - no auth required
+export const getPublicFilm = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Invalid film id" });
+    }
+
+    const film = await Film.findForPublicView(id);
+    if (!film) {
+      return res.status(404).json({ success: false, message: "Film not found" });
+    }
+
+    return res.json({ success: true, data: film });
+  } catch (err) {
+    console.error("getPublicFilm error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 export const getFilmStats = async (req, res) => {
   try {
