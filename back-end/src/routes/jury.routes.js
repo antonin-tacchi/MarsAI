@@ -4,9 +4,9 @@ import { authorize } from "../middleware/authorize.middleware.js";
 
 const router = Router();
 
-// Jury(2) + Admin(3)
+// Jury(1) + Admin(2) + SuperJury (3)
 router.use(authenticateToken);
-router.use(authorize([2, 3]));
+router.use(authorize([1, 2, 3]));
 
 //test
 router.get("/access", (req, res) => {

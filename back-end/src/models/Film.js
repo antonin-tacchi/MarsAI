@@ -98,8 +98,11 @@ export default class Film {
   // Méthode pour changer le statut d'un film (approved ou rejected)
   static async updateStatus(filmId, newStatus, userId = null) {
     // Validation stricte : seulement "approved" ou "rejected"
-    if (!['approved', 'rejected'].includes(newStatus)) {
-      throw new Error('Invalid status. Only "approved" or "rejected" are allowed.');
+    // ✅ CORRECTION : Accepte aussi "pending" pour permettre les retours arrière
+    const validStatuses = ['pending', 'approved', 'rejected'];
+    
+    if (!validStatuses.includes(newStatus)) {
+      throw new Error(`Invalid status. Allowed values: ${validStatuses.join(', ')}`);
     }
 
     const sql = `

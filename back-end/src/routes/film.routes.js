@@ -3,8 +3,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import { authenticateToken } from "../middleware/auth.middleware.js";
-import { authorize } from "../middleware/authorize.middleware.js";
+import { authenticateToken } from "../middleware/auth.middleware.js"; // ✅ CORRIGÉ (middlewares avec 's')
+import { authorize } from "../middleware/authorize.middleware.js"; // ✅ CORRIGÉ
 import { createFilm } from "../controllers/film.controller.js";
 import { updateFilmStatus } from "../controllers/film.controller.js";
 import { getFilms } from "../controllers/film.controller.js";
@@ -124,6 +124,7 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
+// ✅ POST - upload film
 router.post(
   "/",
   submitLimiter,
@@ -135,17 +136,18 @@ router.post(
   createFilm,
 );
 
+// ✅ PATCH - update video status (rejected/pending/approved only)-
 router.patch(
   "/:id/status",
   authenticateToken,
-  authorize([1, 2, 3]), //Jury (1), Admin (2), SuperJury(3)
+  authorize([1, 2, 3]), // Jury (1), Admin (2), SuperJury (3)
   updateFilmStatus
 );
 
-
-router.get("/", getFilms);
+// ✅ GET ROUTES
 router.get("/stats", getFilmStats);
+router.get("/selection/approved", getApprovedFilms);
 router.get("/:id", getFilmById);
-router.get("/selection/approved", getApprovedFilms); //Official selection
+router.get("/", getFilms);
 
 export default router;

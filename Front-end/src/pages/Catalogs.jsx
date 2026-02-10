@@ -7,7 +7,6 @@ import FilmFilters from "../components/FilmFilters";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const PER_PAGE = 20;
 
-// --- COMPOSANT SKELETON (ÉTAT DE CHARGEMENT) ---
 const SkeletonCard = () => (
   <div className="block w-[260px]">
     <div className="w-full h-[160px] rounded-lg animate-shimmer mb-4" />
@@ -24,7 +23,6 @@ export default function Catalogs() {
   const [error, setError] = useState("");
   const [stats, setStats] = useState(null);
 
-  // --- FILTRES ---
   const [filters, setFilters] = useState({
     selected: "all",
     country: "",
@@ -32,13 +30,20 @@ export default function Catalogs() {
     category: "",
   });
 
-  // --- FETCH FILMS ---
+  // ✅ CORRECTION : Ajout timeout pour éviter chargement infini
   const fetchFilms = useCallback(async (p) => {
     setStatus("loading");
     setError("");
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     try {
-      const res = await fetch(`${API_URL}/api/films?all=1`);
+      const res = await fetch(`${API_URL}/api/films?all=1`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
       const data = await res.json();
 
       if (!res.ok) {
@@ -48,12 +53,15 @@ export default function Catalogs() {
       setFilms(data?.data || []);
       setStatus("idle");
     } catch (err) {
-      setError("Impossible de se connecter au serveur.");
+      clearTimeout(timeoutId);
+      console.error("Fetch error:", err);
+      setError(err.name === 'AbortError' 
+        ? "Timeout - Le serveur ne répond pas"
+        : "Impossible de se connecter au serveur.");
       setStatus("idle");
     }
   }, []);
 
-  // --- FETCH STATS ---
   useEffect(() => {
     fetch(`${API_URL}/api/films/stats`)
       .then(res => res.json())
@@ -61,24 +69,22 @@ export default function Catalogs() {
         if (data.success) {
           setStats(data.data);
         }
-      });
+      })
+      .catch(err => console.error("Stats fetch error:", err));
   }, []);
 
   useEffect(() => {
     fetchFilms(page);
   }, [page, fetchFilms]);
 
-  // --- PAYS DEPUIS STATS ---
   const countries = useMemo(() => {
     return stats?.byCountry.map(c => c.country) || [];
   }, [stats]);
 
-  // --- OUTILS IA DEPUIS STATS ---
   const aiTools = useMemo(() => {
     return stats?.byAITool.map(t => t.tool) || [];
   }, [stats]);
 
-  // --- CATÉGORIES DEPUIS STATS ---
   const categories = useMemo(() => {
     return stats?.byCategory.map(c => ({
       id: c.category_id,
@@ -87,7 +93,6 @@ export default function Catalogs() {
     })) || [];
   }, [stats]);
 
-  // --- FILTRAGE FINAL ---
   const filteredFilms = useMemo(() => {
     return films.filter((film) => {
       if (filters.selected === "selected" && film.status !== "approved")
@@ -99,7 +104,6 @@ export default function Catalogs() {
       if (filters.ai && !film.ai_tools_used?.toLowerCase().includes(filters.ai.toLowerCase()))
         return false;
 
-      // Filtre par catégorie
       if (filters.category && film.categories) {
         if (!film.categories.toLowerCase().includes(filters.category.toLowerCase()))
           return false;
@@ -134,7 +138,6 @@ export default function Catalogs() {
           />
         </header>
 
-        {/* --- ERREUR API --- */}
         {error && (
           <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
             <div className="text-5xl mb-4 text-red-400">⚠️</div>
@@ -146,7 +149,6 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- CHARGEMENT --- */}
         {status === "loading" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
             {[...Array(8)].map((_, i) => (
@@ -155,7 +157,6 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- ÉTAT VIDE --- */}
         {status === "idle" && !error && filteredFilms.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-[#262335]/10 rounded-[2.5rem] bg-[#FBF5F0]/50">
             <div className="text-6xl mb-6 opacity-30">
@@ -181,7 +182,6 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- SUCCÈS --- */}
         {status === "idle" && filteredFilms.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
             {filteredFilms

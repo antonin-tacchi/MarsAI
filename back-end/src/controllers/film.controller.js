@@ -236,7 +236,7 @@ export const getApprovedFilms = async (req, res) => {
 
 export const getFilms = async (req, res) => {
   try {
-    // Front: 20 max/page, pagination => accès à tous via pages
+    // Front: 20 max/page, ///
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const all = String(req.query.all || "") === "1";
 
@@ -246,7 +246,7 @@ export const getFilms = async (req, res) => {
 
     const offset = all ? 0 : (page - 1) * limit;
 
-    // Tri (safe côté model via allowedSortFields)
+    // Filters
     const sortField = req.query.sortField || "created_at";
     const sortOrder = req.query.sortOrder || "DESC";
 
