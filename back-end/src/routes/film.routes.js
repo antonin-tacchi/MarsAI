@@ -3,8 +3,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import { authenticateToken } from "../middleware/auth.middleware.js"; // ✅ CORRIGÉ (middlewares avec 's')
-import { authorize } from "../middleware/authorize.middleware.js"; // ✅ CORRIGÉ
+import { authenticateToken } from "../middleware/auth.middleware.js"; 
+import { authorize } from "../middleware/authorize.middleware.js"; 
 import { createFilm } from "../controllers/film.controller.js";
 import { updateFilmStatus } from "../controllers/film.controller.js";
 import { getFilms } from "../controllers/film.controller.js";

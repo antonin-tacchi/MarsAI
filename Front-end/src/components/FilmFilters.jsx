@@ -24,23 +24,12 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
   return (
     <div className="w-full bg-[#FBF5F0] p-6">
       <div className="flex flex-wrap gap-3 items-center">
-        {/* Films sélectionnés */}
-        <button
-          onClick={() => toggle("selected", "selected")}
-          className={`${baseBtn} ${filters.selected === "selected" ? active : inactive}`}
-        >
-          Films sélectionnés
-        </button>
-
-        <div className="h-6 w-px bg-[#262335]/20"></div>
-
-        {/* Dropdown Catégories */}
         <div className="relative">
           <button
             onClick={() => toggleDropdown("categories")}
             className={`${baseBtn} ${filters.category ? active : inactive} flex items-center gap-2`}
           >
-            {filters.category || "Catégories"}
+            {filters.category || "Categories"}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "categories" ? "rotate-180" : ""}`}
               fill="none"
@@ -68,13 +57,12 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
 
         <div className="h-6 w-px bg-[#262335]/20"></div>
 
-        {/* Dropdown Pays */}
         <div className="relative">
           <button
             onClick={() => toggleDropdown("pays")}
             className={`${baseBtn} ${filters.country ? active : inactive} flex items-center gap-2`}
           >
-            {filters.country || "Pays"}
+            {filters.country || "Country"}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "pays" ? "rotate-180" : ""}`}
               fill="none"
@@ -105,13 +93,12 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
 
         <div className="h-6 w-px bg-[#262335]/20"></div>
 
-        {/* Dropdown Outils IA */}
         <div className="relative">
           <button
             onClick={() => toggleDropdown("outils")}
             className={`${baseBtn} ${filters.ai ? active : inactive} flex items-center gap-2`}
           >
-            {filters.ai || "Outils IA"}
+            {filters.ai || "AI Tools"}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "outils" ? "rotate-180" : ""}`}
               fill="none"

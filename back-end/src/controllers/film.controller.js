@@ -234,7 +234,7 @@ export const getApprovedFilms = async (req, res) => {
   }
 };
 
-// ✅ OPTIMISATION : Catalogue public = uniquement films approved
+// only approved films
 export const getFilms = async (req, res) => {
   try {
     // Front: 20 max/page
@@ -242,7 +242,7 @@ export const getFilms = async (req, res) => {
     const all = String(req.query.all || "") === "1";
 
     const limit = all
-      ? 50 // Max 50 films approuvés
+      ? 50 // Max 50 
       : Math.min(20, Math.max(1, parseInt(req.query.limit, 10) || 20));
 
     const offset = all ? 0 : (page - 1) * limit;
@@ -251,13 +251,12 @@ export const getFilms = async (req, res) => {
     const sortField = req.query.sortField || "created_at";
     const sortOrder = req.query.sortOrder || "DESC";
 
-    // ✅ IMPORTANT : Filtrer uniquement les films approved (sélection officielle)
     const { rows, count } = await Film.findAll({
       limit,
       offset,
       sortField,
       sortOrder,
-      status: "approved", // Catalogue public = approved seulement
+      status: "approved", // public catalog = approved
     });
 
     return res.status(200).json({
@@ -274,46 +273,6 @@ export const getFilms = async (req, res) => {
     });
   } catch (err) {
     console.error("getFilms error:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Erreur lors de la récupération des films",
-    });
-  }
-};
-
-// ✅ NOUVEAU : Pour le dashboard admin - liste TOUS les films (pending/approved/rejected)
-export const getAllFilmsAdmin = async (req, res) => {
-  try {
-    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
-    const offset = (page - 1) * limit;
-
-    const sortField = req.query.sortField || "created_at";
-    const sortOrder = req.query.sortOrder || "DESC";
-    const statusFilter = req.query.status || null; // Optionnel : filtrer par status
-
-    const { rows, count } = await Film.findAll({
-      limit,
-      offset,
-      sortField,
-      sortOrder,
-      status: statusFilter, // null = tous les statuts
-    });
-
-    return res.status(200).json({
-      success: true,
-      pagination: {
-        totalItems: count,
-        totalPages: Math.max(1, Math.ceil(count / limit)),
-        currentPage: page,
-        itemsPerPage: limit,
-        hasNextPage: page < Math.ceil(count / limit),
-        hasPrevPage: page > 1,
-      },
-      data: rows,
-    });
-  } catch (err) {
-    console.error("getAllFilmsAdmin error:", err);
     return res.status(500).json({
       success: false,
       message: "Erreur lors de la récupération des films",
