@@ -95,11 +95,8 @@ export default class Film {
     };
   }
 
-  // Méthode pour changer le statut d'un film (approved ou rejected)
   static async updateStatus(filmId, newStatus, userId = null) {
-    // Validation stricte : seulement "approved" ou "rejected"
-    // ✅ CORRECTION : Accepte aussi "pending" pour permettre les retours arrière
-    const validStatuses = ['pending', 'approved', 'rejected'];
+    const validStatuses = ['pending', 'approved', 'rejected']; // Strict validation: status must be "approved", "pending", or "rejected"
     
     if (!validStatuses.includes(newStatus)) {
       throw new Error(`Invalid status. Allowed values: ${validStatuses.join(', ')}`);
@@ -115,12 +112,10 @@ export default class Film {
 
     const [result] = await db.query(sql, [newStatus, userId, filmId]);
 
-    // Vérifie si un film a bien été modifié
-    if (result.affectedRows === 0) {
+    if (result.affectedRows === 0) { //check if the film's status was updated
       throw new Error('Film not found or no changes made.');
     }
 
-    // Récupère le film mis à jour pour confirmer le changement
     const updatedFilm = await Film.findById(filmId);
     
     return updatedFilm;
@@ -178,7 +173,7 @@ export default class Film {
     return rows?.[0] || null;
   }
 
-  // Récupère uniquement les films approuvés (sélection finale)
+  // Retrieve only approved films (final selection)
   static async findApproved({ limit = 50, offset = 0 } = {}) {
     const sql = `
       SELECT
@@ -207,14 +202,14 @@ export default class Film {
   }
 
   static async getStats() {
-    // Compte par statut
+    // Count films by status
     const sqlStatus = `
       SELECT status, COUNT(*) as count
       FROM films
       GROUP BY status
     `;
 
-    // Compte par pays
+    // Count films by country
     const sqlCountry = `
       SELECT country, COUNT(*) as count
       FROM films
@@ -223,14 +218,14 @@ export default class Film {
       ORDER BY count DESC
     `;
 
-    // Compte par outil IA
+    // Count films by AI tool usage
     const sqlAI = `
       SELECT ai_tools_used
       FROM films
       WHERE ai_tools_used IS NOT NULL AND ai_tools_used != ''
     `;
 
-    // Compte par catégorie
+    // Count films by category
     const sqlCategory = `
       SELECT 
         c.id as category_id,
@@ -248,7 +243,7 @@ export default class Film {
     const [aiRows] = await db.query(sqlAI);
     const [categoryRows] = await db.query(sqlCategory);
 
-    // Compter combien de films utilisent chaque outil IA (liste séparée par des virgules)
+    // Aggregate AI tool usage (comma-separated list)
     const aiToolsMap = new Map();
     aiRows.forEach(row => {
       const tools = row.ai_tools_used.split(',').map(t => t.trim());

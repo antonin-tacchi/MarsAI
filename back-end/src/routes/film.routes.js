@@ -34,7 +34,7 @@ fs.mkdirSync(filmsDir, { recursive: true });
 fs.mkdirSync(thumbnailsDir, { recursive: true });
 
 export const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
-export const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024; // 3MB
+export const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024; // 3MB 
 export const MAX_FILM_SIZE = 800 * 1024 * 1024; // 800MB
 
 const IMAGE_MIME = ["image/jpeg", "image/png", "image/webp"];
