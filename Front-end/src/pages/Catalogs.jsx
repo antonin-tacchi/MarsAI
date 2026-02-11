@@ -7,6 +7,7 @@ import FilmFilters from "../components/FilmFilters";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const PER_PAGE = 20;
 
+// --- SKELETON COMPONENT (LOADING STATE) ---
 const SkeletonCard = () => (
   <div className="block w-[260px]">
     <div className="w-full h-[160px] rounded-lg animate-shimmer mb-4" />
@@ -23,6 +24,7 @@ export default function Catalogs() {
   const [error, setError] = useState("");
   const [stats, setStats] = useState(null);
 
+  // --- FILTERS ---
   const [filters, setFilters] = useState({
     selected: "all",
     country: "",
@@ -30,7 +32,7 @@ export default function Catalogs() {
     category: "",
   });
 
-  // ✅ CORRECTION : Ajout timeout pour éviter chargement infini
+  // --- FETCH FILMS ---
   const fetchFilms = useCallback(async (p) => {
     setStatus("loading");
     setError("");
@@ -47,7 +49,7 @@ export default function Catalogs() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.message || "Erreur lors du chargement");
+        throw new Error(data?.message || "Error while loading");
       }
 
       setFilms(data?.data || []);
@@ -56,12 +58,13 @@ export default function Catalogs() {
       clearTimeout(timeoutId);
       console.error("Fetch error:", err);
       setError(err.name === 'AbortError' 
-        ? "Timeout - Le serveur ne répond pas"
-        : "Impossible de se connecter au serveur.");
+        ? "Timeout - Server not responding"
+        : "Unable to connect to the server.");
       setStatus("idle");
     }
   }, []);
 
+  // --- FETCH STATS ---
   useEffect(() => {
     fetch(`${API_URL}/api/films/stats`)
       .then(res => res.json())
@@ -93,28 +96,41 @@ export default function Catalogs() {
     })) || [];
   }, [stats]);
 
-  const filteredFilms = useMemo(() => {
-    return films.filter((film) => {
-      if (filters.selected === "selected" && film.status !== "approved")
-        return false;
+// --- FINAL FILTERING ---
+const filteredFilms = useMemo(() => {
+  return films.filter((film) => {
 
-      if (filters.country && film.country !== filters.country) 
-        return false;
+    // Official selection filter
+    if (filters.selected === "selected" && film.status !== "approved") {
+      return false;
+    }
 
-      if (filters.ai && !film.ai_tools_used?.toLowerCase().includes(filters.ai.toLowerCase()))
-        return false;
+    // Country filter
+    if (filters.country && film.country !== filters.country) {
+      return false;
+    }
 
-      if (filters.category && film.categories) {
-        if (!film.categories.toLowerCase().includes(filters.category.toLowerCase()))
-          return false;
+    // AI tools filter
+    if (filters.ai && !film.ai_tools_used?.toLowerCase().includes(filters.ai.toLowerCase())) {
+      return false;
+    }
+
+    // Category filter
+    if (filters.category && film.categories) {
+      if (!film.categories.toLowerCase().includes(filters.category.toLowerCase())) {
+        return false;
       }
+    }
 
-      if (query && !film.title.toLowerCase().includes(query.toLowerCase()))
-        return false;
+    // Title search
+    if (query && !film.title.toLowerCase().includes(query.toLowerCase())) {
+      return false;
+    }
 
-      return true;
-    });
-  }, [films, filters, query]);
+    return true;
+  });
+}, [films, filters, query]);
+
 
   return (
     <main className="min-h-screen bg-[#FBF5F0] px-6 py-12">
@@ -138,6 +154,7 @@ export default function Catalogs() {
           />
         </header>
 
+        {/* --- API ERROR --- */}
         {error && (
           <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
             <div className="text-5xl mb-4 text-red-400">⚠️</div>
@@ -145,10 +162,11 @@ export default function Catalogs() {
               Erreur Serveur
             </h2>
             <p className="text-[#262335]/70 mb-6">{error}</p>
-            <Button onClick={() => fetchFilms(page)}>Réessayer</Button>
+            <Button onClick={() => fetchFilms(page)}>Retry</Button>
           </div>
         )}
 
+        {/* --- LOADING STATE --- */}
         {status === "loading" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
             {[...Array(8)].map((_, i) => (
@@ -157,6 +175,7 @@ export default function Catalogs() {
           </div>
         )}
 
+        {/* --- EMPTY STATE --- */}
         {status === "idle" && !error && filteredFilms.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-[#262335]/10 rounded-[2.5rem] bg-[#FBF5F0]/50">
             <div className="text-6xl mb-6 opacity-30">
@@ -166,22 +185,23 @@ export default function Catalogs() {
             {query ? (
               <>
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
-                  Aucun résultat pour cette recherche
+                  No results found
                 </h2>
                 <Button onClick={() => setQuery("")} className="mt-8 scale-90">
-                  Effacer la recherche
+                  Clear search
                 </Button>
               </>
             ) : (
               <>
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
-                  Aucun film dans le catalogue
+                  No films in the catalog
                 </h2>
               </>
             )}
           </div>
         )}
 
+        {/* --- SUCCESS STATE --- */}
         {status === "idle" && filteredFilms.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
             {filteredFilms
