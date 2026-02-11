@@ -121,7 +121,8 @@ export default class Film {
     return updatedFilm;
   }
   
-  static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrder = "DESC" } = {}) {
+  // ✅ OPTIMISATION : Accepte un filtre de status optionnel
+  static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrder = "DESC", status = null } = {}) {
     const allowedSortFields = new Set([
       "created_at",
       "title",
@@ -134,6 +135,9 @@ export default class Film {
 
     const safeLimit = Math.min(50, Math.max(1, parseInt(limit, 10) || 12));
     const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
+
+    // ✅ Ajout conditionnel du filtre status
+    const statusFilter = status ? `WHERE f.status = ?` : '';
 
     const sqlData = `
       SELECT
@@ -151,15 +155,21 @@ export default class Film {
       FROM films f
       LEFT JOIN film_categories fc ON f.id = fc.film_id
       LEFT JOIN categories c ON fc.category_id = c.id
+      ${statusFilter}
       GROUP BY f.id
       ORDER BY f.${safeField} ${safeOrder}
       LIMIT ? OFFSET ?
     `;
 
-    const sqlCount = `SELECT COUNT(*) AS total FROM films`;
+    const sqlCount = status 
+      ? `SELECT COUNT(*) AS total FROM films WHERE status = ?`
+      : `SELECT COUNT(*) AS total FROM films`;
 
-    const [rows] = await db.query(sqlData, [safeLimit, safeOffset]);
-    const [countResult] = await db.query(sqlCount);
+    const params = status ? [status, safeLimit, safeOffset] : [safeLimit, safeOffset];
+    const countParams = status ? [status] : [];
+
+    const [rows] = await db.query(sqlData, params);
+    const [countResult] = await db.query(sqlCount, countParams);
 
     return {
       rows,
