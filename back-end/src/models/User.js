@@ -7,7 +7,7 @@ class UserModel {
   async findByEmail(email) {
     try {
       const [rows] = await pool.execute(
-        "SELECT * FROM users WHERE email = ?",
+        "SELECT id, name, email, password, created_at FROM users WHERE email = ?",
         [email]
       );
       return rows[0] || null;
@@ -20,7 +20,7 @@ class UserModel {
   async findById(id) {
     try {
       const [rows] = await pool.execute(
-        "SELECT * FROM users WHERE id = ?",
+        "SELECT id, name, email, password, created_at FROM users WHERE id = ?",
         [id]
       );
       return rows[0] || null;
@@ -32,19 +32,12 @@ class UserModel {
 
   async create(userData) {
     try {
-      const {
-        name,
-        email,
-        password,
-        bio = null,
-        country = null,
-        school = null,
-      } = userData;
+      const { name, email, password } = userData;
 
       const [result] = await pool.execute(
-        `INSERT INTO users (name, email, password, bio, country, school, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-        [name, email, password, bio, country, school]
+        `INSERT INTO users (name, email, password, created_at)
+         VALUES (?, ?, ?, NOW())`,
+        [name, email, password]
       );
 
       return await this.findById(result.insertId);
@@ -56,7 +49,9 @@ class UserModel {
 
   async getAll() {
     try {
-      const [rows] = await pool.execute("SELECT * FROM users");
+      const [rows] = await pool.execute(
+        "SELECT id, name, email, created_at FROM users"
+      );
       return rows;
     } catch (error) {
       console.error("Error getting all users:", error);

@@ -67,8 +67,8 @@ export default function Catalogs() {
   // --- FETCH STATS ---
   useEffect(() => {
     fetch(`${API_URL}/api/films/stats`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
           setStats(data.data);
         }
@@ -81,19 +81,21 @@ export default function Catalogs() {
   }, [fetchFilms]);
 
   const countries = useMemo(() => {
-    return stats?.byCountry.map(c => c.country) || [];
+    return stats?.byCountry?.map((c) => c.country) || [];
   }, [stats]);
 
   const aiTools = useMemo(() => {
-    return stats?.byAITool.map(t => t.tool) || [];
+    return stats?.byAITool?.map((t) => t.tool) || [];
   }, [stats]);
 
   const categories = useMemo(() => {
-    return stats?.byCategory.map(c => ({
-      id: c.category_id,
-      name: c.category_name,
-      count: c.count
-    })) || [];
+    return (
+      stats?.byCategory?.map((c) => ({
+        id: c.category_id,
+        name: c.category_name,
+        count: c.count,
+      })) || []
+    );
   }, [stats]);
 
 // --- FINAL FILTERING ---
@@ -135,6 +137,20 @@ const filteredFilms = useMemo(() => {
     }
   }, [totalPages, page]);
 
+  // --- PAGINATION (basée sur le résultat filtré) ---
+  const totalPages = Math.max(1, Math.ceil(filteredFilms.length / PER_PAGE));
+
+  // Si filtres/recherche changent et que la page dépasse, on recadre
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  // Films à afficher sur la page courante
+  const paginatedFilms = useMemo(() => {
+    const start = (page - 1) * PER_PAGE;
+    return filteredFilms.slice(start, start + PER_PAGE);
+  }, [filteredFilms, page]);
+
   return (
     <main className="min-h-screen bg-[#FBF5F0] px-6 py-12">
       <div className="max-w-7xl mx-auto">
@@ -142,14 +158,17 @@ const filteredFilms = useMemo(() => {
           <h1 className="text-4xl font-black text-[#262335] uppercase tracking-tighter mb-8 p-6 italic ">
             Catalogue
           </h1>
-  
+
           <div className="max-w-2xl mb-8 p-6">
             <SearchBar value={query} onChange={setQuery} />
           </div>
-  
+
           <FilmFilters
             filters={filters}
-            onChange={setFilters}
+            onChange={(next) => {
+              setFilters(next);
+              setPage(1); // reset page quand on change les filtres
+            }}
             countries={countries}
             aiTools={aiTools}
             categories={categories}
@@ -190,7 +209,13 @@ const filteredFilms = useMemo(() => {
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
                   Aucun résultat pour cette recherche
                 </h2>
-                <Button onClick={() => setQuery("")} className="mt-8 scale-90">
+                <Button
+                  onClick={() => {
+                    setQuery("");
+                    setPage(1);
+                  }}
+                  className="mt-8 scale-90"
+                >
                   Effacer la recherche
                 </Button>
               </>

@@ -30,6 +30,7 @@ export default class Film {
         country,
         description,
         film_url,
+        youtube_url,
         poster_url,
         thumbnail_url,
         ai_tools_used,
@@ -52,6 +53,7 @@ export default class Film {
         ?, ?, ?,
         ?, ?, ?,
         ?, ?,
+        ?,
 
         ?, ?, ?,
         ?, ?, ?,
@@ -67,6 +69,7 @@ export default class Film {
       data.country,
       data.description,
       data.film_url,
+      data.youtube_url || null,
       data.poster_url,
       data.thumbnail_url,
       data.ai_tools_used,
@@ -188,7 +191,6 @@ export default class Film {
   }
 
   static async findForPublicCatalog() {
-    // Correction ici : suppression de f.youtube_url qui causait l'erreur
     const sql = `
       SELECT f.id, f.title, f.country, f.description, f.poster_url, f.thumbnail_url,
              f.film_url, f.ai_tools_used, f.director_firstname, f.director_lastname,
