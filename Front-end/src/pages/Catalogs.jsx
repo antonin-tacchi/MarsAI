@@ -33,7 +33,7 @@ export default function Catalogs() {
   });
 
   // --- FETCH FILMS ---
-  const fetchFilms = useCallback(async (p) => {
+  const fetchFilms = useCallback(async () => {
     setStatus("loading");
     setError("");
 
@@ -56,8 +56,8 @@ export default function Catalogs() {
   // --- FETCH STATS ---
   useEffect(() => {
     fetch(`${API_URL}/api/films/stats`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
           setStats(data.data);
         }
@@ -65,26 +65,28 @@ export default function Catalogs() {
   }, []);
 
   useEffect(() => {
-    fetchFilms(page);
-  }, [page, fetchFilms]);
+    fetchFilms();
+  }, [fetchFilms]);
 
   // --- PAYS DEPUIS STATS ---
   const countries = useMemo(() => {
-    return stats?.byCountry.map(c => c.country) || [];
+    return stats?.byCountry?.map((c) => c.country) || [];
   }, [stats]);
 
   // --- OUTILS IA DEPUIS STATS ---
   const aiTools = useMemo(() => {
-    return stats?.byAITool.map(t => t.tool) || [];
+    return stats?.byAITool?.map((t) => t.tool) || [];
   }, [stats]);
 
   // --- CATÉGORIES DEPUIS STATS ---
   const categories = useMemo(() => {
-    return stats?.byCategory.map(c => ({
-      id: c.category_id,
-      name: c.category_name,
-      count: c.count
-    })) || [];
+    return (
+      stats?.byCategory?.map((c) => ({
+        id: c.category_id,
+        name: c.category_name,
+        count: c.count,
+      })) || []
+    );
   }, [stats]);
 
   // --- FILTRAGE FINAL ---
@@ -93,15 +95,21 @@ export default function Catalogs() {
       if (filters.selected === "selected" && film.status !== "selected")
         return false;
 
-      if (filters.country && film.country !== filters.country) 
-        return false;
+      if (filters.country && film.country !== filters.country) return false;
 
-      if (filters.ai && !film.ai_tools_used?.toLowerCase().includes(filters.ai.toLowerCase()))
+      if (
+        filters.ai &&
+        !film.ai_tools_used?.toLowerCase().includes(filters.ai.toLowerCase())
+      )
         return false;
 
       // Filtre par catégorie
       if (filters.category && film.categories) {
-        if (!film.categories.toLowerCase().includes(filters.category.toLowerCase()))
+        if (
+          !film.categories
+            .toLowerCase()
+            .includes(filters.category.toLowerCase())
+        )
           return false;
       }
 
@@ -112,6 +120,20 @@ export default function Catalogs() {
     });
   }, [films, filters, query]);
 
+  // --- PAGINATION (basée sur le résultat filtré) ---
+  const totalPages = Math.max(1, Math.ceil(filteredFilms.length / PER_PAGE));
+
+  // Si filtres/recherche changent et que la page dépasse, on recadre
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  // Films à afficher sur la page courante
+  const paginatedFilms = useMemo(() => {
+    const start = (page - 1) * PER_PAGE;
+    return filteredFilms.slice(start, start + PER_PAGE);
+  }, [filteredFilms, page]);
+
   return (
     <main className="min-h-screen bg-[#FBF5F0] px-6 py-12">
       <div className="max-w-7xl mx-auto">
@@ -119,20 +141,70 @@ export default function Catalogs() {
           <h1 className="text-4xl font-black text-[#262335] uppercase tracking-tighter mb-8 p-6 italic ">
             Catalogue
           </h1>
-  
+
           <div className="max-w-2xl mb-8 p-6">
             <SearchBar value={query} onChange={setQuery} />
           </div>
-  
+
           <FilmFilters
             filters={filters}
-            onChange={setFilters}
+            onChange={(next) => {
+              setFilters(next);
+              setPage(1); // reset page quand on change les filtres
+            }}
             countries={countries}
             aiTools={aiTools}
             categories={categories}
             stats={stats}
           />
         </header>
+
+        {/* --- PAGINATION STYLE « ‹ 1 › » --- */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 mt-12 mb-12 text-2xl text-[#262335]">
+            <button
+              onClick={() => setPage(1)}
+              disabled={page === 1}
+              className="hover:opacity-60 disabled:opacity-30"
+              aria-label="Première page"
+              type="button"
+            >
+              «
+            </button>
+
+            <button
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              disabled={page === 1}
+              className="hover:opacity-60 disabled:opacity-30"
+              aria-label="Page précédente"
+              type="button"
+            >
+              ‹
+            </button>
+
+            <span className="font-black tabular-nums">{page}</span>
+
+            <button
+              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+              disabled={page === totalPages}
+              className="hover:opacity-60 disabled:opacity-30"
+              aria-label="Page suivante"
+              type="button"
+            >
+              ›
+            </button>
+
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={page === totalPages}
+              className="hover:opacity-60 disabled:opacity-30"
+              aria-label="Dernière page"
+              type="button"
+            >
+              »
+            </button>
+          </div>
+        )}
 
         {/* --- ERREUR API --- */}
         {error && (
@@ -142,7 +214,7 @@ export default function Catalogs() {
               Erreur Serveur
             </h2>
             <p className="text-[#262335]/70 mb-6">{error}</p>
-            <Button onClick={() => fetchFilms(page)}>Réessayer</Button>
+            <Button onClick={fetchFilms}>Réessayer</Button>
           </div>
         )}
 
@@ -167,7 +239,13 @@ export default function Catalogs() {
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
                   Aucun résultat pour cette recherche
                 </h2>
-                <Button onClick={() => setQuery("")} className="mt-8 scale-90">
+                <Button
+                  onClick={() => {
+                    setQuery("");
+                    setPage(1);
+                  }}
+                  className="mt-8 scale-90"
+                >
                   Effacer la recherche
                 </Button>
               </>
@@ -183,13 +261,60 @@ export default function Catalogs() {
 
         {/* --- SUCCÈS --- */}
         {status === "idle" && filteredFilms.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
-            {filteredFilms
-              .slice((page - 1) * PER_PAGE, page * PER_PAGE)
-              .map((film) => (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
+              {paginatedFilms.map((film) => (
                 <FilmCard key={film.id} film={film} apiUrl={API_URL} />
               ))}
-          </div>
+            </div>
+
+            {/* --- PAGINATION STYLE « ‹ 1 › » --- */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-12 text-2xl text-[#262335]">
+                <button
+                  onClick={() => setPage(1)}
+                  disabled={page === 1}
+                  className="hover:opacity-60 disabled:opacity-30"
+                  aria-label="Première page"
+                  type="button"
+                >
+                  «
+                </button>
+
+                <button
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                  disabled={page === 1}
+                  className="hover:opacity-60 disabled:opacity-30"
+                  aria-label="Page précédente"
+                  type="button"
+                >
+                  ‹
+                </button>
+
+                <span className="font-black tabular-nums">{page}</span>
+
+                <button
+                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                  disabled={page === totalPages}
+                  className="hover:opacity-60 disabled:opacity-30"
+                  aria-label="Page suivante"
+                  type="button"
+                >
+                  ›
+                </button>
+
+                <button
+                  onClick={() => setPage(totalPages)}
+                  disabled={page === totalPages}
+                  className="hover:opacity-60 disabled:opacity-30"
+                  aria-label="Dernière page"
+                  type="button"
+                >
+                  »
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>
