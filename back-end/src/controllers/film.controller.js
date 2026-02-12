@@ -256,7 +256,7 @@ export const getFilms = async (req, res) => {
       offset,
       sortField,
       sortOrder,
-      status: "approved", // public catalog = approved
+      status: "approved", // public catalog
     });
 
     return res.status(200).json({

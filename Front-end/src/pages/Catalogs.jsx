@@ -41,7 +41,7 @@ export default function Catalogs() {
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
     try {
-      const res = await fetch(`${API_URL}/api/films/selection/approved`, {
+      const res = await fetch(`${API_URL}/api/films/selection/catalog`, {
         signal: controller.signal
       });
       clearTimeout(timeoutId);

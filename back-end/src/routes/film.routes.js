@@ -5,12 +5,14 @@ import fs from "fs";
 import rateLimit from "express-rate-limit";
 import { authenticateToken } from "../middleware/auth.middleware.js"; 
 import { authorize } from "../middleware/authorize.middleware.js"; 
-import { createFilm } from "../controllers/film.controller.js";
-import { updateFilmStatus } from "../controllers/film.controller.js";
-import { getFilms } from "../controllers/film.controller.js";
-import { getFilmById } from "../controllers/film.controller.js";
-import { getFilmStats} from "../controllers/film.controller.js";
-import { getApprovedFilms } from "../controllers/film.controller.js";
+import { 
+    createFilm, 
+    updateFilmStatus,  
+    getFilms, 
+    getFilmById, 
+    getFilmStats, 
+    getApprovedFilms } from "../controllers/film.controller.js";
+
 
 const router = express.Router();
 
@@ -124,7 +126,7 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
-// ✅ POST - upload film
+// POST - upload film
 router.post(
   "/",
   submitLimiter,
@@ -136,7 +138,7 @@ router.post(
   createFilm,
 );
 
-// ✅ PATCH - update video status (rejected/pending/approved only)-
+// PATCH - update video status (rejected/pending/approved only)-
 router.patch(
   "/:id/status",
   authenticateToken,
@@ -144,9 +146,9 @@ router.patch(
   updateFilmStatus
 );
 
-// ✅ GET ROUTES
+// GET ROUTES
 router.get("/stats", getFilmStats);
-router.get("/selection/approved", getApprovedFilms);
+router.get("/selection/catalog", getApprovedFilms);
 router.get("/:id", getFilmById);
 router.get("/", getFilms);
 

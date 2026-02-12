@@ -121,7 +121,6 @@ export default class Film {
     return updatedFilm;
   }
   
-  // ✅ OPTIMISATION : Accepte un filtre de status optionnel
   static async findAll({ limit = 20, offset = 0, sortField = "created_at", sortOrder = "DESC", status = null } = {}) {
     const allowedSortFields = new Set([
       "created_at",
@@ -136,7 +135,6 @@ export default class Film {
     const safeLimit = Math.min(50, Math.max(1, parseInt(limit, 10) || 12));
     const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
 
-    // ✅ Ajout conditionnel du filtre status
     const statusFilter = status ? `WHERE f.status = ?` : '';
 
     const sqlData = `
