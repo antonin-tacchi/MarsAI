@@ -1,5 +1,6 @@
 import JuryRating from "../models/JuryRating.js";
 import Film from "../models/Film.js";
+import JuryAssignment from "../models/JuryAssignment.js";
 
 // Get all approved films for jury to rate
 export const getFilmsForJury = async (req, res) => {
@@ -106,5 +107,53 @@ export const deleteRating = async (req, res) => {
   } catch (err) {
     console.error("deleteRating error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Jury Assignments
+export const getAssignedFilmsForJury = async (req, res) => {
+  try {
+    const juryId = req.user?.userId;
+    if (!juryId) {
+      return res.status(401).json({ success: false, message: "Unauthenticated" });
+    }
+
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const all = String(req.query.all || "") === "1";
+
+    const limit = all
+      ? 50
+      : Math.min(20, Math.max(1, parseInt(req.query.limit, 10) || 20));
+
+    const offset = all ? 0 : (page - 1) * limit;
+
+    const sortOrder = req.query.sortOrder || "DESC";
+
+    const [{ rows, count }, stats] = await Promise.all([
+      JuryAssignment.findAssignedFilms({ juryId, limit, offset, sortOrder }),
+      JuryAssignment.getJuryStats(juryId),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: rows,
+      stats: {
+        totalAssigned: Number(stats.total_assigned || 0),
+        totalUnrated: Number(stats.total_unrated || 0),
+        totalRated: Number(stats.total_rated || 0),
+      },
+      pagination: {
+        totalItems: count,
+        totalPages: Math.max(1, Math.ceil(count / limit)),
+        currentPage: all ? 1 : page,
+        itemsPerPage: limit,
+      },
+    });
+  } catch (error) {
+    console.error("getAssignedFilmsForJury error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error retrieving assigned films",
+    });
   }
 };
