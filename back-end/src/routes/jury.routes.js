@@ -7,6 +7,7 @@ import {
   submitRating,
   getMyRatings,
   deleteRating,
+  getAssignedFilmsForJury,
 } from "../controllers/jury.controller.js";
 
 const router = Router();
@@ -31,6 +32,8 @@ router.post("/films/:id/rate", submitRating);
 
 // Get current user's rating history
 router.get("/my-ratings", getMyRatings);
+
+router.get("/assigned-films", getAssignedFilmsForJury);
 
 // Delete a rating
 router.delete("/films/:id/rate", deleteRating);

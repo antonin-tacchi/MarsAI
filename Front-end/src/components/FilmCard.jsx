@@ -67,6 +67,14 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
             decoding="async"
           />
 
+          {/* BADGE NOTE JURY */}
+          {film?.user_rating !== null && film?.user_rating !== undefined && (
+            <div className="absolute top-2 right-2 bg-gradient-to-r from-[#9a92c9] to-[#2f2a73] text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg backdrop-blur-sm">
+              ⭐ {film.user_rating}/10
+            </div>
+          )}
+
+
           {imgStatus === "error" && (
             <div className="absolute bottom-2 right-2 rounded-md bg-black/60 px-2 py-1 text-xs text-white">
               Image indisponible

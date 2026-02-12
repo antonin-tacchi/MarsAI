@@ -122,7 +122,7 @@ router.get("/public/catalog", getPublicCatalog);
 router.get("/public/:id", getPublicFilm);
 
 // Regular routes
-router.get("/", getFilms);
+router.get("/films", getFilms);
 router.get("/stats", getFilmStats);
 router.get("/:id", getFilmById);
 
