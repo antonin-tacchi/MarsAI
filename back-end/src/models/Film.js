@@ -29,6 +29,7 @@ export default class Film {
         country,
         description,
         film_url,
+        youtube_url,
         poster_url,
         thumbnail_url,
         ai_tools_used,
@@ -51,6 +52,7 @@ export default class Film {
         ?, ?, ?,
         ?, ?, ?,
         ?, ?,
+        ?,
 
         ?, ?, ?,
         ?, ?, ?,
@@ -66,6 +68,7 @@ export default class Film {
       data.country,
       data.description,
       data.film_url,
+      data.youtube_url || null,
       data.poster_url,
       data.thumbnail_url,
 
@@ -135,9 +138,17 @@ export default class Film {
     const safeLimit = Math.min(50, Math.max(1, parseInt(limit, 10) || 12));
     const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
 
-    const statusFilter = status ? `WHERE f.status = ?` : '';
+    const whereClauses = [];
+    const queryParams = [];
 
-    const sqlData = `
+    if (status) {
+      whereClauses.push("f.status = ?");
+      queryParams.push(status);
+    }
+
+    const whereSQL = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
+
+    const sql = `
       SELECT
         f.id,
         f.title,
@@ -149,29 +160,27 @@ export default class Film {
         f.created_at,
         f.ai_tools_used,
         f.status,
-        GROUP_CONCAT(c.name SEPARATOR ', ') as categories
+        GROUP_CONCAT(c.name SEPARATOR ', ') AS categories,
+        COUNT(*) OVER() AS total
       FROM films f
       LEFT JOIN film_categories fc ON f.id = fc.film_id
       LEFT JOIN categories c ON fc.category_id = c.id
-      ${statusFilter}
+      ${whereSQL}
       GROUP BY f.id
       ORDER BY f.${safeField} ${safeOrder}
       LIMIT ? OFFSET ?
     `;
 
-    const sqlCount = status 
-      ? `SELECT COUNT(*) AS total FROM films WHERE status = ?`
-      : `SELECT COUNT(*) AS total FROM films`;
+    queryParams.push(safeLimit, safeOffset);
 
-    const params = status ? [status, safeLimit, safeOffset] : [safeLimit, safeOffset];
-    const countParams = status ? [status] : [];
+    const [rows] = await db.query(sql, queryParams);
+    const count = rows.length > 0 ? rows[0].total : 0;
 
-    const [rows] = await db.query(sqlData, params);
-    const [countResult] = await db.query(sqlCount, countParams);
+    const cleanRows = rows.map(({ total, ...rest }) => rest);
 
     return {
-      rows,
-      count: countResult?.[0]?.total ?? 0,
+      rows: cleanRows,
+      count,
     };
   }
 
@@ -181,31 +190,20 @@ export default class Film {
     return rows?.[0] || null;
   }
 
-  // Retrieve only approved films (final selection)
-  static async findApproved({ limit = 50, offset = 0 } = {}) {
+  static async findForPublicCatalog() {
     const sql = `
-      SELECT
-        f.id,
-        f.title,
-        f.country,
-        f.description,
-        f.poster_url,
-        f.thumbnail_url,
-        f.director_firstname,
-        f.director_lastname,
-        f.created_at,
-        f.ai_tools_used,
-        GROUP_CONCAT(c.name SEPARATOR ', ') as categories
+      SELECT f.id, f.title, f.country, f.description, f.poster_url, f.thumbnail_url,
+             f.youtube_url, f.ai_tools_used, f.director_firstname, f.director_lastname,
+             f.director_school, f.created_at,
+             GROUP_CONCAT(c.name SEPARATOR ', ') as categories
       FROM films f
       LEFT JOIN film_categories fc ON f.id = fc.film_id
       LEFT JOIN categories c ON fc.category_id = c.id
       WHERE f.status = 'approved'
       GROUP BY f.id
       ORDER BY f.created_at DESC
-      LIMIT ? OFFSET ?
     `;
-
-    const [rows] = await db.query(sql, [limit, offset]);
+    const [rows] = await db.query(sql);
     return rows;
   }
 
@@ -235,7 +233,7 @@ export default class Film {
 
     // Count films by category
     const sqlCategory = `
-      SELECT 
+      SELECT
         c.id as category_id,
         c.name as category_name,
         COUNT(fc.film_id) as count

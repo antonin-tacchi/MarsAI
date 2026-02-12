@@ -213,12 +213,7 @@ export const updateFilmStatus = async (req, res) => {
 
 export const getApprovedFilms = async (req, res) => {
   try {
-    const { limit = 50, offset = 0 } = req.query;
-
-    const films = await Film.findApproved({
-      limit: parseInt(limit, 10),
-      offset: parseInt(offset, 10),
-    });
+    const films = await Film.findForPublicCatalog();
 
     return res.status(200).json({
       success: true,
