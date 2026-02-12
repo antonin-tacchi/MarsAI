@@ -5,7 +5,6 @@ import Button from "../components/Button";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const PER_PAGE = 20;
 
-// --- COMPOSANT SKELETON (ÉTAT DE CHARGEMENT) ---
 const SkeletonCard = () => (
   <div className="block w-[260px]">
     <div className="w-full h-[160px] rounded-lg animate-shimmer mb-4" />
@@ -16,9 +15,8 @@ const SkeletonCard = () => (
 
 export default function ProfileJury() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const [status, setStatus] = useState("loading"); // "loading" | "idle"
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [uiState, setUiState] = useState("loading");
   const [error, setError] = useState("");
 
   const [films, setFilms] = useState([]);
@@ -36,7 +34,7 @@ export default function ProfileJury() {
   }, [filmCount]);
 
   const fetchFilms = useCallback(async (p = 1) => {
-    setStatus("loading");
+    setUiState("loading");
     setError("");
 
     try {
@@ -62,17 +60,21 @@ export default function ProfileJury() {
         totalRated: json?.stats?.totalRated ?? 0,
       });
 
-      // recale la page si elle dépasse le max (ex: films retirés)
       const newTotalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-      if (p > newTotalPages) setPage(newTotalPages);
+      if (p > newTotalPages) {
+        setPage(newTotalPages);
+
+        return;
+      }
+
+      setUiState(items.length === 0 ? "empty" : "success");
     } catch (err) {
       console.error(err);
       setError("Impossible de se connecter au serveur.");
       setFilms([]);
       setFilmCount(0);
       setStats({ totalAssigned: 0, totalUnrated: 0, totalRated: 0 });
-    } finally {
-      setStatus("idle");
+      setUiState("error");
     }
   }, []);
 
@@ -80,6 +82,7 @@ export default function ProfileJury() {
     const loadProfile = async () => {
       try {
         const token = localStorage.getItem("token");
+
         const res = await fetch(`${API_URL}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -92,7 +95,7 @@ export default function ProfileJury() {
         console.error(err);
         setUser(null);
       } finally {
-        setLoading(false);
+        setProfileLoading(false);
       }
     };
 
@@ -103,7 +106,7 @@ export default function ProfileJury() {
     fetchFilms(page);
   }, [page, fetchFilms]);
 
-  if (loading) {
+  if (profileLoading) {
     return (
       <div className="bg-[#FBF5F0] min-h-screen flex items-center justify-center">
         <h1>Chargement...</h1>
@@ -149,20 +152,8 @@ export default function ProfileJury() {
             Film à noter :
           </h2>
 
-          {/* --- ERREUR API --- */}
-          {error && (
-            <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
-              <div className="text-5xl mb-4 text-red-400">⚠️</div>
-              <h2 className="text-2xl font-black text-[#262335] uppercase mb-2">
-                Erreur Serveur
-              </h2>
-              <p className="text-[#262335]/70 mb-6">{error}</p>
-              <Button onClick={() => fetchFilms(page)}>Réessayer</Button>
-            </div>
-          )}
-
-          {/* --- CHARGEMENT --- */}
-          {status === "loading" && (
+          {/* LOADING */}
+          {uiState === "loading" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
               {[...Array(8)].map((_, i) => (
                 <SkeletonCard key={i} />
@@ -170,13 +161,33 @@ export default function ProfileJury() {
             </div>
           )}
 
-          {/* --- ÉTAT VIDE --- */}
-          {status === "idle" && !error && films.length === 0 && (
-            <p>Aucun film assigné pour le moment.</p>
+          {/* ERROR */}
+          {uiState === "error" && (
+            <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
+              <div className="text-5xl mb-4 text-red-400">⚠️</div>
+              <h2 className="text-2xl font-black text-[#262335] uppercase mb-2">
+                Erreur Serveur
+              </h2>
+              <p className="text-[#262335]/70 mb-6">{error || "Une erreur est survenue."}</p>
+              <Button onClick={() => fetchFilms(page)}>Réessayer</Button>
+            </div>
           )}
 
-          {/* --- SUCCÈS --- */}
-          {status === "idle" && !error && films.length > 0 && (
+          {/* EMPTY */}
+          {uiState === "empty" && (
+            <div className="max-w-2xl mx-auto p-10 rounded-[2.5rem] bg-white border border-black/5 text-center">
+              <div className="text-5xl mb-4">🎬</div>
+              <h3 className="text-2xl font-black text-[#262335] uppercase mb-2">
+                Rien à noter
+              </h3>
+              <p className="text-[#262335]/70">
+                Aucun film assigné pour le moment.
+              </p>
+            </div>
+          )}
+
+          {/* SUCCESS */}
+          {uiState === "success" && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
                 {films.map((film) => (
@@ -184,7 +195,7 @@ export default function ProfileJury() {
                 ))}
               </div>
 
-              {/* --- PAGINATION --- */}
+              {/* PAGINATION */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-4 mt-12 text-2xl text-[#262335]">
                   <button
