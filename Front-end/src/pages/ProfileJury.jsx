@@ -68,13 +68,16 @@ export default function ProfileJury() {
     } catch (err) {
       console.error(err);
       setError("Impossible de se connecter au serveur.");
+      setFilms([]);
+      setFilmCount(0);
+      setStats({ totalAssigned: 0, totalUnrated: 0, totalRated: 0 });
     } finally {
       setStatus("idle");
     }
   }, []);
 
   useEffect(() => {
-    async function loadProfile() {
+    const loadProfile = async () => {
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(`${API_URL}/api/auth/profile`, {
@@ -82,14 +85,17 @@ export default function ProfileJury() {
         });
 
         const json = await res.json();
-        if (!res.ok) throw new Error(json?.message);
+        if (!res.ok) throw new Error(json?.message || "Erreur profil");
+
         setUser(json?.data || null);
       } catch (err) {
         console.error(err);
+        setUser(null);
       } finally {
         setLoading(false);
       }
-    }
+    };
+
     loadProfile();
   }, []);
 
@@ -99,7 +105,7 @@ export default function ProfileJury() {
 
   if (loading) {
     return (
-      <div className="bg-[#FBF5F0] flex">
+      <div className="bg-[#FBF5F0] min-h-screen flex items-center justify-center">
         <h1>Chargement...</h1>
       </div>
     );
