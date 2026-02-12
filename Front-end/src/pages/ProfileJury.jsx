@@ -18,7 +18,7 @@ export default function ProfileJury() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [status, setStatus] = useState("loading");
+  const [status, setStatus] = useState("loading"); // "loading" | "idle"
   const [error, setError] = useState("");
 
   const [films, setFilms] = useState([]);
@@ -50,8 +50,11 @@ export default function ProfileJury() {
       const json = await res.json();
       if (!res.ok) throw new Error(json?.message || "Erreur lors du chargement");
 
-      setFilms(json?.data ?? []);
-      setFilmCount(json?.pagination?.totalItems ?? 0);
+      const items = json?.data ?? [];
+      const total = json?.pagination?.totalItems ?? 0;
+
+      setFilms(items);
+      setFilmCount(total);
 
       setStats({
         totalAssigned: json?.stats?.totalAssigned ?? 0,
@@ -59,67 +62,50 @@ export default function ProfileJury() {
         totalRated: json?.stats?.totalRated ?? 0,
       });
 
-      // Si on est sur une page trop haute (ex: films retirés), on se recale
-      const newTotalPages = Math.max(
-        1,
-        Math.ceil((json?.pagination?.totalItems ?? 0) / PER_PAGE)
-      );
+      // recale la page si elle dépasse le max (ex: films retirés)
+      const newTotalPages = Math.max(1, Math.ceil(total / PER_PAGE));
       if (p > newTotalPages) setPage(newTotalPages);
     } catch (err) {
       console.error(err);
       setError("Impossible de se connecter au serveur.");
-      console.error(err);
-      setError("Impossible de se connecter au serveur.");
+      setFilms([]);
+      setFilmCount(0);
+      setStats({ totalAssigned: 0, totalUnrated: 0, totalRated: 0 });
     } finally {
-      setStatus("idle");
-    }
-  }, []);
       setStatus("idle");
     }
   }, []);
 
   useEffect(() => {
-    async function loadProfile() {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${API_URL}/api/auth/profile`, {
-    async function loadProfile() {
+    const loadProfile = async () => {
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(`${API_URL}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         const json = await res.json();
-        if (!res.ok) throw new Error(json?.message);
-        setUser(json?.data || null);
-        const json = await res.json();
-        if (!res.ok) throw new Error(json?.message);
+        if (!res.ok) throw new Error(json?.message || "Erreur profil");
+
         setUser(json?.data || null);
       } catch (err) {
         console.error(err);
-        console.error(err);
+        setUser(null);
       } finally {
         setLoading(false);
       }
-    }
-    loadProfile();
-  }, []);
-    }
+    };
+
     loadProfile();
   }, []);
 
-  useEffect(() => {
-    fetchFilms(page);
-  }, [page, fetchFilms]);
   useEffect(() => {
     fetchFilms(page);
   }, [page, fetchFilms]);
 
   if (loading) {
     return (
-      <div className="bg-[#FBF5F0] flex">
-        <h1>Chargement...</h1>
-      <div className="bg-[#FBF5F0] flex">
+      <div className="bg-[#FBF5F0] min-h-screen flex items-center justify-center">
         <h1>Chargement...</h1>
       </div>
     );
@@ -147,6 +133,7 @@ export default function ProfileJury() {
           <div className="bg-[#262335] rounded-lg p-2">
             nombre de film : {stats.totalAssigned}
           </div>
+
           <div className="flex gap-8">
             <div className="bg-[#262335] rounded-lg p-2">
               non Noté : {stats.totalUnrated}
@@ -197,7 +184,7 @@ export default function ProfileJury() {
                 ))}
               </div>
 
-              {/* --- PAGINATION (STYLE EXACT « ‹ 1 › ») --- */}
+              {/* --- PAGINATION --- */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-4 mt-12 text-2xl text-[#262335]">
                   <button
