@@ -68,7 +68,12 @@ export default function ProfileJury() {
     } catch (err) {
       console.error(err);
       setError("Impossible de se connecter au serveur.");
+      console.error(err);
+      setError("Impossible de se connecter au serveur.");
     } finally {
+      setStatus("idle");
+    }
+  }, []);
       setStatus("idle");
     }
   }, []);
@@ -78,12 +83,20 @@ export default function ProfileJury() {
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(`${API_URL}/api/auth/profile`, {
+    async function loadProfile() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_URL}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json?.message);
         setUser(json?.data || null);
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.message);
+        setUser(json?.data || null);
       } catch (err) {
+        console.error(err);
         console.error(err);
       } finally {
         setLoading(false);
@@ -91,13 +104,21 @@ export default function ProfileJury() {
     }
     loadProfile();
   }, []);
+    }
+    loadProfile();
+  }, []);
 
+  useEffect(() => {
+    fetchFilms(page);
+  }, [page, fetchFilms]);
   useEffect(() => {
     fetchFilms(page);
   }, [page, fetchFilms]);
 
   if (loading) {
     return (
+      <div className="bg-[#FBF5F0] flex">
+        <h1>Chargement...</h1>
       <div className="bg-[#FBF5F0] flex">
         <h1>Chargement...</h1>
       </div>
