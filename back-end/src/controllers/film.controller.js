@@ -42,27 +42,6 @@ export const createFilm = async (req, res) => {
       });
     }
 
-    if (posterFile.size > MAX_POSTER_SIZE) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res
-        .status(400)
-        .json({ success: false, message: "Poster too large" });
-    }
-
-    if (thumbnailFile && thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res
-        .status(400)
-        .json({ success: false, message: "Thumbnail too large" });
-    }
-
-    if (filmFile.size > MAX_FILM_SIZE) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res
-        .status(400)
-        .json({ success: false, message: "Film too large" });
-    }
-
     const {
       title,
       country,
@@ -78,28 +57,23 @@ export const createFilm = async (req, res) => {
       social_instagram,
       social_youtube,
       social_vimeo,
+      categories,
     } = req.body;
 
-    if (
-      !title ||
-      !country ||
-      !description ||
-      !director_firstname ||
-      !director_lastname ||
-      !director_email
-    ) {
+    // basic validation
+    if (!title || !country || !director_firstname || !director_lastname || !director_email) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
-        message:
-          "title, country, description, director_firstname, director_lastname, director_email are required",
+        message: "Missing required text fields",
       });
     }
 
-    const tooLong =
+    // length validation
+    if (
       title.length > MAX_TITLE ||
       country.length > MAX_COUNTRY ||
-      description.length > MAX_DESCRIPTION ||
+      (description && description.length > MAX_DESCRIPTION) ||
       (ai_tools_used && ai_tools_used.length > MAX_AI_TOOLS) ||
       director_firstname.length > MAX_NAME ||
       director_lastname.length > MAX_NAME ||
@@ -109,61 +83,77 @@ export const createFilm = async (req, res) => {
       (director_website && director_website.length > MAX_WEBSITE) ||
       (social_instagram && social_instagram.length > MAX_SOCIAL) ||
       (social_youtube && social_youtube.length > MAX_SOCIAL) ||
-      (social_vimeo && social_vimeo.length > MAX_SOCIAL);
-
-    if (tooLong) {
+      (social_vimeo && social_vimeo.length > MAX_SOCIAL)
+    ) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
-        message: "One or more fields exceed the allowed length",
+        message: "One or more fields exceed maximum length",
       });
     }
 
-    const recentCount = await Film.countRecentByEmail(director_email);
-    if (recentCount >= 5) {
+    // anti-spam: check if this email already submitted a film recently
+    const recentSubmissions = await Film.countRecentByEmail(director_email, 60);
+    if (recentSubmissions >= 3) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(429).json({
         success: false,
-        message: "Too many submissions for this email. Please try again later.",
+        message: "Too many submissions from this email. Please try again later.",
       });
     }
 
-    const filmUrl = `/uploads/films/${filmFile.filename}`;
-    const posterUrl = `/uploads/posters/${posterFile.filename}`;
-    const thumbnailUrl = thumbnailFile
-      ? `/uploads/thumbnails/${thumbnailFile.filename}`
-      : null;
+    const filmData = {
+      title: title.trim(),
+      country: country.trim(),
+      description: description.trim(),
+      film_url: `/uploads/films/${filmFile.filename}`,
+      poster_url: `/uploads/posters/${posterFile.filename}`,
+      thumbnail_url: thumbnailFile 
+        ? `/uploads/thumbnails/${thumbnailFile.filename}` 
+        : null,
+      ai_tools_used: ai_tools_used?.trim(),
+      ai_certification,
+      director_firstname: director_firstname.trim(),
+      director_lastname: director_lastname.trim(),
+      director_email: director_email.trim().toLowerCase(),
+      director_bio: director_bio?.trim(),
+      director_school: director_school?.trim(),
+      director_website: director_website?.trim(),
+      social_instagram: social_instagram?.trim(),
+      social_youtube: social_youtube?.trim(),
+      social_vimeo: social_vimeo?.trim(),
+    };
 
-    const created = await Film.create({
-      title,
-      country,
-      description,
-      film_url: filmUrl,
-      youtube_link: null,
-      poster_url: posterUrl,
-      thumbnail_url: thumbnailUrl,
-      ai_tools_used: ai_tools_used || null,
-      ai_certification: ai_certification,
-      director_firstname,
-      director_lastname,
-      director_email,
-      director_bio: director_bio || null,
-      director_school: director_school || null,
-      director_website: director_website || null,
-      social_instagram: social_instagram || null,
-      social_youtube: social_youtube || null,
-      social_vimeo: social_vimeo || null,
-    });
+    const newFilm = await Film.create(filmData);
+
+    // Handle categories if they exist (expected as a JSON string or array)
+    if (categories) {
+      try {
+        const categoryIds = Array.isArray(categories) 
+          ? categories 
+          : JSON.parse(categories);
+          
+        if (Array.isArray(categoryIds)) {
+          // You might need a Film.setCategories(filmId, categoryIds) method
+          // await Film.setCategories(newFilm.id, categoryIds);
+        }
+      } catch (e) {
+        console.error("Error parsing categories:", e);
+      }
+    }
 
     return res.status(201).json({
       success: true,
-      message: "Film submitted",
-      data: created,
+      message: "Film submitted successfully",
+      data: newFilm,
     });
   } catch (err) {
-    console.error("createFilm error:", err);
     cleanupFiles(posterFile, filmFile, thumbnailFile);
-    return res.status(500).json({ success: false, message: "Server error" });
+    console.error("createFilm error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred during submission",
+    });
   }
 };
 
@@ -171,6 +161,7 @@ export const updateFilmStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+    const userId = req.user?.id;
 
     if (!status) {
       return res.status(400).json({
@@ -179,34 +170,18 @@ export const updateFilmStatus = async (req, res) => {
       });
     }
 
-    const userId = req.user?.userId || null;
     const updatedFilm = await Film.updateStatus(id, status, userId);
 
     return res.status(200).json({
       success: true,
-      message: `Film status updated to "${status}"`,
+      message: `Film status updated to ${status}`,
       data: updatedFilm,
     });
-
-  } catch (error) {
-    if (error.message.includes("Invalid status")) {
-      return res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    if (error.message.includes("Film not found")) {
-      return res.status(404).json({
-        success: false,
-        message: "Film not found",
-      });
-    }
-
+  } catch (err) {
+    console.error("updateFilmStatus error:", err);
     return res.status(500).json({
       success: false,
-      message: "Failed to update film status",
-      error: error.message,
+      message: err.message || "Error updating film status",
     });
   }
 };
@@ -214,44 +189,37 @@ export const updateFilmStatus = async (req, res) => {
 export const getApprovedFilms = async (req, res) => {
   try {
     const films = await Film.findForPublicCatalog();
-
     return res.status(200).json({
       success: true,
-      data: films, 
+      data: films,
     });
-
-  } catch (error) {
+  } catch (err) {
+    console.error("getApprovedFilms error:", err);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch approved films",
-      error: error.message,
+      error: err.message
     });
   }
 };
 
-// only approved films
 export const getFilms = async (req, res) => {
   try {
-    // Front: 20 max/page
-    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-    const all = String(req.query.all || "") === "1";
-
-    const limit = all
-      ? 50 // Max 50 
-      : Math.min(20, Math.max(1, parseInt(req.query.limit, 10) || 20));
-
-    const offset = all ? 0 : (page - 1) * limit;
-
-    // Filters
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 12;
     const sortField = req.query.sortField || "created_at";
     const sortOrder = req.query.sortOrder || "DESC";
+    const status = req.query.status || null;
+    const all = req.query.all === "true";
+
+    const offset = (page - 1) * limit;
 
     const { rows, count } = await Film.findAll({
-      limit,
-      offset,
+      limit: all ? 1000 : limit,
+      offset: all ? 0 : offset,
       sortField,
       sortOrder,
-      status: "approved", // public catalog
+      status,
     });
 
     return res.status(200).json({
@@ -300,7 +268,6 @@ export async function getFilmById(req, res) {
 export const getFilmStats = async (req, res) => {
   try {
     const stats = await Film.getStats();
-
     return res.status(200).json({
       success: true,
       data: stats,
@@ -309,7 +276,7 @@ export const getFilmStats = async (req, res) => {
     console.error("getFilmStats error:", err);
     return res.status(500).json({
       success: false,
-      message: "Erreur lors de la récupération des statistiques",
+      message: "Failed to fetch film stats",
     });
   }
 };

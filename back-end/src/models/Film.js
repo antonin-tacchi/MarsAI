@@ -23,13 +23,13 @@ export default class Film {
   }
 
   static async create(data) {
+    // La colonne youtube_url a été retirée car elle n'existe plus dans votre schéma
     const sql = `
       INSERT INTO films (
         title,
         country,
         description,
         film_url,
-        youtube_url,
         poster_url,
         thumbnail_url,
         ai_tools_used,
@@ -52,7 +52,6 @@ export default class Film {
         ?, ?, ?,
         ?, ?, ?,
         ?, ?,
-        ?,
 
         ?, ?, ?,
         ?, ?, ?,
@@ -68,10 +67,8 @@ export default class Film {
       data.country,
       data.description,
       data.film_url,
-      data.youtube_url || null,
       data.poster_url,
       data.thumbnail_url,
-
       data.ai_tools_used,
       Film.toTinyInt(data.ai_certification),
 
@@ -191,9 +188,10 @@ export default class Film {
   }
 
   static async findForPublicCatalog() {
+    // Correction ici : suppression de f.youtube_url qui causait l'erreur
     const sql = `
       SELECT f.id, f.title, f.country, f.description, f.poster_url, f.thumbnail_url,
-             f.youtube_url, f.ai_tools_used, f.director_firstname, f.director_lastname,
+             f.film_url, f.ai_tools_used, f.director_firstname, f.director_lastname,
              f.director_school, f.created_at,
              GROUP_CONCAT(c.name SEPARATOR ', ') as categories
       FROM films f
@@ -208,14 +206,12 @@ export default class Film {
   }
 
   static async getStats() {
-    // Count films by status
     const sqlStatus = `
       SELECT status, COUNT(*) as count
       FROM films
       GROUP BY status
     `;
 
-    // Count films by country
     const sqlCountry = `
       SELECT country, COUNT(*) as count
       FROM films
@@ -224,14 +220,12 @@ export default class Film {
       ORDER BY count DESC
     `;
 
-    // Count films by AI tool usage
     const sqlAI = `
       SELECT ai_tools_used
       FROM films
       WHERE ai_tools_used IS NOT NULL AND ai_tools_used != ''
     `;
 
-    // Count films by category
     const sqlCategory = `
       SELECT
         c.id as category_id,
@@ -249,7 +243,6 @@ export default class Film {
     const [aiRows] = await db.query(sqlAI);
     const [categoryRows] = await db.query(sqlCategory);
 
-    // Aggregate AI tool usage (comma-separated list)
     const aiToolsMap = new Map();
     aiRows.forEach(row => {
       const tools = row.ai_tools_used.split(',').map(t => t.trim());
