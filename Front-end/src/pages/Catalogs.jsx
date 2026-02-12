@@ -165,7 +165,7 @@ const filteredFilms = useMemo(() => {
               Erreur Serveur
             </h2>
             <p className="text-[#262335]/70 mb-6">{error}</p>
-            <Button onClick={() => fetchFilms()}>Retry</Button>
+            <Button onClick={() => fetchFilms()}>Réessayer</Button>
           </div>
         )}
 
@@ -188,16 +188,16 @@ const filteredFilms = useMemo(() => {
             {query ? (
               <>
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
-                  No results found
+                  Aucun résultat pour cette recherche
                 </h2>
                 <Button onClick={() => setQuery("")} className="mt-8 scale-90">
-                  Clear search
+                  Effacer la recherche
                 </Button>
               </>
             ) : (
               <>
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
-                  No films in the catalog
+                  Aucun film dans le catalogue
                 </h2>
               </>
             )}

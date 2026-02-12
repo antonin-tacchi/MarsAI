@@ -29,7 +29,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
             onClick={() => toggleDropdown("categories")}
             className={`${baseBtn} ${filters.category ? active : inactive} flex items-center gap-2`}
           >
-            {filters.category || "Categories"}
+            {filters.category || "Catégories"}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "categories" ? "rotate-180" : ""}`}
               fill="none"
@@ -62,7 +62,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
             onClick={() => toggleDropdown("pays")}
             className={`${baseBtn} ${filters.country ? active : inactive} flex items-center gap-2`}
           >
-            {filters.country || "Country"}
+            {filters.country || "Pays"}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "pays" ? "rotate-180" : ""}`}
               fill="none"
@@ -98,7 +98,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
             onClick={() => toggleDropdown("outils")}
             className={`${baseBtn} ${filters.ai ? active : inactive} flex items-center gap-2`}
           >
-            {filters.ai || "AI Tools"}
+            {filters.ai || "Outils IA"}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "outils" ? "rotate-180" : ""}`}
               fill="none"
