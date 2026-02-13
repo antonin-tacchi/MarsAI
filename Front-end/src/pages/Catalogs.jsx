@@ -3,11 +3,12 @@ import FilmCard from "../components/FilmCard";
 import SearchBar from "../components/SearchBar";
 import Button from "../components/Button";
 import FilmFilters from "../components/FilmFilters";
+import Pagination from "../components/Pagination";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const PER_PAGE = 20;
 
-// --- COMPOSANT SKELETON (ÉTAT DE CHARGEMENT) ---
+// --- SKELETON COMPONENT (LOADING STATE) ---
 const SkeletonCard = () => (
   <div className="block w-[260px]">
     <div className="w-full h-[160px] rounded-lg animate-shimmer mb-4" />
@@ -24,9 +25,8 @@ export default function Catalogs() {
   const [error, setError] = useState("");
   const [stats, setStats] = useState(null);
 
-  // --- FILTRES ---
+  // --- FILTERS ---
   const [filters, setFilters] = useState({
-    selected: "all",
     country: "",
     ai: "",
     category: "",
@@ -37,18 +37,29 @@ export default function Catalogs() {
     setStatus("loading");
     setError("");
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     try {
-      const res = await fetch(`${API_URL}/api/films?all=1`);
+      const res = await fetch(`${API_URL}/api/films/selection/catalog`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.message || "Erreur lors du chargement");
+        throw new Error(data?.message || "Error while loading");
       }
 
       setFilms(data?.data || []);
       setStatus("idle");
     } catch (err) {
-      setError("Impossible de se connecter au serveur.");
+      clearTimeout(timeoutId);
+      console.error("Fetch error:", err);
+      setError(err.name === 'AbortError' 
+        ? "Timeout - Server not responding"
+        : "Unable to connect to the server.");
       setStatus("idle");
     }
   }, []);
@@ -61,24 +72,22 @@ export default function Catalogs() {
         if (data.success) {
           setStats(data.data);
         }
-      });
+      })
+      .catch(err => console.error("Stats fetch error:", err));
   }, []);
 
   useEffect(() => {
     fetchFilms();
   }, [fetchFilms]);
 
-  // --- PAYS DEPUIS STATS ---
   const countries = useMemo(() => {
     return stats?.byCountry?.map((c) => c.country) || [];
   }, [stats]);
 
-  // --- OUTILS IA DEPUIS STATS ---
   const aiTools = useMemo(() => {
     return stats?.byAITool?.map((t) => t.tool) || [];
   }, [stats]);
 
-  // --- CATÉGORIES DEPUIS STATS ---
   const categories = useMemo(() => {
     return (
       stats?.byCategory?.map((c) => ({
@@ -89,36 +98,44 @@ export default function Catalogs() {
     );
   }, [stats]);
 
-  // --- FILTRAGE FINAL ---
-  const filteredFilms = useMemo(() => {
-    return films.filter((film) => {
-      if (filters.selected === "selected" && film.status !== "selected")
+// --- FINAL FILTERING ---
+const filteredFilms = useMemo(() => {
+  return films.filter((film) => {
+
+    // Country filter
+    if (filters.country && film.country !== filters.country) {
+      return false;
+    }
+
+    // AI tools filter
+    if (filters.ai && !film.ai_tools_used?.toLowerCase().includes(filters.ai.toLowerCase())) {
+      return false;
+    }
+
+    // Category filter
+    if (filters.category && film.categories) {
+      if (!film.categories.toLowerCase().includes(filters.category.toLowerCase())) {
         return false;
-
-      if (filters.country && film.country !== filters.country) return false;
-
-      if (
-        filters.ai &&
-        !film.ai_tools_used?.toLowerCase().includes(filters.ai.toLowerCase())
-      )
-        return false;
-
-      // Filtre par catégorie
-      if (filters.category && film.categories) {
-        if (
-          !film.categories
-            .toLowerCase()
-            .includes(filters.category.toLowerCase())
-        )
-          return false;
       }
+    }
 
-      if (query && !film.title.toLowerCase().includes(query.toLowerCase()))
-        return false;
+    // Title search
+    if (query && !film.title.toLowerCase().includes(query.toLowerCase())) {
+      return false;
+    }
 
-      return true;
-    });
-  }, [films, filters, query]);
+    return true;
+  });
+}, [films, filters, query]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredFilms.length / PER_PAGE));
+  const displayedFilms = filteredFilms.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  useEffect(() => {
+    if (page > totalPages && totalPages > 0) {
+      setPage(1);
+    }
+  }, [totalPages, page]);
 
   // --- PAGINATION (basée sur le résultat filtré) ---
   const totalPages = Math.max(1, Math.ceil(filteredFilms.length / PER_PAGE));
@@ -159,54 +176,7 @@ export default function Catalogs() {
           />
         </header>
 
-        {/* --- PAGINATION STYLE « ‹ 1 › » --- */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 mt-12 mb-12 text-2xl text-[#262335]">
-            <button
-              onClick={() => setPage(1)}
-              disabled={page === 1}
-              className="hover:opacity-60 disabled:opacity-30"
-              aria-label="Première page"
-              type="button"
-            >
-              «
-            </button>
-
-            <button
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1}
-              className="hover:opacity-60 disabled:opacity-30"
-              aria-label="Page précédente"
-              type="button"
-            >
-              ‹
-            </button>
-
-            <span className="font-black tabular-nums">{page}</span>
-
-            <button
-              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-              disabled={page === totalPages}
-              className="hover:opacity-60 disabled:opacity-30"
-              aria-label="Page suivante"
-              type="button"
-            >
-              ›
-            </button>
-
-            <button
-              onClick={() => setPage(totalPages)}
-              disabled={page === totalPages}
-              className="hover:opacity-60 disabled:opacity-30"
-              aria-label="Dernière page"
-              type="button"
-            >
-              »
-            </button>
-          </div>
-        )}
-
-        {/* --- ERREUR API --- */}
+        {/* --- API ERROR --- */}
         {error && (
           <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
             <div className="text-5xl mb-4 text-red-400">⚠️</div>
@@ -214,11 +184,11 @@ export default function Catalogs() {
               Erreur Serveur
             </h2>
             <p className="text-[#262335]/70 mb-6">{error}</p>
-            <Button onClick={fetchFilms}>Réessayer</Button>
+            <Button onClick={() => fetchFilms()}>Réessayer</Button>
           </div>
         )}
 
-        {/* --- CHARGEMENT --- */}
+        {/* --- LOADING STATE --- */}
         {status === "loading" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
             {[...Array(8)].map((_, i) => (
@@ -227,7 +197,7 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- ÉTAT VIDE --- */}
+        {/* --- EMPTY STATE --- */}
         {status === "idle" && !error && filteredFilms.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-[#262335]/10 rounded-[2.5rem] bg-[#FBF5F0]/50">
             <div className="text-6xl mb-6 opacity-30">
@@ -259,61 +229,26 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- SUCCÈS --- */}
+        {/* --- SUCCESS STATE --- */}
         {status === "idle" && filteredFilms.length > 0 && (
           <>
+            <Pagination 
+              currentPage={page} 
+              totalPages={totalPages} 
+              onPageChange={setPage} 
+            />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
-              {paginatedFilms.map((film) => (
+              {displayedFilms.map((film) => (
                 <FilmCard key={film.id} film={film} apiUrl={API_URL} />
               ))}
             </div>
 
-            {/* --- PAGINATION STYLE « ‹ 1 › » --- */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mt-12 text-2xl text-[#262335]">
-                <button
-                  onClick={() => setPage(1)}
-                  disabled={page === 1}
-                  className="hover:opacity-60 disabled:opacity-30"
-                  aria-label="Première page"
-                  type="button"
-                >
-                  «
-                </button>
-
-                <button
-                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  disabled={page === 1}
-                  className="hover:opacity-60 disabled:opacity-30"
-                  aria-label="Page précédente"
-                  type="button"
-                >
-                  ‹
-                </button>
-
-                <span className="font-black tabular-nums">{page}</span>
-
-                <button
-                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={page === totalPages}
-                  className="hover:opacity-60 disabled:opacity-30"
-                  aria-label="Page suivante"
-                  type="button"
-                >
-                  ›
-                </button>
-
-                <button
-                  onClick={() => setPage(totalPages)}
-                  disabled={page === totalPages}
-                  className="hover:opacity-60 disabled:opacity-30"
-                  aria-label="Dernière page"
-                  type="button"
-                >
-                  »
-                </button>
-              </div>
-            )}
+            <Pagination 
+              currentPage={page} 
+              totalPages={totalPages} 
+              onPageChange={setPage} 
+            />
           </>
         )}
       </div>

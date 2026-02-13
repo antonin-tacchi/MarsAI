@@ -38,29 +38,23 @@ export const createFilm = async (req, res) => {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
-        message: "poster and film files are required",
+        message: "Poster and film files are required",
       });
     }
 
     if (posterFile.size > MAX_POSTER_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res
-        .status(400)
-        .json({ success: false, message: "Poster too large" });
+      return res.status(400).json({ success: false, message: "Poster file is too large" });
     }
 
     if (thumbnailFile && thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res
-        .status(400)
-        .json({ success: false, message: "Thumbnail too large" });
+      return res.status(400).json({ success: false, message: "Thumbnail file is too large" });
     }
 
     if (filmFile.size > MAX_FILM_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res
-        .status(400)
-        .json({ success: false, message: "Film too large" });
+      return res.status(400).json({ success: false, message: "Film file is too large" });
     }
 
     const {
@@ -92,7 +86,7 @@ export const createFilm = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          "title, country, description, director_firstname, director_lastname, director_email are required",
+          "Title, country, description, director's first name, last name, and email are required",
       });
     }
 
@@ -115,7 +109,7 @@ export const createFilm = async (req, res) => {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
-        message: "One or more fields exceed the allowed length",
+        message: "One or more fields exceed the maximum allowed length",
       });
     }
 
@@ -124,7 +118,7 @@ export const createFilm = async (req, res) => {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(429).json({
         success: false,
-        message: "Too many submissions for this email. Please try again later.",
+        message: "Too many submissions from this email. Please try again later",
       });
     }
 
@@ -157,7 +151,7 @@ export const createFilm = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Film submitted",
+      message: "Film submitted successfully",
       data: created,
     });
   } catch (err) {
@@ -169,7 +163,6 @@ export const createFilm = async (req, res) => {
 
 export const getFilms = async (req, res) => {
   try {
-    // Front: 20 max/page, pagination => accès à tous via pages
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const all = String(req.query.all || "") === "1";
 
@@ -179,7 +172,6 @@ export const getFilms = async (req, res) => {
 
     const offset = all ? 0 : (page - 1) * limit;
 
-    // Tri (safe côté model via allowedSortFields)
     const sortField = req.query.sortField || "created_at";
     const sortOrder = req.query.sortOrder || "DESC";
 
@@ -207,7 +199,7 @@ export const getFilms = async (req, res) => {
     console.error("getFilms error:", err);
     return res.status(500).json({
       success: false,
-      message: "Erreur lors de la récupération des films",
+      message: "Failed to fetch films",
     });
   }
 };
@@ -277,7 +269,7 @@ export const getFilmStats = async (req, res) => {
     console.error("getFilmStats error:", err);
     return res.status(500).json({
       success: false,
-      message: "Erreur lors de la récupération des statistiques",
+      message: "Failed to fetch film stats",
     });
   }
 };
