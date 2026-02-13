@@ -25,10 +25,13 @@ function shuffleArray(input) {
   return arr;
 }
 
-/* FIX 1 : ReviewForm extrait EN DEHORS du composant parent.
-   React recrée un composant défini à l'intérieur à chaque render →
-   remontage complet du DOM → perte du focus dans le textarea à chaque frappe.
-   Les props remplacent les closures. */
+/* Auth helper: send token only if it exists (so public routes can still work) */
+function withAuthHeaders(headers = {}) {
+  const token = localStorage.getItem("token");
+  return token ? { ...headers, Authorization: `Bearer ${token}` } : headers;
+}
+
+/* FIX 1 : ReviewForm extrait EN DEHORS du composant parent. */
 function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
   return (
     <div className="mt-12 flex flex-col gap-10 md:flex-row items-end mb-[69px]">
@@ -48,7 +51,9 @@ function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
                 className="w-10 h-10 p-0 border-0 bg-transparent flex items-center justify-center focus:outline-none"
               >
                 <svg
-                  className={`w-8 h-8 ${value <= rating ? "text-yellow-400" : "text-gray-300"}`}
+                  className={`w-8 h-8 ${
+                    value <= rating ? "text-yellow-400" : "text-gray-300"
+                  }`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -94,9 +99,7 @@ function SaveButton({ onSave, saving, saveSuccess, saveError }) {
       {saveSuccess && (
         <span className="text-green-600 text-sm font-medium">✓ Enregistré</span>
       )}
-      {saveError && (
-        <span className="text-red-600 text-sm">{saveError}</span>
-      )}
+      {saveError && <span className="text-red-600 text-sm">{saveError}</span>}
     </div>
   );
 }
@@ -125,90 +128,161 @@ export default function DetailsFilm() {
   const [stats, setStats] = useState(null);
 
   /* API */
-  const fetchFilmById = useCallback(async (filmId, signal) => {
-    const res = await fetch(`${API_URL}/api/films/${filmId}`, { signal });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.message || "Erreur film");
-    return data.data ?? data;
-  }, [API_URL]);
+  const fetchFilmById = useCallback(
+    async (filmId, signal) => {
+      const res = await fetch(`${API_URL}/api/films/${filmId}`, {
+        signal,
+        headers: withAuthHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Erreur film");
+      return data.data ?? data;
+    },
+    [API_URL]
+  );
 
-  const fetchFilmsPage = useCallback(async (page, limit, signal) => {
-    const res = await fetch(`${API_URL}/api/films?page=${page}&limit=${limit}`, { signal });
-    const data = await res.json();
-    if (!res.ok) throw new Error("Erreur films");
-    return { items: data.data || [], pagination: data.pagination };
-  }, [API_URL]);
+  const fetchFilmsPage = useCallback(
+    async (page, limit, signal) => {
+      const res = await fetch(
+        `${API_URL}/api/films?page=${page}&limit=${limit}`,
+        {
+          signal,
+          headers: withAuthHeaders(),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Erreur films");
+      return { items: data.data || [], pagination: data.pagination };
+    },
+    [API_URL]
+  );
 
-  const fetchAllFilms = useCallback(async (signal) => {
-    const first = await fetchFilmsPage(1, 50, signal);
-    const all = [...first.items];
-    const totalPages = first.pagination?.totalPages || 1;
-    for (let p = 2; p <= totalPages; p++) {
-      const next = await fetchFilmsPage(p, 50, signal);
-      all.push(...next.items);
-    }
-    return all;
-  }, [fetchFilmsPage]);
+  const fetchAllFilms = useCallback(
+    async (signal) => {
+      const first = await fetchFilmsPage(1, 50, signal);
+      const all = [...first.items];
+      const totalPages = first.pagination?.totalPages || 1;
+      for (let p = 2; p <= totalPages; p++) {
+        const next = await fetchFilmsPage(p, 50, signal);
+        all.push(...next.items);
+      }
+      return all;
+    },
+    [fetchFilmsPage]
+  );
 
-  const fetchMyRatings = useCallback(async (signal) => {
-    const token = localStorage.getItem("token");
-    if (!token) return [];
-    const res = await fetch(`${API_URL}/api/ratings/my-ratings`, {
-      signal,
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    return data.data || [];
-  }, [API_URL]);
+  const fetchMyRatings = useCallback(
+    async (signal) => {
+      const token = localStorage.getItem("token");
+      if (!token) return [];
+      const res = await fetch(`${API_URL}/api/ratings/my-ratings`, {
+        signal,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      return data.data || [];
+    },
+    [API_URL]
+  );
 
-  /* FIX 3 : filmId passé en paramètre plutôt qu'en dep de useCallback,
-     pour éviter la double dépendance `id` dans useEffect. */
-  const fetchFilmStats = useCallback(async (filmId, signal) => {
-    const res = await fetch(`${API_URL}/api/ratings/stats/${filmId}`, { signal });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.message || "Erreur stats");
-    return data.data ?? data;
-  }, [API_URL]);
+  const fetchFilmStats = useCallback(
+    async (filmId, signal) => {
+      const res = await fetch(`${API_URL}/api/ratings/stats/${filmId}`, {
+        signal,
+        headers: withAuthHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Erreur stats");
+      return data.data ?? data;
+    },
+    [API_URL]
+  );
 
-  const fetchFilmRatings = useCallback(async (filmId, signal) => {
-    const res = await fetch(`${API_URL}/api/ratings/film/${filmId}`, { signal });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.message || "Erreur chargement avis");
-    return data.data ?? data;
-  }, [API_URL]);
+  const fetchFilmRatings = useCallback(
+    async (filmId, signal) => {
+      const res = await fetch(`${API_URL}/api/ratings/film/${filmId}`, {
+        signal,
+        headers: withAuthHeaders(),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Erreur chargement avis");
+      }
+
+      const payload = data?.data ?? data;
+      return Array.isArray(payload) ? payload : [];
+    },
+    [API_URL]
+  );
 
   /* LOAD DATA */
   useEffect(() => {
     const controller = new AbortController();
     setStatus("loading");
-    /* FIX 2 : réinitialiser ratingsLoading à chaque changement de film */
     setRatingsLoading(true);
+    setError("");
 
     (async () => {
       try {
-        const allFilms = await fetchAllFilms(controller.signal);
-        const filmData = await fetchFilmById(id, controller.signal);
+        // 1) Film + suggestions (public)
+        const [allFilms, filmData] = await Promise.all([
+          fetchAllFilms(controller.signal),
+          fetchFilmById(id, controller.signal),
+        ]);
+
         setFilm(filmData);
 
-        const statsData = await fetchFilmStats(id, controller.signal);
-        setStats(statsData);
-
-        const ratingsData = await fetchFilmRatings(id, controller.signal);
-        setRatings(ratingsData);
-        setRatingsLoading(false);
-
         setSuggestions(
-          shuffleArray(allFilms.filter(f => String(f.id) !== String(id))).slice(0, 3)
+          shuffleArray(allFilms.filter((f) => String(f.id) !== String(id))).slice(
+            0,
+            3
+          )
         );
 
+        // 2) Stats + avis : UNIQUEMENT pour jury/admin
+        if (canReview) {
+          try {
+            const [statsData, ratingsData] = await Promise.all([
+              fetchFilmStats(id, controller.signal),
+              fetchFilmRatings(id, controller.signal),
+            ]);
+
+            setStats(statsData);
+            setRatings(Array.isArray(ratingsData) ? ratingsData : []);
+          } catch {
+            setStats(null);
+            setRatings([]);
+          } finally {
+            setRatingsLoading(false);
+          }
+        } else {
+          setStats(null);
+          setRatings([]);
+          setRatingsLoading(false);
+        }
+
+        // 3) Mon avis : seulement si jury/admin
         if (canReview) {
           const myRatings = await fetchMyRatings(controller.signal);
-          const existing = myRatings.find(r => String(r.film_id) === String(id));
+          const existing = myRatings.find(
+            (r) => String(r.film_id) === String(id)
+          );
+
           if (existing) {
             setRating(existing.rating);
             setComment(existing.comment || "");
             setRatingId(existing.id);
+          } else {
+            setRating(0);
+            setComment("");
+            setRatingId(null);
           }
+        } else {
+          setRating(0);
+          setComment("");
+          setRatingId(null);
         }
 
         setStatus("success");
@@ -216,6 +290,7 @@ export default function DetailsFilm() {
         if (e.name === "AbortError") return;
         setError(e.message);
         setStatus("error");
+        setRatingsLoading(false);
       }
     })();
 
@@ -243,10 +318,10 @@ export default function DetailsFilm() {
 
     try {
       const token = localStorage.getItem("token");
+      if (!token) throw new Error("Vous devez être connecté pour noter.");
+
       const res = await fetch(
-        ratingId
-          ? `${API_URL}/api/ratings/${ratingId}`
-          : `${API_URL}/api/ratings`,
+        ratingId ? `${API_URL}/api/ratings/${ratingId}` : `${API_URL}/api/ratings`,
         {
           method: ratingId ? "PUT" : "POST",
           headers: {
@@ -278,18 +353,19 @@ export default function DetailsFilm() {
   const posterUrl = film?.poster_url || "/placeholder.jpg";
   const published = useMemo(() => formatDateFR(film?.created_at), [film]);
 
-  /* FIX 4 : JuryRatings extrait en dehors + stats en tête de section.
-     prop compact pour différencier mobile/desktop. */
+  /* Jury section */
   const JurySection = ({ compact = false }) => (
     <section className={compact ? "mt-12" : "mt-16"}>
-      <h2 className={`text-[#262335] mb-2 ${compact
-        ? "text-[20px] font-semibold"
-        : "text-2xl font-black uppercase tracking-tight"
-      }`}>
+      <h2
+        className={`text-[#262335] mb-2 ${
+          compact
+            ? "text-[20px] font-semibold"
+            : "text-2xl font-black uppercase tracking-tight"
+        }`}
+      >
         Avis du jury
       </h2>
 
-      {/* FIX 4 : note moyenne EN TÊTE, avant la liste des avis */}
       {stats && (
         <div className="mb-4 flex items-center gap-3">
           <span className="text-yellow-400">⭐</span>
@@ -319,10 +395,16 @@ export default function DetailsFilm() {
         {ratings.map((r) => (
           <div
             key={r.id}
-            className={`border border-[#262335]/10 bg-white ${compact ? "rounded-xl p-4" : "rounded-2xl p-6"}`}
+            className={`border border-[#262335]/10 bg-white ${
+              compact ? "rounded-xl p-4" : "rounded-2xl p-6"
+            }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className={`text-[#262335] ${compact ? "font-medium" : "font-semibold"}`}>
+              <span
+                className={`text-[#262335] ${
+                  compact ? "font-medium" : "font-semibold"
+                }`}
+              >
                 {r.user_name}
               </span>
               <span className="text-sm text-yellow-500 font-bold">
@@ -331,7 +413,11 @@ export default function DetailsFilm() {
             </div>
 
             {r.comment && (
-              <p className={`text-[#262335]/80 ${compact ? "text-sm mb-2" : "mb-3"}`}>
+              <p
+                className={`text-[#262335]/80 ${
+                  compact ? "text-sm mb-2" : "mb-3"
+                }`}
+              >
                 {r.comment}
               </p>
             )}
@@ -361,9 +447,7 @@ export default function DetailsFilm() {
           </Link>
         </div>
 
-        {status === "loading" && (
-          <div className="text-[#262335]">Chargement…</div>
-        )}
+        {status === "loading" && <div className="text-[#262335]">Chargement…</div>}
 
         {status === "error" && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4">
@@ -373,10 +457,8 @@ export default function DetailsFilm() {
 
         {status === "success" && (
           <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
-
             {/* Colonne gauche */}
             <div className="min-w-0 lg:flex-[2]">
-
               {/* MOBILE */}
               <div className="lg:hidden">
                 <div className="w-full max-w-[387px] mx-auto">
@@ -424,7 +506,7 @@ export default function DetailsFilm() {
                     </p>
                   </div>
 
-                  {/* FIX 5 : formulaire + bouton groupés, puis avis jury en dessous */}
+                  {/* Formulaire visible seulement pour jury/admin */}
                   {canReview && (
                     <>
                       <ReviewForm
@@ -442,7 +524,8 @@ export default function DetailsFilm() {
                     </>
                   )}
 
-                  <JurySection compact />
+                  {/* Avis du jury visible seulement pour jury/admin */}
+                  {canReview && <JurySection compact />}
                 </div>
               </div>
 
@@ -478,7 +561,6 @@ export default function DetailsFilm() {
                   </p>
                 </div>
 
-                {/* FIX 5 : formulaire + bouton groupés, puis avis jury en dessous */}
                 {canReview && (
                   <>
                     <ReviewForm
@@ -496,7 +578,8 @@ export default function DetailsFilm() {
                   </>
                 )}
 
-                <JurySection />
+                {/* Avis du jury visible seulement pour jury/admin */}
+                {canReview && <JurySection />}
               </div>
             </div>
 
@@ -535,7 +618,6 @@ export default function DetailsFilm() {
                 </div>
               ))}
             </aside>
-
           </div>
         )}
       </div>
