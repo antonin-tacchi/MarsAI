@@ -4,6 +4,7 @@ import FilmPlayer from "../components/FilmPlayer";
 import FilmCard from "../components/FilmCard";
 import { isAdminOrJury } from "../utils/roles";
 
+/* utils */
 function formatDateFR(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -15,7 +16,6 @@ function formatDateFR(iso) {
   });
 }
 
-// Fisher–Yates shuffle (vrai random)
 function shuffleArray(input) {
   const arr = [...input];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -25,160 +25,325 @@ function shuffleArray(input) {
   return arr;
 }
 
+/* FIX 1 : ReviewForm extrait EN DEHORS du composant parent.
+   React recrée un composant défini à l'intérieur à chaque render →
+   remontage complet du DOM → perte du focus dans le textarea à chaque frappe.
+   Les props remplacent les closures. */
+function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
+  return (
+    <div className="mt-12 flex flex-col gap-10 md:flex-row items-end mb-[69px]">
+      <div className="md:flex-1">
+        <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
+          Donnez votre avis
+        </h2>
+
+        <div className="w-full max-w-[600px] h-[80px] flex items-center justify-between px-[27px] bg-black/10 border border-[#262335]/10 rounded-md">
+          {Array.from({ length: 10 }).map((_, i) => {
+            const value = i + 1;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => onRatingChange(value)}
+                className="w-10 h-10 p-0 border-0 bg-transparent flex items-center justify-center focus:outline-none"
+              >
+                <svg
+                  className={`w-8 h-8 ${value <= rating ? "text-yellow-400" : "text-gray-300"}`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.97a1 1 0 00.95.69h4.178c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.97c.3.921-.755 1.688-1.54 1.118l-3.381-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.785.57-1.84-.197-1.54-1.118l1.286-3.97a1 1 0 00-.364-1.118L2.049 9.397c-.783-.57-.38-1.81.588-1.81h4.178a1 1 0 00.95.69l1.286-3.97z" />
+                </svg>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="md:flex-1">
+        <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
+          Ajoutez un commentaire...
+        </h2>
+
+        <div className="w-full max-w-[600px] h-[80px] p-[3px] bg-white border border-black/10">
+          <textarea
+            name="comment"
+            value={comment}
+            onChange={(e) => onCommentChange(e.target.value)}
+            placeholder="Votre commentaire..."
+            className="w-full h-full bg-black/5 border border-black/10 outline-none resize-none px-4 py-4 text-base text-[#262335] placeholder:text-[#262335]/40"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Bouton save extrait pour éviter la duplication mobile/desktop */
+function SaveButton({ onSave, saving, saveSuccess, saveError }) {
+  return (
+    <div className="mt-4 flex items-center gap-4 mb-8">
+      <button
+        onClick={onSave}
+        disabled={saving}
+        className="px-6 py-2 rounded-md bg-[#262335] text-white disabled:opacity-50"
+      >
+        {saving ? "Enregistrement..." : "Enregistrer"}
+      </button>
+
+      {saveSuccess && (
+        <span className="text-green-600 text-sm font-medium">✓ Enregistré</span>
+      )}
+      {saveError && (
+        <span className="text-red-600 text-sm">{saveError}</span>
+      )}
+    </div>
+  );
+}
+
 export default function DetailsFilm() {
   const { id } = useParams();
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+  const canReview = isAdminOrJury();
 
-  const [comment, setComment] = useState("");
-  const [rating, setRating] = useState(0);
-
+  /* STATES */
   const [film, setFilm] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
+  const [comment, setComment] = useState("");
+  const [rating, setRating] = useState(0);
+  const [ratingId, setRatingId] = useState(null);
+  const [ratings, setRatings] = useState([]);
+  const [ratingsLoading, setRatingsLoading] = useState(true);
 
-  const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
 
-  const fetchFilmById = useCallback(
-    async (filmId, signal) => {
-      const res = await fetch(`${API_URL}/api/films/${filmId}`, { signal });
-      const data = await res.json().catch(() => ({}));
+  const [stats, setStats] = useState(null);
 
-      if (!res.ok) {
-        const msg = data?.message || `Failed to load film ${filmId}`;
-        const err = new Error(msg);
-        err.status = res.status;
-        throw err;
-      }
+  /* API */
+  const fetchFilmById = useCallback(async (filmId, signal) => {
+    const res = await fetch(`${API_URL}/api/films/${filmId}`, { signal });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || "Erreur film");
+    return data.data ?? data;
+  }, [API_URL]);
 
-      return data?.data ?? data;
-    },
-    [API_URL]
-  );
+  const fetchFilmsPage = useCallback(async (page, limit, signal) => {
+    const res = await fetch(`${API_URL}/api/films?page=${page}&limit=${limit}`, { signal });
+    const data = await res.json();
+    if (!res.ok) throw new Error("Erreur films");
+    return { items: data.data || [], pagination: data.pagination };
+  }, [API_URL]);
 
-  // Récupère 1 page + pagination
-  const fetchFilmsPage = useCallback(
-    async (page, limit, signal) => {
-      const res = await fetch(
-        `${API_URL}/api/films?page=${page}&limit=${limit}`,
-        { signal }
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.message || "Failed to load films");
-      return {
-        items: Array.isArray(data?.data) ? data.data : [],
-        pagination: data?.pagination || null,
-      };
-    },
-    [API_URL]
-  );
+  const fetchAllFilms = useCallback(async (signal) => {
+    const first = await fetchFilmsPage(1, 50, signal);
+    const all = [...first.items];
+    const totalPages = first.pagination?.totalPages || 1;
+    for (let p = 2; p <= totalPages; p++) {
+      const next = await fetchFilmsPage(p, 50, signal);
+      all.push(...next.items);
+    }
+    return all;
+  }, [fetchFilmsPage]);
 
-  // Récupère TOUS les films (toutes pages)
-  const fetchAllFilms = useCallback(
-    async (signal) => {
-      const LIMIT = 50; // augmente si tu veux (ex: 100)
-      const MAX_PAGES_SAFETY = 200; // anti-boucle infinie
+  const fetchMyRatings = useCallback(async (signal) => {
+    const token = localStorage.getItem("token");
+    if (!token) return [];
+    const res = await fetch(`${API_URL}/api/ratings/my-ratings`, {
+      signal,
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    return data.data || [];
+  }, [API_URL]);
 
-      const first = await fetchFilmsPage(1, LIMIT, signal);
-      const all = [...first.items];
+  /* FIX 3 : filmId passé en paramètre plutôt qu'en dep de useCallback,
+     pour éviter la double dépendance `id` dans useEffect. */
+  const fetchFilmStats = useCallback(async (filmId, signal) => {
+    const res = await fetch(`${API_URL}/api/ratings/stats/${filmId}`, { signal });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || "Erreur stats");
+    return data.data ?? data;
+  }, [API_URL]);
 
-      const totalPages =
-        Number(first.pagination?.totalPages) ||
-        Number(first.pagination?.total_pages) ||
-        1;
+  const fetchFilmRatings = useCallback(async (filmId, signal) => {
+    const res = await fetch(`${API_URL}/api/ratings/film/${filmId}`, { signal });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || "Erreur chargement avis");
+    return data.data ?? data;
+  }, [API_URL]);
 
-      const safeTotal = Math.min(totalPages, MAX_PAGES_SAFETY);
-
-      for (let p = 2; p <= safeTotal; p++) {
-        const next = await fetchFilmsPage(p, LIMIT, signal);
-        all.push(...next.items);
-      }
-
-      // dédoublonnage par id au cas où
-      const map = new Map();
-      for (const f of all) map.set(String(f?.id), f);
-      return Array.from(map.values());
-    },
-    [fetchFilmsPage]
-  );
-
+  /* LOAD DATA */
   useEffect(() => {
-    let isMounted = true;
     const controller = new AbortController();
-
     setStatus("loading");
-    setError("");
-    setFilm(null);
-    setSuggestions([]);
-    setComment("");
-    setRating(0);
+    /* FIX 2 : réinitialiser ratingsLoading à chaque changement de film */
+    setRatingsLoading(true);
 
     (async () => {
       try {
-        // 1) Récupérer TOUS les films (pour suggestions + fallback)
         const allFilms = await fetchAllFilms(controller.signal);
+        const filmData = await fetchFilmById(id, controller.signal);
+        setFilm(filmData);
 
-        // 2) Film principal
-        let f = null;
-        try {
-          f = await fetchFilmById(id, controller.signal);
-        } catch (e) {
-          // fallback si /:id n'existe pas côté backend
-          f = allFilms.find((x) => String(x?.id) === String(id)) || null;
-          if (!f) {
-            throw new Error(
-              "Film introuvable (route /:id absente et pas trouvé dans la BDD via listing)."
-            );
+        const statsData = await fetchFilmStats(id, controller.signal);
+        setStats(statsData);
+
+        const ratingsData = await fetchFilmRatings(id, controller.signal);
+        setRatings(ratingsData);
+        setRatingsLoading(false);
+
+        setSuggestions(
+          shuffleArray(allFilms.filter(f => String(f.id) !== String(id))).slice(0, 3)
+        );
+
+        if (canReview) {
+          const myRatings = await fetchMyRatings(controller.signal);
+          const existing = myRatings.find(r => String(r.film_id) === String(id));
+          if (existing) {
+            setRating(existing.rating);
+            setComment(existing.comment || "");
+            setRatingId(existing.id);
           }
         }
 
-        if (!isMounted) return;
-        setFilm(f);
-
-        // 3) Suggestions: 3 films au hasard dans TOUTE la BDD (sans le film courant)
-        const pool = allFilms.filter((x) => String(x?.id) !== String(id));
-        const sug = shuffleArray(pool).slice(0, 3);
-
-        if (!isMounted) return;
-        setSuggestions(sug);
-
         setStatus("success");
-      } catch (err) {
-        if (!isMounted) return;
-        if (err?.name === "AbortError") return;
+      } catch (e) {
+        if (e.name === "AbortError") return;
+        setError(e.message);
         setStatus("error");
-        setError(err?.message || "Unknown error");
       }
     })();
 
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, [id, fetchAllFilms, fetchFilmById]);
+    return () => controller.abort();
+  }, [
+    id,
+    canReview,
+    fetchAllFilms,
+    fetchFilmById,
+    fetchMyRatings,
+    fetchFilmStats,
+    fetchFilmRatings,
+  ]);
 
-  const title = film?.title || "Titre de la vidéo";
-  const director =
-    `${film?.director_firstname || ""} ${film?.director_lastname || ""}`.trim() ||
-    "Nom de la chaîne";
+  /* SAVE */
+  const saveRating = async () => {
+    if (!rating) {
+      setSaveError("Veuillez sélectionner une note");
+      return;
+    }
 
-  const aiUrl = film?.film_url || film?.video_url || film?.ai_url || "";
+    setSaving(true);
+    setSaveError("");
+    setSaveSuccess(false);
 
-  // Pour le player principal : ok de garder un fallback visuel si pas d'image
-  const posterUrl =
-    film?.poster_url || film?.thumbnail_url || "https://picsum.photos/1200/675";
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        ratingId
+          ? `${API_URL}/api/ratings/${ratingId}`
+          : `${API_URL}/api/ratings`,
+        {
+          method: ratingId ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ film_id: id, rating, comment }),
+        }
+      );
 
-  const published = useMemo(
-    () => formatDateFR(film?.created_at),
-    [film?.created_at]
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      if (!ratingId) setRatingId(data.data.id);
+      setSaveSuccess(true);
+    } catch (e) {
+      setSaveError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* DERIVED */
+  const title = film?.title || "";
+  const director = film?.director || "";
+  const description = film?.description || "";
+  const views = film?.views ?? "";
+  const aiUrl = film?.film_url || "";
+  const posterUrl = film?.poster_url || "/placeholder.jpg";
+  const published = useMemo(() => formatDateFR(film?.created_at), [film]);
+
+  /* FIX 4 : JuryRatings extrait en dehors + stats en tête de section.
+     prop compact pour différencier mobile/desktop. */
+  const JurySection = ({ compact = false }) => (
+    <section className={compact ? "mt-12" : "mt-16"}>
+      <h2 className={`text-[#262335] mb-2 ${compact
+        ? "text-[20px] font-semibold"
+        : "text-2xl font-black uppercase tracking-tight"
+      }`}>
+        Avis du jury
+      </h2>
+
+      {/* FIX 4 : note moyenne EN TÊTE, avant la liste des avis */}
+      {stats && (
+        <div className="mb-4 flex items-center gap-3">
+          <span className="text-yellow-400">⭐</span>
+          <span className="font-semibold text-[#262335]">
+            {stats.average?.toFixed(1) || "—"}
+          </span>
+          <span className="text-sm text-[#262335]/60">
+            ({stats.count || 0} avis)
+          </span>
+          {canReview && rating > 0 && (
+            <span className="ml-3 text-sm text-[#262335]">
+              • Votre note : <strong>{rating}/10</strong>
+            </span>
+          )}
+        </div>
+      )}
+
+      {ratingsLoading && (
+        <p className="text-[#262335]/60">Chargement des avis…</p>
+      )}
+
+      {!ratingsLoading && ratings.length === 0 && (
+        <p className="text-[#262335]/60 italic">Aucun avis pour le moment.</p>
+      )}
+
+      <div className={compact ? "space-y-4" : "space-y-6"}>
+        {ratings.map((r) => (
+          <div
+            key={r.id}
+            className={`border border-[#262335]/10 bg-white ${compact ? "rounded-xl p-4" : "rounded-2xl p-6"}`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className={`text-[#262335] ${compact ? "font-medium" : "font-semibold"}`}>
+                {r.user_name}
+              </span>
+              <span className="text-sm text-yellow-500 font-bold">
+                ⭐ {r.rating}/10
+              </span>
+            </div>
+
+            {r.comment && (
+              <p className={`text-[#262335]/80 ${compact ? "text-sm mb-2" : "mb-3"}`}>
+                {r.comment}
+              </p>
+            )}
+
+            <span className="text-xs text-[#262335]/50">
+              {new Date(r.created_at).toLocaleDateString()}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
   );
-
-  const description =
-    film?.description ||
-    "Aucune description pour le moment. (Le film garde le mystère, c’est son arc narratif.)";
-
-  const views = film?.views ? `${film.views} vues` : "Vues";
-
-  const canReview = isAdminOrJury();
 
   return (
     <div className="bg-white">
@@ -208,20 +373,21 @@ export default function DetailsFilm() {
 
         {status === "success" && (
           <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
-            {/* left column */}
+
+            {/* Colonne gauche */}
             <div className="min-w-0 lg:flex-[2]">
+
               {/* MOBILE */}
               <div className="lg:hidden">
                 <div className="w-full max-w-[387px] mx-auto">
                   <div className="w-full aspect-video">
                     <FilmPlayer
-                      title={film?.title}
-                      aiUrl={film?.film_url}
+                      title={title}
+                      aiUrl={aiUrl}
                       thumbnailUrl={film?.thumbnail_url}
                       posterUrl={film?.poster_url}
                       apiUrl={API_URL}
                     />
-
                   </div>
 
                   <div className="mt-6">
@@ -239,12 +405,10 @@ export default function DetailsFilm() {
                             onError={(e) => (e.currentTarget.src = "/placeholder.jpg")}
                           />
                         </div>
-
                         <p className="text-[16px] font-medium text-[#262335] truncate">
                           {director}
                         </p>
                       </div>
-
                       <p className="shrink-0 text-[16px] font-medium text-[#262335]">
                         {views}
                       </p>
@@ -255,63 +419,30 @@ export default function DetailsFilm() {
                     <p className="text-[16px] font-medium text-[#262335]">
                       {published ? `Publié le ${published}` : "Date de publication"}
                     </p>
-
                     <p className="mt-3 max-w-[80ch] text-[16px] text-[#262335]/80 leading-relaxed whitespace-pre-line">
                       {description}
                     </p>
                   </div>
 
+                  {/* FIX 5 : formulaire + bouton groupés, puis avis jury en dessous */}
                   {canReview && (
-                  <div className="mt-12 mb-16 flex flex-col gap-10 md:flex-row md:items-end">
-                    <div className="md:flex-1 min-w-0">
-                      <h2 className="mb-4 text-[16px] font-medium text-[#262335]">
-                        Donnez votre avis
-                      </h2>
-
-                      <div className="w-full h-[46px] px-4 bg-black/10 border border-[#262335]/10 rounded-md flex items-center">
-                        <div className="grid grid-cols-10 gap-2 w-full">
-                          {Array.from({ length: 10 }).map((_, i) => {
-                            const value = i + 1;
-                            return (
-                              <button
-                                key={value}
-                                type="button"
-                                onClick={() => setRating(value)}
-                                className="w-8 h-8 flex items-center justify-center bg-transparent border-0 p-0 focus:outline-none"
-                              >
-                                <svg
-                                  className={`w-6 h-6 ${
-                                    value <= rating ? "text-yellow-400" : "text-white"
-                                  }`}
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.97a1 1 0 00.95.69h4.178c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.97c.3.921-.755 1.688-1.54 1.118l-3.381-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.785.57-1.84-.197-1.54-1.118l1.286-3.97a1 1 0 00-.364-1.118L2.049 9.397c-.783-.57-.38-1.81.588-1.81h4.178a1 1 0 00.95.69l1.286-3.97z" />
-                                </svg>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="md:flex-1 min-w-0">
-                      <h2 className="mb-4 text-[16px] font-medium text-[#262335]">
-                        Ajoutez un commentaire...
-                      </h2>
-
-                      <div className="w-full h-[80px] p-[3px] bg-white border border-black/10">
-                        <textarea
-                          name="comment"
-                          value={comment}
-                          onChange={(e) => setComment(e.target.value)}
-                          placeholder="Votre commentaire..."
-                          className="w-full h-full bg-black/5 border border-black/10 outline-none resize-none px-4 py-4 text-[16px] text-[#262335] placeholder:text-[#262335]/40"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                    <>
+                      <ReviewForm
+                        rating={rating}
+                        comment={comment}
+                        onRatingChange={setRating}
+                        onCommentChange={setComment}
+                      />
+                      <SaveButton
+                        onSave={saveRating}
+                        saving={saving}
+                        saveSuccess={saveSuccess}
+                        saveError={saveError}
+                      />
+                    </>
                   )}
+
+                  <JurySection compact />
                 </div>
               </div>
 
@@ -342,65 +473,34 @@ export default function DetailsFilm() {
                   <p className="text-base font-medium text-[#262335]">
                     {published ? `Publié le ${published}` : "Date de publication"}
                   </p>
-
                   <p className="mt-3 max-w-[80ch] text-base text-[#262335]/80 leading-relaxed whitespace-pre-line">
                     {description}
                   </p>
                 </div>
 
+                {/* FIX 5 : formulaire + bouton groupés, puis avis jury en dessous */}
                 {canReview && (
-                <div className="mt-12 flex flex-col gap-10 md:flex-row items-end mb-[69px]">
-                  <div className="md:flex-1">
-                    <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
-                      Donnez votre avis
-                    </h2>
-
-                    <div className="w-[600px] h-[80px] flex items-center justify-between px-[27px] bg-black/10 border border-[#262335]/10 rounded-md">
-                      {Array.from({ length: 10 }).map((_, i) => {
-                        const value = i + 1;
-                        return (
-                          <button
-                            key={value}
-                            type="button"
-                            onClick={() => setRating(value)}
-                            className="w-10 h-10 p-0 border-0 bg-transparent flex items-center justify-center focus:outline-none"
-                          >
-                            <svg
-                              className={`w-10 h-10 ${
-                                value <= rating ? "text-yellow-400" : "text-white"
-                              }`}
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.97a1 1 0 00.95.69h4.178c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.97c.3.921-.755 1.688-1.54 1.118l-3.381-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.785.57-1.84-.197-1.54-1.118l1.286-3.97a1 1 0 00-.364-1.118L2.049 9.397c-.783-.57-.38-1.81.588-1.81h4.178a1 1 0 00.95.69l1.286-3.97z" />
-                            </svg>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="md:flex-1">
-                    <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
-                      Ajoutez un commentaire...
-                    </h2>
-
-                    <div className="w-[600px] h-[80px] max-w-full p-[3px] bg-white border border-black/10">
-                      <textarea
-                        name="comment"
-                        value={comment}
-                        onChange={(e) => setComment(e.target.value)}
-                        placeholder="Votre commentaire..."
-                        className="w-full h-full bg-black/5 border border-black/10 outline-none resize-none px-4 py-4 text-base text-[#262335] placeholder:text-[#262335]/40"
-                      />
-                    </div>
-                  </div>
-                </div>
+                  <>
+                    <ReviewForm
+                      rating={rating}
+                      comment={comment}
+                      onRatingChange={setRating}
+                      onCommentChange={setComment}
+                    />
+                    <SaveButton
+                      onSave={saveRating}
+                      saving={saving}
+                      saveSuccess={saveSuccess}
+                      saveError={saveError}
+                    />
+                  </>
                 )}
+
+                <JurySection />
               </div>
             </div>
 
-            {/* Right column */}
+            {/* Colonne droite — suggestions */}
             <aside
               className="
                 w-full
@@ -420,14 +520,11 @@ export default function DetailsFilm() {
                     max-w-[260px]
                     mx-auto
                     [&>a]:w-full
-
                     [&_.relative]:aspect-video
                     [&_.relative]:h-auto
-
                     [&_img]:h-full
                     [&_img]:w-full
                     [&_img]:object-cover
-
                     [&_p:first-of-type]:text-[14px]
                     [&_p:first-of-type]:leading-snug
                     [&_p:last-of-type]:text-[12px]
@@ -438,6 +535,7 @@ export default function DetailsFilm() {
                 </div>
               ))}
             </aside>
+
           </div>
         )}
       </div>
