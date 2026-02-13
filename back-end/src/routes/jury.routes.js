@@ -12,7 +12,7 @@ import {
 
 const router = Router();
 
-// Jury(1) + Admin(2) + SuperJury (3)
+// Jury(1) + Admin(2) + Super Jury(3)
 router.use(authenticateToken);
 router.use(authorize([1, 2, 3]));
 
