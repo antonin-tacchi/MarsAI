@@ -3,7 +3,16 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import { createFilm, getFilms, getFilmById, getPublicCatalog, getPublicFilm, getFilmStats } from "../controllers/film.controller.js";
+import { authenticateToken } from "../middleware/auth.middleware.js"; 
+import { authorize } from "../middleware/authorize.middleware.js"; 
+import { 
+    createFilm, 
+    updateFilmStatus,  
+    getFilms, 
+    getFilmById, 
+    getFilmStats, 
+    getApprovedFilms } from "../controllers/film.controller.js";
+
 
 const router = express.Router();
 
@@ -27,7 +36,7 @@ fs.mkdirSync(filmsDir, { recursive: true });
 fs.mkdirSync(thumbnailsDir, { recursive: true });
 
 export const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
-export const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024; // 3MB
+export const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024; // 3MB 
 export const MAX_FILM_SIZE = 800 * 1024 * 1024; // 800MB
 
 const IMAGE_MIME = ["image/jpeg", "image/png", "image/webp"];
@@ -117,15 +126,7 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
-// Public routes (no auth)
-router.get("/public/catalog", getPublicCatalog);
-router.get("/public/:id", getPublicFilm);
-
-// Regular routes
-router.get("/", getFilms);
-router.get("/stats", getFilmStats);
-router.get("/:id", getFilmById);
-
+// POST - upload film
 router.post(
   "/",
   submitLimiter,
@@ -136,4 +137,19 @@ router.post(
   ]),
   createFilm,
 );
+
+// PATCH - update video status (rejected/pending/approved only)-
+router.patch(
+  "/:id/status",
+  authenticateToken,
+  authorize([1, 2, 3]), // Jury (1), Admin (2), SuperJury (3)
+  updateFilmStatus
+);
+
+// GET ROUTES
+router.get("/stats", getFilmStats);
+router.get("/selection/catalog", getApprovedFilms);
+router.get("/:id", getFilmById);
+router.get("/", getFilms);
+
 export default router;
