@@ -3,7 +3,16 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import rateLimit from "express-rate-limit";
-import { createFilm, getFilms, getFilmById, getPublicCatalog, getPublicFilm, getFilmStats } from "../controllers/film.controller.js";
+import { authenticateToken } from "../middleware/auth.middleware.js"; 
+import { authorize } from "../middleware/authorize.middleware.js"; 
+import { 
+    createFilm, 
+    updateFilmStatus,  
+    getFilms, 
+    getFilmById, 
+    getFilmStats, 
+    getApprovedFilms 
+} from "../controllers/film.controller.js";
 
 const router = express.Router();
 
@@ -14,7 +23,7 @@ const submitLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: "Too many submissions. Please try again later.",
+    message: "Trop de soumissions. Veuillez réessayer plus tard.",
   },
 });
 
@@ -26,9 +35,9 @@ fs.mkdirSync(postersDir, { recursive: true });
 fs.mkdirSync(filmsDir, { recursive: true });
 fs.mkdirSync(thumbnailsDir, { recursive: true });
 
-export const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
-export const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024; // 3MB
-export const MAX_FILM_SIZE = 800 * 1024 * 1024; // 800MB
+export const MAX_POSTER_SIZE = 5 * 1024 * 1024;
+export const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024;
+export const MAX_FILM_SIZE = 800 * 1024 * 1024;
 
 const IMAGE_MIME = ["image/jpeg", "image/png", "image/webp"];
 const VIDEO_MIME = ["video/mp4", "video/webm", "video/quicktime"];
@@ -92,22 +101,22 @@ const uploadMiddleware = (req, res, next) => {
       if (err.code === "LIMIT_FILE_SIZE") {
         return res.status(400).json({
           success: false,
-          message: "File too large",
+          message: "Fichier trop volumineux",
         });
       }
       return res.status(400).json({
         success: false,
-        message: "Upload error",
+        message: "Erreur lors de l'upload",
       });
     }
 
     const code = String(err.message || "UPLOAD_ERROR");
     const map = {
       INVALID_IMAGE_TYPE:
-        "Invalid image type (poster/thumbnail). Allowed: jpg, jpeg, png, webp",
-      INVALID_VIDEO_TYPE: "Invalid video type (film). Allowed: mp4, webm, mov",
-      UNEXPECTED_FIELD: "Unexpected upload field",
-      UPLOAD_ERROR: "Invalid file upload",
+        "Type d'image invalide (poster/thumbnail). Autorisés : jpg, jpeg, png, webp",
+      INVALID_VIDEO_TYPE: "Type de vidéo invalide (film). Autorisés : mp4, webm, mov",
+      UNEXPECTED_FIELD: "Champ d'upload inattendu",
+      UPLOAD_ERROR: "Erreur lors de l'upload du fichier",
     };
 
     return res.status(400).json({
@@ -116,15 +125,6 @@ const uploadMiddleware = (req, res, next) => {
     });
   });
 };
-
-// Public routes (no auth)
-router.get("/public/catalog", getPublicCatalog);
-router.get("/public/:id", getPublicFilm);
-
-// Regular routes
-router.get("/", getFilms);
-router.get("/stats", getFilmStats);
-router.get("/:id", getFilmById);
 
 router.post(
   "/",
@@ -136,4 +136,17 @@ router.post(
   ]),
   createFilm,
 );
+
+router.patch(
+  "/:id/status",
+  authenticateToken,
+  authorize([1, 2, 3]), // Jury(1), Admin(2), Super Jury (3)
+  updateFilmStatus
+);
+
+router.get("/stats", getFilmStats);
+router.get("/selection/catalog", getApprovedFilms);
+router.get("/:id", getFilmById);
+router.get("/", getFilms);
+
 export default router;

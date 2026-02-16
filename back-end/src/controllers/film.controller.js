@@ -38,29 +38,23 @@ export const createFilm = async (req, res) => {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
-        message: "poster and film files are required",
+        message: "Les fichiers poster et film sont requis",
       });
     }
 
     if (posterFile.size > MAX_POSTER_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res
-        .status(400)
-        .json({ success: false, message: "Poster too large" });
+      return res.status(400).json({ success: false, message: "Le fichier poster est trop volumineux" });
     }
 
     if (thumbnailFile && thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res
-        .status(400)
-        .json({ success: false, message: "Thumbnail too large" });
+      return res.status(400).json({ success: false, message: "Le fichier thumbnail est trop volumineux" });
     }
 
     if (filmFile.size > MAX_FILM_SIZE) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res
-        .status(400)
-        .json({ success: false, message: "Film too large" });
+      return res.status(400).json({ success: false, message: "Le fichier film est trop volumineux" });
     }
 
     const {
@@ -92,7 +86,7 @@ export const createFilm = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          "title, country, description, director_firstname, director_lastname, director_email are required",
+          "Titre, pays, description, prénom, nom et email du réalisateur sont requis",
       });
     }
 
@@ -115,7 +109,7 @@ export const createFilm = async (req, res) => {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({
         success: false,
-        message: "One or more fields exceed the allowed length",
+        message: "Un ou plusieurs champs dépassent la longueur maximale autorisée",
       });
     }
 
@@ -124,7 +118,7 @@ export const createFilm = async (req, res) => {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(429).json({
         success: false,
-        message: "Too many submissions for this email. Please try again later.",
+        message: "Trop de soumissions pour cet email. Veuillez réessayer plus tard",
       });
     }
 
@@ -157,13 +151,42 @@ export const createFilm = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Film submitted",
+      message: "Film soumis avec succès",
       data: created,
     });
   } catch (err) {
     console.error("createFilm error:", err);
     cleanupFiles(posterFile, filmFile, thumbnailFile);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Erreur serveur" });
+  }
+};
+
+export const updateFilmStatus = async (req, res) => {
+  try {
+    const filmId = parseInt(req.params.id, 10);
+    const { status } = req.body;
+    const userId = req.user?.id;
+
+    if (!filmId || !status) {
+      return res.status(400).json({
+        success: false,
+        message: "L'ID du film et le statut sont requis",
+      });
+    }
+
+    const updatedFilm = await Film.updateStatus(filmId, status, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Statut du film mis à jour avec succès",
+      data: updatedFilm,
+    });
+  } catch (err) {
+    console.error("updateFilmStatus error:", err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Échec de la mise à jour du statut du film",
+    });
   }
 };
 
@@ -218,50 +241,29 @@ export async function getFilmById(req, res) {
     if (!id) {
       return res
         .status(400)
-        .json({ success: false, message: "Invalid film id" });
+        .json({ success: false, message: "ID du film invalide" });
     }
 
     const film = await Film.findById(id);
     if (!film) {
       return res
         .status(404)
-        .json({ success: false, message: "Film not found" });
+        .json({ success: false, message: "Film non trouvé" });
     }
 
     return res.json({ success: true, data: film });
   } catch (err) {
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Erreur serveur" });
   }
 }
 
-// Public catalog - no auth required
-export const getPublicCatalog = async (req, res) => {
+export const getApprovedFilms = async (req, res) => {
   try {
     const films = await Film.findForPublicCatalog();
     return res.status(200).json({ success: true, data: films });
   } catch (err) {
-    console.error("getPublicCatalog error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-// Public single film - no auth required
-export const getPublicFilm = async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    if (!id) {
-      return res.status(400).json({ success: false, message: "Invalid film id" });
-    }
-
-    const film = await Film.findForPublicView(id);
-    if (!film) {
-      return res.status(404).json({ success: false, message: "Film not found" });
-    }
-
-    return res.json({ success: true, data: film });
-  } catch (err) {
-    console.error("getPublicFilm error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    console.error("getApprovedFilms error:", err);
+    return res.status(500).json({ success: false, message: "Erreur serveur" });
   }
 };
 
