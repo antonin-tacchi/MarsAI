@@ -35,24 +35,28 @@ fs.mkdirSync(postersDir, { recursive: true });
 fs.mkdirSync(filmsDir, { recursive: true });
 fs.mkdirSync(thumbnailsDir, { recursive: true });
 
-export const MAX_POSTER_SIZE = 5 * 1024 * 1024;
-export const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024;
-export const MAX_FILM_SIZE = 800 * 1024 * 1024;
+export const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
+export const MAX_THUMBNAIL_SIZE = 3 * 1024 * 1024; // 3MB
+export const MAX_FILM_SIZE = 800 * 1024 * 1024; // 800MB
 
 const IMAGE_MIME = ["image/jpeg", "image/png", "image/webp"];
 const VIDEO_MIME = ["video/mp4", "video/webm", "video/quicktime"];
 
+// --- EXTENSIONS AUTORISÉES ---
 const IMAGE_EXT = [".jpg", ".jpeg", ".png", ".webp"];
-const VIDEO_EXT = [".mp4", ".webm", ".mov"];
+const VIDEO_EXT = [".mp4", ".mp4", ".mov"];
 
+// --- STOCKAGE MULTER ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // Redirige chaque type de fichier vers le dossier approprié
     if (file.fieldname === "poster") return cb(null, postersDir);
     if (file.fieldname === "film") return cb(null, filmsDir);
     if (file.fieldname === "thumbnail") return cb(null, thumbnailsDir);
     return cb(new Error("UNEXPECTED_FIELD"));
   },
   filename: (req, file, cb) => {
+    // Génère un nom unique pour éviter les collisions
     const ext = path.extname(file.originalname || "").toLowerCase();
     cb(
       null,
@@ -97,6 +101,7 @@ const uploadMiddleware = (req, res, next) => {
   ])(req, res, (err) => {
     if (!err) return next();
 
+    // Gestion des erreurs Multer
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
         return res.status(400).json({
@@ -137,6 +142,7 @@ router.post(
   createFilm,
 );
 
+// PATCH : mise à jour du statut d’un film (authentifié + autorisation)
 router.patch(
   "/:id/status",
   authenticateToken,
@@ -144,9 +150,9 @@ router.patch(
   updateFilmStatus
 );
 
-router.get("/stats", getFilmStats);
-router.get("/selection/catalog", getApprovedFilms);
-router.get("/:id", getFilmById);
-router.get("/", getFilms);
+router.get("/stats", getFilmStats); // GET : statistiques des films
+router.get("/selection/catalog", getApprovedFilms); // GET : catalogue approuvé pour sélection
+router.get("/:id", getFilmById); // GET : récupération d’un film par ID
+router.get("/", getFilms); // GET : récupération de tous les films
 
 export default router;
