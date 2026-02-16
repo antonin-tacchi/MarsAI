@@ -257,13 +257,33 @@ export async function getFilmById(req, res) {
   }
 }
 
-export const getApprovedFilms = async (req, res) => {
+export const getPublicCatalog = async (req, res) => {
   try {
     const films = await Film.findForPublicCatalog();
     return res.status(200).json({ success: true, data: films });
   } catch (err) {
     console.error("getApprovedFilms error:", err);
     return res.status(500).json({ success: false, message: "Erreur serveur" });
+  }
+};
+
+// Public single film - no auth required
+export const getPublicFilm = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Invalid film id" });
+    }
+
+    const film = await Film.findForPublicView(id);
+    if (!film) {
+      return res.status(404).json({ success: false, message: "Film not found" });
+    }
+
+    return res.json({ success: true, data: film });
+  } catch (err) {
+    console.error("getPublicFilm error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
