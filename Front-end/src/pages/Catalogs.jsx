@@ -7,7 +7,6 @@ import FilmFilters from "../components/FilmFilters";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const PER_PAGE = 20;
 
-// --- COMPOSANT SKELETON (ÉTAT DE CHARGEMENT) ---
 const SkeletonCard = () => (
   <div className="block w-[260px]">
     <div className="w-full h-[160px] rounded-lg animate-shimmer mb-4" />
@@ -24,15 +23,12 @@ export default function Catalogs() {
   const [error, setError] = useState("");
   const [stats, setStats] = useState(null);
 
-  // --- FILTRES ---
   const [filters, setFilters] = useState({
-    selected: "all",
     country: "",
     ai: "",
     category: "",
   });
 
-  // --- FETCH FILMS ---
   const fetchFilms = useCallback(async () => {
     setStatus("loading");
     setError("");
@@ -53,7 +49,6 @@ export default function Catalogs() {
     }
   }, []);
 
-  // --- FETCH STATS ---
   useEffect(() => {
     fetch(`${API_URL}/api/films/stats`)
       .then((res) => res.json())
@@ -68,17 +63,14 @@ export default function Catalogs() {
     fetchFilms();
   }, [fetchFilms]);
 
-  // --- PAYS DEPUIS STATS ---
   const countries = useMemo(() => {
     return stats?.byCountry?.map((c) => c.country) || [];
   }, [stats]);
 
-  // --- OUTILS IA DEPUIS STATS ---
   const aiTools = useMemo(() => {
     return stats?.byAITool?.map((t) => t.tool) || [];
   }, [stats]);
 
-  // --- CATÉGORIES DEPUIS STATS ---
   const categories = useMemo(() => {
     return (
       stats?.byCategory?.map((c) => ({
@@ -89,12 +81,8 @@ export default function Catalogs() {
     );
   }, [stats]);
 
-  // --- FILTRAGE FINAL ---
   const filteredFilms = useMemo(() => {
     return films.filter((film) => {
-      if (filters.selected === "selected" && film.status !== "selected")
-        return false;
-
       if (filters.country && film.country !== filters.country) return false;
 
       if (
@@ -103,7 +91,6 @@ export default function Catalogs() {
       )
         return false;
 
-      // Filtre par catégorie
       if (filters.category && film.categories) {
         if (
           !film.categories
@@ -120,15 +107,12 @@ export default function Catalogs() {
     });
   }, [films, filters, query]);
 
-  // --- PAGINATION (basée sur le résultat filtré) ---
   const totalPages = Math.max(1, Math.ceil(filteredFilms.length / PER_PAGE));
 
-  // Si filtres/recherche changent et que la page dépasse, on recadre
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
-  // Films à afficher sur la page courante
   const paginatedFilms = useMemo(() => {
     const start = (page - 1) * PER_PAGE;
     return filteredFilms.slice(start, start + PER_PAGE);
@@ -150,7 +134,7 @@ export default function Catalogs() {
             filters={filters}
             onChange={(next) => {
               setFilters(next);
-              setPage(1); // reset page quand on change les filtres
+              setPage(1);
             }}
             countries={countries}
             aiTools={aiTools}
@@ -159,7 +143,6 @@ export default function Catalogs() {
           />
         </header>
 
-        {/* --- PAGINATION STYLE « ‹ 1 › » --- */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-4 mt-12 mb-12 text-2xl text-[#262335]">
             <button
@@ -206,7 +189,6 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- ERREUR API --- */}
         {error && (
           <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
             <div className="text-5xl mb-4 text-red-400">⚠️</div>
@@ -218,7 +200,6 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- CHARGEMENT --- */}
         {status === "loading" && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
             {[...Array(8)].map((_, i) => (
@@ -227,7 +208,6 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- ÉTAT VIDE --- */}
         {status === "idle" && !error && filteredFilms.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-[#262335]/10 rounded-[2.5rem] bg-[#FBF5F0]/50">
             <div className="text-6xl mb-6 opacity-30">
@@ -259,7 +239,6 @@ export default function Catalogs() {
           </div>
         )}
 
-        {/* --- SUCCÈS --- */}
         {status === "idle" && filteredFilms.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
@@ -268,7 +247,6 @@ export default function Catalogs() {
               ))}
             </div>
 
-            {/* --- PAGINATION STYLE « ‹ 1 › » --- */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-4 mt-12 text-2xl text-[#262335]">
                 <button
