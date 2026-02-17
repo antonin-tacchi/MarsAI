@@ -265,7 +265,7 @@ export default class Film {
     return rows?.[0] || null;
   }
 
-  static async updateStatus(filmId, status, userId) {
+  static async updateStatus(filmId, status, userId, rejectionReason = null) {
     const allowedStatuses = Object.values(FILM_STATUS);
 
     if (!allowedStatuses.includes(status)) {
@@ -279,16 +279,21 @@ export default class Film {
 
     const sql = `
       UPDATE films
-      SET status = ?
+      SET status = ?,
+          status_changed_at = NOW(),
+          status_changed_by = ?,
+          rejection_reason = ?
       WHERE id = ?
     `;
 
-    await db.query(sql, [status, filmId]);
+    await db.query(sql, [status, userId || null, rejectionReason, filmId]);
 
     return {
       ...film,
       status,
-      updated_by: userId || null,
+      status_changed_at: new Date(),
+      status_changed_by: userId || null,
+      rejection_reason: rejectionReason,
     };
   }
 
