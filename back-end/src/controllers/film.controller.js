@@ -165,16 +165,20 @@ export const updateFilmStatus = async (req, res) => {
   try {
     const filmId = parseInt(req.params.id, 10);
     const { status } = req.body;
-    const userId = req.user?.id;
 
-    if (!filmId || !status) {
+    if (!filmId) {
       return res.status(400).json({
         success: false,
         message: "L'ID du film et le statut sont requis",
       });
     }
 
-    const updatedFilm = await Film.updateStatus(filmId, status, userId);
+    if (!status || !['pending', 'approved', 'rejected'].includes(status.trim())) 
+      return res.status(400).json({ success: false, message: 'Statut invalide' });
+
+    const userId = req.user?.id;
+
+    const updatedFilm = await Film.updateStatus(filmId, status.trim(), userId);
 
     return res.status(200).json({
       success: true,
