@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function FilmFilters({ filters, onChange, countries, aiTools, categories, stats }) {
+export default function FilmFilters({ filters, onChange, countries, aiTools, categories, stats, ratedCount }) {
   const [openDropdown, setOpenDropdown] = useState(null);
 
   const toggle = (key, value) => {
@@ -24,6 +24,22 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
   return (
     <div className="w-full bg-[#FBF5F0] p-6">
       <div className="flex flex-wrap gap-3 items-center">
+        {/* Filtre Films notés */}
+        {ratedCount > 0 && (
+          <>
+            <button
+              onClick={() =>
+                onChange((prev) => ({ ...prev, rated: !prev.rated }))
+              }
+              className={`${baseBtn} ${filters.rated ? active : inactive}`}
+            >
+              Films not&eacute;s ({ratedCount})
+            </button>
+
+            <div className="h-6 w-px bg-[#262335]/20"></div>
+          </>
+        )}
+
         {/* Dropdown Catégories */}
         <div className="relative">
           <button
