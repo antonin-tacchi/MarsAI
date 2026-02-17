@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
+export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) {
   const imgRef = useRef(null);
   const [imgStatus, setImgStatus] = useState("loading");
 
@@ -67,6 +67,23 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
             decoding="async"
           />
 
+          {/* BADGE RANG */}
+          {rank != null && (
+            <div
+              className={`absolute top-2 left-2 text-white text-sm font-bold w-8 h-8 rounded-full shadow-lg flex items-center justify-center z-10 bg-gradient-to-r ${
+                rank === 1
+                  ? "from-yellow-400 to-yellow-600"
+                  : rank === 2
+                    ? "from-gray-300 to-gray-500"
+                    : rank === 3
+                      ? "from-amber-600 to-amber-800"
+                      : "from-[#9a92c9] to-[#2f2a73]"
+              }`}
+            >
+              {rank}
+            </div>
+          )}
+
           {/* BADGE NOTE JURY */}
           {film?.user_rating !== null && film?.user_rating !== undefined && (
             <div className="absolute top-2 right-2 bg-gradient-to-r from-[#9a92c9] to-[#2f2a73] text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg backdrop-blur-sm">
@@ -86,6 +103,19 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto" }) {
         <p className="text-sm text-[#262335]/80">
           {directorFirst} {directorLast}
         </p>
+
+        {film?.average_rating != null && (
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-sm font-bold text-[#463699]">
+              {film.average_rating}/10
+            </span>
+            {film.rating_count != null && (
+              <span className="text-xs text-[#262335]/50">
+                ({film.rating_count} vote{film.rating_count !== 1 ? "s" : ""})
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </Link>
   );
