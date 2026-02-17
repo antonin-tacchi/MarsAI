@@ -164,7 +164,7 @@ export const createFilm = async (req, res) => {
 export const updateFilmStatus = async (req, res) => {
   try {
     const filmId = parseInt(req.params.id, 10);
-    const { status } = req.body;
+    const { status, rejection_reason } = req.body;
 
     if (!filmId) {
       return res.status(400).json({
@@ -176,9 +176,12 @@ export const updateFilmStatus = async (req, res) => {
     if (!status || !['pending', 'approved', 'rejected'].includes(status.trim())) 
       return res.status(400).json({ success: false, message: 'Statut invalide' });
 
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
-    const updatedFilm = await Film.updateStatus(filmId, status.trim(), userId);
+    console.log("req.user complet:", JSON.stringify(req.user));
+    console.log("userId:", userId);
+
+    const updatedFilm = await Film.updateStatus(filmId, status.trim(), userId, rejection_reason || null);
 
     return res.status(200).json({
       success: true,
