@@ -265,6 +265,33 @@ export default class Film {
     return rows?.[0] || null;
   }
 
+  static async updateStatus(filmId, status, userId) {
+    const allowedStatuses = Object.values(FILM_STATUS);
+
+    if (!allowedStatuses.includes(status)) {
+      throw new Error("Statut invalide");
+    }
+
+    const film = await this.findById(filmId);
+    if (!film) {
+      throw new Error("Film non trouvé");
+    }
+
+    const sql = `
+      UPDATE films
+      SET status = ?
+      WHERE id = ?
+    `;
+
+    await db.query(sql, [status, filmId]);
+
+    return {
+      ...film,
+      status,
+      updated_by: userId || null,
+    };
+  }
+
   static async getStats() {
     const sqlStatus = `
       SELECT status, COUNT(*) as count
