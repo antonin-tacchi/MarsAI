@@ -110,6 +110,21 @@ export const deleteRating = async (req, res) => {
   }
 };
 
+// Get film ranking based on jury ratings
+export const getResults = async (req, res) => {
+  try {
+    const ranking = await JuryRating.getRanking();
+
+    return res.status(200).json({
+      success: true,
+      data: ranking,
+    });
+  } catch (err) {
+    console.error("getResults error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 // Jury Assignments
 export const getAssignedFilmsForJury = async (req, res) => {
   try {

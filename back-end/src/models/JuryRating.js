@@ -69,6 +69,46 @@ export default class JuryRating {
     };
   }
 
+  // Get ranked results for all approved films
+  // Tie-break: 1) average rating DESC, 2) number of ratings DESC, 3) earliest submission ASC
+  static async getRanking() {
+    const sql = `
+      SELECT
+        f.id          AS film_id,
+        f.title,
+        f.country,
+        f.poster_url,
+        f.thumbnail_url,
+        f.director_firstname,
+        f.director_lastname,
+        ROUND(AVG(jr.rating), 2) AS average_rating,
+        COUNT(jr.id)             AS rating_count,
+        f.created_at
+      FROM films f
+      LEFT JOIN jury_ratings jr ON jr.film_id = f.id
+      WHERE f.status = 'approved'
+      GROUP BY f.id
+      ORDER BY
+        average_rating DESC,
+        rating_count   DESC,
+        f.created_at   ASC
+    `;
+    const [rows] = await db.query(sql);
+
+    return rows.map((row, index) => ({
+      rank: index + 1,
+      film_id: row.film_id,
+      title: row.title,
+      country: row.country,
+      poster_url: row.poster_url,
+      thumbnail_url: row.thumbnail_url,
+      director: `${row.director_firstname} ${row.director_lastname}`,
+      average_rating: row.average_rating !== null ? parseFloat(row.average_rating) : null,
+      rating_count: row.rating_count,
+      created_at: row.created_at,
+    }));
+  }
+
   // Delete a rating
   static async delete(filmId, userId) {
     const sql = `
