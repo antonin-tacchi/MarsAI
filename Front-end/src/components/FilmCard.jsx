@@ -23,6 +23,7 @@ function youtubeThumb(url) {
 export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) {
   const imgRef = useRef(null);
   const [imgStatus, setImgStatus] = useState("loading");
+  const [fallback, setFallback] = useState(0);
 
   const filePath = useMemo(() => {
     const thumb = film?.thumbnail_url || "";
@@ -34,25 +35,39 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
     return thumb || poster;
   }, [film, imageVariant]);
 
-  const src = useMemo(() => {
-    if (!filePath) {
-      // Fallback: miniature YouTube si disponible
-      const ytThumb = youtubeThumb(film?.youtube_url);
-      return ytThumb || "/placeholder.jpg";
+  // Chaine ordonnée : YouTube → DB image → placeholder
+  const sources = useMemo(() => {
+    const list = [];
+
+    const yt = youtubeThumb(film?.youtube_url);
+    if (yt) list.push(yt);
+
+    if (filePath) {
+      if (/^https?:\/\//i.test(filePath)) {
+        list.push(filePath);
+      } else {
+        try {
+          list.push(new URL(filePath, apiUrl).href);
+        } catch {
+          list.push(`${apiUrl}${filePath}`);
+        }
+      }
     }
 
-    if (/^https?:\/\//i.test(filePath)) return filePath;
-
-    try {
-      return new URL(filePath, apiUrl).href;
-    } catch {
-      return `${apiUrl}${filePath}`;
-    }
+    list.push("/placeholder.jpg");
+    return list;
   }, [filePath, apiUrl, film?.youtube_url]);
 
-  useEffect(() => {
-    setImgStatus("loading");
+  const src = sources[Math.min(fallback, sources.length - 1)];
 
+  // Reset quand les sources changent (nouveau film)
+  useEffect(() => {
+    setFallback(0);
+    setImgStatus("loading");
+  }, [sources]);
+
+  // Détecter les images déjà en cache
+  useEffect(() => {
     const el = imgRef.current;
     if (el && el.complete && el.naturalWidth > 0) {
       setImgStatus("loaded");
@@ -82,9 +97,12 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
             className={`w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.03]
               ${imgStatus === "loaded" ? "opacity-100" : "opacity-0"}`}
             onLoad={() => setImgStatus("loaded")}
-            onError={(e) => {
-              setImgStatus("error");
-              e.currentTarget.src = "/placeholder.jpg";
+            onError={() => {
+              if (fallback < sources.length - 1) {
+                setFallback((f) => f + 1);
+              } else {
+                setImgStatus("error");
+              }
             }}
             loading="eager"
             decoding="async"
