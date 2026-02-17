@@ -129,6 +129,7 @@ export default class Film {
         f.country,
         f.poster_url,
         f.thumbnail_url,
+        f.youtube_url,
         f.director_firstname,
         f.director_lastname,
         f.created_at,
