@@ -8,6 +8,7 @@ import {
   getMyRatings,
   deleteRating,
   getAssignedFilmsForJury,
+  getResults,
 } from "../controllers/jury.controller.js";
 
 const router = Router();
@@ -34,6 +35,9 @@ router.post("/films/:id/rate", submitRating);
 router.get("/my-ratings", getMyRatings);
 
 router.get("/assigned-films", getAssignedFilmsForJury);
+
+// Get film ranking / results
+router.get("/results", getResults);
 
 // Delete a rating
 router.delete("/films/:id/rate", deleteRating);
