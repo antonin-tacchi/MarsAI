@@ -1,6 +1,25 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+function youtubeThumb(url) {
+  if (!url) return "";
+  try {
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1].split(/[?&#]/)[0];
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+    }
+    if (url.includes("watch?v=")) {
+      const id = new URL(url).searchParams.get("v");
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+    }
+    if (url.includes("/embed/")) {
+      const id = url.split("/embed/")[1].split(/[?&#]/)[0];
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+    }
+  } catch { /* ignore */ }
+  return "";
+}
+
 export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) {
   const imgRef = useRef(null);
   const [imgStatus, setImgStatus] = useState("loading");
@@ -16,7 +35,11 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
   }, [film, imageVariant]);
 
   const src = useMemo(() => {
-    if (!filePath) return "/placeholder.jpg";
+    if (!filePath) {
+      // Fallback: miniature YouTube si disponible
+      const ytThumb = youtubeThumb(film?.youtube_url);
+      return ytThumb || "/placeholder.jpg";
+    }
 
     if (/^https?:\/\//i.test(filePath)) return filePath;
 
@@ -25,7 +48,7 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
     } catch {
       return `${apiUrl}${filePath}`;
     }
-  }, [filePath, apiUrl]);
+  }, [filePath, apiUrl, film?.youtube_url]);
 
   useEffect(() => {
     setImgStatus("loading");
