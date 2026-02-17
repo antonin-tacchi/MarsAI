@@ -178,9 +178,6 @@ export const updateFilmStatus = async (req, res) => {
 
     const userId = req.user?.userId;
 
-    console.log("req.user complet:", JSON.stringify(req.user));
-    console.log("userId:", userId);
-
     const updatedFilm = await Film.updateStatus(filmId, status.trim(), userId, rejection_reason || null);
 
     return res.status(200).json({
