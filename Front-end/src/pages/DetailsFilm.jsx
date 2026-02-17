@@ -349,7 +349,7 @@ export default function DetailsFilm() {
   const director = film?.director || "";
   const description = film?.description || "";
   const views = film?.views ?? "";
-  const aiUrl = film?.film_url || "";
+  const aiUrl = film?.film_url || film?.youtube_url || "";
   const posterUrl = film?.poster_url || "/placeholder.jpg";
   const published = useMemo(() => formatDateFR(film?.created_at), [film]);
 
