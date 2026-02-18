@@ -11,7 +11,6 @@ import PrizeList from "./pages/PrizeList.jsx";
 import ProfileAdmin from "./pages/ProfileAdmin.jsx";
 import ProfileDirector from "./pages/ProfileDirector.jsx";
 import ProfileJury from "./pages/ProfileJury.jsx";
-import ProfileSuperJury from "./pages/ProfileSuperJury.jsx";
 import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
 import NotFound from "./pages/NotFound.jsx";
@@ -64,14 +63,6 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ProfileJury />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="profile-superjury"
-            element={
-              <ProtectedRoute>
-                <ProfileSuperJury />
               </ProtectedRoute>
             }
           />
