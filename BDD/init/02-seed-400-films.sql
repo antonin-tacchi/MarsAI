@@ -41,8 +41,8 @@ SELECT
   CONCAT('Submission auto-générée pour test #', n,
          '. Court-métrage IA: futurisme, société, environnement, tech.'),
 
-  CONCAT('https://cdn.marsai.local/films/', LPAD(n, 4, '0'), '.mp4'),
-  CONCAT('https://www.youtube.com/watch?v=demo', LPAD(n, 4, '0')),
+  CONCAT(''),
+  CONCAT('https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1'),
   CONCAT('https://cdn.marsai.local/posters/', LPAD(n, 4, '0'), '.jpg'),
   CONCAT('https://cdn.marsai.local/thumbs/', LPAD(n, 4, '0'), '.jpg'),
 
