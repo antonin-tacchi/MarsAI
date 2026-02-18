@@ -147,7 +147,7 @@ router.get("/:id", getFilmById);
 router.post(
   "/",
   submitLimiter,
-  upload.fields([
+  upload.fields([ 
     { name: "poster", maxCount: 1 },
     { name: "film", maxCount: 1 },
     { name: "thumbnail", maxCount: 1 },
