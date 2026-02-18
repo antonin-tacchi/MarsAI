@@ -24,12 +24,15 @@ export default function Catalogs() {
   const [error, setError] = useState("");
   const [stats, setStats] = useState(null);
 
+  const [ranking, setRanking] = useState([]);
+
   // --- FILTRES ---
   const [filters, setFilters] = useState({
     selected: "all",
     country: "",
     ai: "",
     category: "",
+    rated: false,
   });
 
   // --- FETCH FILMS ---
@@ -51,6 +54,21 @@ export default function Catalogs() {
       setError("Impossible de se connecter au serveur.");
       setStatus("idle");
     }
+  }, []);
+
+  // --- FETCH RANKING (si connecté) ---
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch(`${API_URL}/api/jury/results`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.success) setRanking(data.data);
+      })
+      .catch(() => {});
   }, []);
 
   // --- FETCH STATS ---
@@ -89,11 +107,28 @@ export default function Catalogs() {
     );
   }, [stats]);
 
+  // --- INDEX RANKING ---
+  const rankingMap = useMemo(() => {
+    const map = new Map();
+    ranking.forEach((r) => map.set(r.film_id, r));
+    return map;
+  }, [ranking]);
+
+  // Nombre de films notés (pour le badge du filtre)
+  const ratedCount = useMemo(() => {
+    return films.filter((f) => rankingMap.has(f.id) && rankingMap.get(f.id).average_rating !== null).length;
+  }, [films, rankingMap]);
+
   // --- FILTRAGE FINAL ---
   const filteredFilms = useMemo(() => {
     return films.filter((film) => {
       if (filters.selected === "selected" && film.status !== "selected")
         return false;
+
+      if (filters.rated) {
+        const r = rankingMap.get(film.id);
+        if (!r || r.average_rating === null) return false;
+      }
 
       if (filters.country && film.country !== filters.country) return false;
 
@@ -118,10 +153,20 @@ export default function Catalogs() {
 
       return true;
     });
-  }, [films, filters, query]);
+  }, [films, filters, query, rankingMap]);
+
+  // --- TRI PAR RANG SI FILTRE ACTIF ---
+  const sortedFilms = useMemo(() => {
+    if (!filters.rated) return filteredFilms;
+    return [...filteredFilms].sort((a, b) => {
+      const ra = rankingMap.get(a.id)?.rank ?? Infinity;
+      const rb = rankingMap.get(b.id)?.rank ?? Infinity;
+      return ra - rb;
+    });
+  }, [filteredFilms, filters.rated, rankingMap]);
 
   // --- PAGINATION (basée sur le résultat filtré) ---
-  const totalPages = Math.max(1, Math.ceil(filteredFilms.length / PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(sortedFilms.length / PER_PAGE));
 
   // Si filtres/recherche changent et que la page dépasse, on recadre
   useEffect(() => {
@@ -131,8 +176,8 @@ export default function Catalogs() {
   // Films à afficher sur la page courante
   const paginatedFilms = useMemo(() => {
     const start = (page - 1) * PER_PAGE;
-    return filteredFilms.slice(start, start + PER_PAGE);
-  }, [filteredFilms, page]);
+    return sortedFilms.slice(start, start + PER_PAGE);
+  }, [sortedFilms, page]);
 
   return (
     <main className="min-h-screen bg-[#FBF5F0] px-6 py-12">
@@ -156,6 +201,7 @@ export default function Catalogs() {
             aiTools={aiTools}
             categories={categories}
             stats={stats}
+            ratedCount={ratedCount}
           />
         </header>
 
@@ -228,7 +274,7 @@ export default function Catalogs() {
         )}
 
         {/* --- ÉTAT VIDE --- */}
-        {status === "idle" && !error && filteredFilms.length === 0 && (
+        {status === "idle" && !error && sortedFilms.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-[#262335]/10 rounded-[2.5rem] bg-[#FBF5F0]/50">
             <div className="text-6xl mb-6 opacity-30">
               {query ? "🔍" : "🎬"}
@@ -260,12 +306,28 @@ export default function Catalogs() {
         )}
 
         {/* --- SUCCÈS --- */}
-        {status === "idle" && filteredFilms.length > 0 && (
+        {status === "idle" && sortedFilms.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
-              {paginatedFilms.map((film) => (
-                <FilmCard key={film.id} film={film} apiUrl={API_URL} />
-              ))}
+              {paginatedFilms.map((film) => {
+                const r = rankingMap.get(film.id);
+                return (
+                  <FilmCard
+                    key={film.id}
+                    film={
+                      r
+                        ? {
+                            ...film,
+                            average_rating: r.average_rating,
+                            rating_count: r.rating_count,
+                          }
+                        : film
+                    }
+                    apiUrl={API_URL}
+                    rank={filters.rated && r ? r.rank : undefined}
+                  />
+                );
+              })}
             </div>
 
             {/* --- PAGINATION STYLE « ‹ 1 › » --- */}
