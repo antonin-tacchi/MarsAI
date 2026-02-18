@@ -1,7 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import Input from "./Input";
+import CountrySelect from "./CountrySelect";
+import COUNTRIES from "../constants/countries";
 import successBg from "../images/fondsoumissionfilm.jpg";
 import { submitFilm } from "../services/filmService";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NAME_REGEX = /^[\p{L}\s\-'.]+$/u;
 
 const Stepper = ({ currentStep }) => {
   const steps = [1, 2, 3];
@@ -174,7 +179,11 @@ export default function MovieForm({ onFinalSubmit }) {
       const aiTools = getFieldValue("ai_tools");
 
       if (!title?.trim()) newErrors.title = "Champ obligatoire";
+
       if (!country?.trim()) newErrors.country = "Champ obligatoire";
+      else if (!COUNTRIES.includes(country.trim()))
+        newErrors.country = "Veuillez sélectionner un pays valide";
+
       if (!description?.trim()) newErrors.description = "Champ obligatoire";
       if (!aiTools?.trim()) newErrors.ai_tools = "Champ obligatoire";
 
@@ -189,8 +198,17 @@ export default function MovieForm({ onFinalSubmit }) {
       const bio = getFieldValue("bio");
 
       if (!fname?.trim()) newErrors.fname = "Champ obligatoire";
+      else if (!NAME_REGEX.test(fname.trim()))
+        newErrors.fname = "Caractères non autorisés";
+
       if (!lname?.trim()) newErrors.lname = "Champ obligatoire";
+      else if (!NAME_REGEX.test(lname.trim()))
+        newErrors.lname = "Caractères non autorisés";
+
       if (!email?.trim()) newErrors.email = "Champ obligatoire";
+      else if (!EMAIL_REGEX.test(email.trim()))
+        newErrors.email = "Format d'email invalide";
+
       if (!bio?.trim()) newErrors.bio = "Champ obligatoire";
     }
 
@@ -345,7 +363,7 @@ export default function MovieForm({ onFinalSubmit }) {
                   value={fields.title}
                   onChange={setField("title")}
                 />
-                <Input
+                <CountrySelect
                   label="Pays"
                   name="country"
                   error={errors.country}
