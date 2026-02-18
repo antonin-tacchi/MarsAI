@@ -1,11 +1,17 @@
 /**
  * Algorithme de répartition déterministe des films pour les jurys.
  *
- * Principe : round-robin glouton avec équilibrage de charge.
- * - Chaque film doit être vu au minimum R fois.
- * - Les notes existantes comptent (on ne réassigne pas un film déjà noté).
- * - Les listes ne dépassent jamais Lmax par jury.
- * - Tri déterministe : même entrée → même sortie.
+ * Principe : round-robin cyclique avec décalage.
+ *
+ * On fait R "couches" (rounds). Dans chaque round, on assigne chaque film
+ * à un jury en avançant d'un cran dans la liste des jurys. À chaque nouveau
+ * round, on décale l'index de départ de `shift = floor(J / R)` positions
+ * (minimum 1) pour garantir qu'un même film ne retombe pas chez le même jury.
+ *
+ * Les notes existantes sont prises en compte : si un jury a déjà noté un
+ * film, on saute ce jury et on prend le suivant dans l'ordre cyclique.
+ *
+ * Le résultat est 100 % déterministe : même entrée → même sortie.
  */
 
 /**
@@ -29,83 +35,108 @@ export function distributeFilms(films, juries, R, Lmax, existingRatings) {
   if (Lmax < 1) {
     throw new DistributionError("Lmax doit être au minimum 1");
   }
-
-  // 1. Calculer les assignations nécessaires par film
-  const needed = new Map();
-  for (const film of films) {
-    const existing = existingRatings.get(film.id)?.size || 0;
-    const need = Math.max(0, R - existing);
-    if (need > 0) needed.set(film.id, need);
+  if (R > juries.length) {
+    throw new DistributionError(
+      `R (${R}) ne peut pas dépasser le nombre de jurys (${juries.length}). ` +
+        `Chaque film doit être assigné à ${R} jurys différents.`
+    );
   }
 
-  const totalNeeded = Array.from(needed.values()).reduce((s, n) => s + n, 0);
+  // Tri déterministe des films et jurys par ID croissant
+  const sortedFilms = [...films].sort((a, b) => a.id - b.id);
+  const sortedJuries = [...juries].sort((a, b) => a.id - b.id);
 
-  // 2. Vérifier la faisabilité
-  const maxCapacity = juries.length * Lmax;
+  const J = sortedJuries.length;
+  const F = sortedFilms.length;
+
+  // Décalage entre chaque round : on espace les rounds au maximum
+  const shift = Math.max(1, Math.floor(J / R));
+
+  // Vérifier la faisabilité globale
+  // Nombre d'assignations nécessaires en tenant compte des notes existantes
+  let totalNeeded = 0;
+  for (const film of sortedFilms) {
+    const existing = existingRatings.get(film.id)?.size || 0;
+    totalNeeded += Math.max(0, R - existing);
+  }
+
+  const maxCapacity = J * Lmax;
   if (totalNeeded > maxCapacity) {
     throw new DistributionError(
       `Capacité insuffisante : ${totalNeeded} assignations nécessaires, ` +
         `mais seulement ${maxCapacity} places disponibles ` +
-        `(${juries.length} jurys × ${Lmax} max). ` +
+        `(${J} jurys × ${Lmax} max). ` +
         `Augmentez Lmax ou ajoutez des jurys.`
     );
   }
 
-  // 3. Initialiser le suivi de charge par jury
+  // Suivi de la charge et des assignations par jury
   const juryLoad = new Map();
-  const juryFilms = new Map();
-  for (const jury of juries) {
+  const juryFilmsMap = new Map();
+  for (const jury of sortedJuries) {
     juryLoad.set(jury.id, 0);
-    juryFilms.set(jury.id, new Set());
+    juryFilmsMap.set(jury.id, new Set());
   }
 
-  // 4. Tri déterministe : films par besoin décroissant, puis par ID
-  const filmsByNeed = Array.from(needed.entries()).sort((a, b) => {
-    if (b[1] !== a[1]) return b[1] - a[1];
-    return a[0] - b[0];
-  });
-
-  // 5. Assignation round-robin gloutonne
   const assignments = [];
 
-  for (const [filmId, need] of filmsByNeed) {
-    const alreadyRated = existingRatings.get(filmId) || new Set();
+  // Compteur d'assignations par film (O(1) au lieu de filter à chaque fois)
+  const filmAssignCount = new Map();
+  for (const film of sortedFilms) {
+    filmAssignCount.set(film.id, 0);
+  }
 
-    for (let i = 0; i < need; i++) {
-      // Trouver le jury le moins chargé qui :
-      //   a) n'a pas déjà noté ce film
-      //   b) n'est pas déjà assigné à ce film
-      //   c) a de la capacité (< Lmax)
-      const candidates = juries
-        .filter(
-          (j) =>
-            !alreadyRated.has(j.id) &&
-            !juryFilms.get(j.id).has(filmId) &&
-            juryLoad.get(j.id) < Lmax
-        )
-        .sort((a, b) => {
-          const loadDiff = juryLoad.get(a.id) - juryLoad.get(b.id);
-          if (loadDiff !== 0) return loadDiff;
-          return a.id - b.id; // Tri secondaire par ID pour le déterminisme
-        });
+  // Round-robin cyclique avec décalage
+  for (let round = 0; round < R; round++) {
+    const roundOffset = round * shift;
 
-      if (candidates.length === 0) {
+    for (let filmIdx = 0; filmIdx < F; filmIdx++) {
+      const film = sortedFilms[filmIdx];
+      const alreadyRated = existingRatings.get(film.id) || new Set();
+
+      // Si ce film a déjà R assignations + notes existantes, on skip
+      const total = alreadyRated.size + filmAssignCount.get(film.id);
+      if (total >= R) continue;
+
+      // Position de base pour ce film dans ce round
+      const basePos = (filmIdx + roundOffset) % J;
+
+      // Parcourir les jurys cycliquement à partir de basePos
+      let assigned = false;
+      for (let attempt = 0; attempt < J; attempt++) {
+        const juryIdx = (basePos + attempt) % J;
+        const jury = sortedJuries[juryIdx];
+
+        // Skip si le jury a déjà noté ce film
+        if (alreadyRated.has(jury.id)) continue;
+
+        // Skip si le jury est déjà assigné à ce film
+        if (juryFilmsMap.get(jury.id).has(film.id)) continue;
+
+        // Skip si le jury a atteint Lmax
+        if (juryLoad.get(jury.id) >= Lmax) continue;
+
+        // Assigner
+        assignments.push({ filmId: film.id, juryId: jury.id });
+        juryLoad.set(jury.id, juryLoad.get(jury.id) + 1);
+        juryFilmsMap.get(jury.id).add(film.id);
+        filmAssignCount.set(film.id, filmAssignCount.get(film.id) + 1);
+        assigned = true;
+        break;
+      }
+
+      if (!assigned) {
         throw new DistributionError(
-          `Impossible d'assigner le film #${filmId} : aucun jury disponible. ` +
+          `Impossible d'assigner le film #${film.id} au round ${round + 1}. ` +
             `Vérifiez les paramètres R et Lmax.`
         );
       }
-
-      const chosen = candidates[0];
-      assignments.push({ filmId, juryId: chosen.id });
-      juryLoad.set(chosen.id, juryLoad.get(chosen.id) + 1);
-      juryFilms.get(chosen.id).add(filmId);
     }
   }
 
   return {
     assignments,
-    stats: buildStats(assignments, juries, juryLoad),
+    stats: buildStats(assignments, sortedJuries, juryLoad),
   };
 }
 
