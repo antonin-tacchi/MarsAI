@@ -5,7 +5,6 @@ import {
   MAX_THUMBNAIL_SIZE,
   MAX_FILM_SIZE,
 } from "../routes/film.routes.js";
-import COUNTRIES from "../constants/countries.js";
 
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
@@ -17,10 +16,6 @@ const MAX_BIO = 2000;
 const MAX_SCHOOL = 255;
 const MAX_WEBSITE = 255;
 const MAX_SOCIAL = 255;
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NAME_REGEX = /^[\p{L}\s\-'.]+$/u;
-const URL_REGEX = /^https?:\/\/.+/i;
 
 function safeUnlink(file) {
   if (!file?.path) return;
@@ -115,52 +110,6 @@ export const createFilm = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Un ou plusieurs champs dépassent la longueur maximale autorisée",
-      });
-    }
-
-    // --- Semantic validation ---
-    if (!COUNTRIES.includes(country.trim())) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({
-        success: false,
-        message: "Pays invalide. Veuillez sélectionner un pays dans la liste",
-        field: "country",
-      });
-    }
-
-    if (!EMAIL_REGEX.test(director_email.trim())) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({
-        success: false,
-        message: "Format d'email invalide",
-        field: "director_email",
-      });
-    }
-
-    if (!NAME_REGEX.test(director_firstname.trim())) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({
-        success: false,
-        message: "Le prénom contient des caractères non autorisés",
-        field: "director_firstname",
-      });
-    }
-
-    if (!NAME_REGEX.test(director_lastname.trim())) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({
-        success: false,
-        message: "Le nom contient des caractères non autorisés",
-        field: "director_lastname",
-      });
-    }
-
-    if (director_website && !URL_REGEX.test(director_website.trim())) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({
-        success: false,
-        message: "URL du site web invalide (doit commencer par http:// ou https://)",
-        field: "director_website",
       });
     }
 
