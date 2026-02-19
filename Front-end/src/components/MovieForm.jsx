@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Input from "./Input";
+import CountrySelect from "./CountrySelect";
+import COUNTRIES from "../constants/countries";
 import successBg from "../images/fondsoumissionfilm.jpg";
 import { submitFilm } from "../services/filmService";
 import { useLanguage } from "../context/LanguageContext";
@@ -173,6 +175,26 @@ export default function MovieForm({ onFinalSubmit }) {
   const validateSection = (sectionNumber) => {
     const newErrors = {};
 
+    // --- helper pays (accepte ["France"] OU [{name:"France"}] etc.)
+    const normalize = (v) => (v || "").toString().trim().toLowerCase();
+    const countriesList = Array.isArray(COUNTRIES)
+      ? COUNTRIES
+      : Array.isArray(COUNTRIES?.countries)
+      ? COUNTRIES.countries
+      : [];
+
+    const isValidCountry = (input) => {
+      const val = normalize(input);
+      if (!val) return false;
+
+      return countriesList.some((c) => {
+        const name = typeof c === "string" ? c : c?.name;
+        const value = typeof c === "string" ? c : (c?.value || c?.name);
+        return normalize(name) === val || normalize(value) === val;
+      });
+    };
+    // --- end helper pays
+
     if (sectionNumber === 1) {
       const title = getFieldValue("title");
       const country = getFieldValue("country");
@@ -182,8 +204,7 @@ export default function MovieForm({ onFinalSubmit }) {
       if (!title?.trim()) newErrors.title = t("movieForm.required");
 
       if (!country?.trim()) newErrors.country = t("movieForm.required");
-      else if (!COUNTRIES.includes(country.trim()))
-        newErrors.country = t("movieForm.invalidCountry");
+      else if (!isValidCountry(country)) newErrors.country = t("movieForm.invalidCountry");
 
       if (!description?.trim()) newErrors.description = t("movieForm.required");
       if (!aiTools?.trim()) newErrors.ai_tools = t("movieForm.required");

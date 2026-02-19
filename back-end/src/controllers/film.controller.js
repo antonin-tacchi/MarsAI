@@ -8,7 +8,6 @@ import {
 import COUNTRIES from "../constants/countries.js";
 import { canChangeFilmStatus } from "../services/filmStatus.service.js";
 import { sendRejectionEmail } from "../services/email.service.js";
-
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
 const MAX_DESCRIPTION = 2000;
@@ -93,9 +92,22 @@ export const createFilm = async (req, res) => {
       });
     }
 
+    const countryClean = String(country || "").trim();
+
+    if (!countryClean) {
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
+      return res.status(400).json({ success: false, message: "Pays requis" });
+    }
+
+    if (Array.isArray(COUNTRIES) && COUNTRIES.length > 0 && !COUNTRIES.includes(countryClean)) {
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
+      return res.status(400).json({ success: false, message: "Pays invalide" });
+    }
+
+
     const tooLong =
       title.length > MAX_TITLE ||
-      country.length > MAX_COUNTRY ||
+      countryClean.length > MAX_COUNTRY ||
       description.length > MAX_DESCRIPTION ||
       (ai_tools_used && ai_tools_used.length > MAX_AI_TOOLS) ||
       director_firstname.length > MAX_NAME ||
@@ -133,7 +145,7 @@ export const createFilm = async (req, res) => {
 
     const created = await Film.create({
       title,
-      country,
+      country: countryClean,
       description,
       film_url: filmUrl,
       youtube_url: null,
