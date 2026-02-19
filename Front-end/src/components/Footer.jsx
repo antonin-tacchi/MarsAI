@@ -8,15 +8,17 @@ import {
   FaArrowUp,
 } from "react-icons/fa6";
 import { getProfileRoute } from "../utils/roles";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Footer() {
+  const { t } = useLanguage();
   const scrollToTop = () =>
     window.scrollTo({ top: 0, behavior: "smooth" });
 
   const profile = getProfileRoute();
   const espaceLink = profile
     ? { label: profile.label, href: profile.path }
-    : { label: "Connexion", href: "/login" };
+    : { label: t("footer.login"), href: "/login" };
 
   return (
     <footer className="relative w-full bg-[#262335] text-white">
@@ -24,17 +26,17 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-3 md:items-start">
             <div className="flex flex-col items-center">
                 <h3 className="mb-6 text-3xl font-semibold tracking-[0.2em] text-white/80">
-                    LE FESTIVAL
+                    {t("footer.theFestival")}
                 </h3>
 
                 <nav className="flex flex-col items-center space-y-2 text-lg leading-7">
                     {[
-                    { label: "Le festival", href: "/about" },
-                    { label: "Catalogue", href: "/catalogs" },
-                    { label: "Participer", href: "/submissions" },
+                    { label: t("footer.festival"), href: "/about" },
+                    { label: t("footer.catalog"), href: "/catalogs" },
+                    { label: t("footer.participate"), href: "/submissions" },
                     espaceLink,
-                    { label: "Les jury", href: "/jury" },
-                    { label: "Palmares", href: "/prize-list" },
+                    { label: t("footer.juryMembers"), href: "/jury" },
+                    { label: t("footer.prizes"), href: "/prize-list" },
                     ].map((l) => (
                     <a
                         key={l.label}
@@ -50,15 +52,15 @@ export default function Footer() {
 
             <div className="text-center md:text-center">
                 <h3 className="mb-6 text-3xl font-semibold tracking-[0.2em] text-white/80">
-                    LIENS UTILES
+                    {t("footer.usefulLinks")}
                 </h3>
 
                 <nav className="space-y-1 text-lg leading-7">
                     {[
-                    { label: "Vos données personnelles", href: "/privacy" },
-                    { label: "Gestion des cookies", href: "/cookies" },
-                    { label: "Mentions Légales", href: "/legal" },
-                    { label: "Règlement", href: "/regulation" },
+                    { label: t("footer.personalData"), href: "/privacy" },
+                    { label: t("footer.cookies"), href: "/cookies" },
+                    { label: t("footer.legal"), href: "/legal" },
+                    { label: t("footer.regulation"), href: "/regulation" },
                     ].map((l) => (
                     <a
                         key={l.label}
@@ -73,14 +75,14 @@ export default function Footer() {
 
             <div className="flex flex-col items-center text-center">
                 <h3 className="mb-6 text-3xl font-semibold tracking-[0.2em] text-white/80">
-                    COMMUNICATION
+                    {t("footer.communication")}
                 </h3>
 
                 <a
                     href="/contact"
                     className="mb-6 text-lg text-white/90 transition hover:text-white"
                 >
-                    Contact
+                    {t("footer.contact")}
                 </a>
 
                 <div className="flex items-center justify-center gap-4">
