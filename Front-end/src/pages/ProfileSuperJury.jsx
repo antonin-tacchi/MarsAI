@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Button from "../components/Button";
+import { useLanguage } from "../context/LanguageContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 export default function ProfileSuperJury() {
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -108,7 +110,7 @@ export default function ProfileSuperJury() {
   if (profileLoading) {
     return (
       <div className="bg-[#FBF5F0] min-h-screen flex items-center justify-center">
-        <h1>Chargement...</h1>
+        <h1>{t("profileSuperJury.loading")}</h1>
       </div>
     );
   }
@@ -119,7 +121,7 @@ export default function ProfileSuperJury() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl md:text-3xl font-semibold text-[#262335]">
-            Super Jury - {user?.name || "Gestion"}
+            {t("profileSuperJury.title", { name: user?.name || t("profileSuperJury.defaultName") })}
           </h1>
           <Button
             onClick={() => {
@@ -127,24 +129,24 @@ export default function ProfileSuperJury() {
               window.location.reload();
             }}
           >
-            Se deconnecter
+            {t("profileSuperJury.logout")}
           </Button>
         </div>
 
         {/* Current state */}
         <section className="bg-white rounded-2xl p-6 border border-black/5">
           <h2 className="text-xl font-bold text-[#262335] mb-4">
-            Etat actuel de la repartition
+            {t("profileSuperJury.currentState")}
           </h2>
 
           {overviewLoading ? (
-            <p className="text-[#262335]/50">Chargement...</p>
+            <p className="text-[#262335]/50">{t("profileSuperJury.loading")}</p>
           ) : overview ? (
             <div className="space-y-4">
               <div className="flex flex-wrap gap-4">
-                <Stat label="Films" value={overview.totalFilms} />
-                <Stat label="Assignations" value={overview.totalAssignments} />
-                <Stat label="Jurys" value={overview.juries?.length || 0} />
+                <Stat label={t("profileSuperJury.films")} value={overview.totalFilms} />
+                <Stat label={t("profileSuperJury.assignments")} value={overview.totalAssignments} />
+                <Stat label={t("profileSuperJury.juries")} value={overview.juries?.length || 0} />
               </div>
 
               {overview.juries?.length > 0 && (
@@ -152,10 +154,10 @@ export default function ProfileSuperJury() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[#262335]/10">
-                        <th className="text-left py-2 px-3 font-bold text-[#262335]">Jury</th>
-                        <th className="text-center py-2 px-3 font-bold text-[#262335]">Films assignes</th>
-                        <th className="text-center py-2 px-3 font-bold text-[#262335]">Notes</th>
-                        <th className="text-center py-2 px-3 font-bold text-[#262335]">Restants</th>
+                        <th className="text-left py-2 px-3 font-bold text-[#262335]">{t("profileSuperJury.juryHeader")}</th>
+                        <th className="text-center py-2 px-3 font-bold text-[#262335]">{t("profileSuperJury.assignedFilms")}</th>
+                        <th className="text-center py-2 px-3 font-bold text-[#262335]">{t("profileSuperJury.ratings")}</th>
+                        <th className="text-center py-2 px-3 font-bold text-[#262335]">{t("profileSuperJury.remaining")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -181,20 +183,20 @@ export default function ProfileSuperJury() {
               )}
             </div>
           ) : (
-            <p className="text-[#262335]/50">Aucune donnee disponible.</p>
+            <p className="text-[#262335]/50">{t("profileSuperJury.noData")}</p>
           )}
         </section>
 
         {/* Generator */}
         <section className="bg-white rounded-2xl p-6 border border-black/5">
           <h2 className="text-xl font-bold text-[#262335] mb-4">
-            Generer une repartition
+            {t("profileSuperJury.generateTitle")}
           </h2>
 
           <div className="flex flex-wrap gap-6 items-end mb-6">
             <div>
               <label className="block text-sm font-bold text-[#262335] mb-1">
-                R (votes min / film)
+                {t("profileSuperJury.rLabel")}
               </label>
               <input
                 type="number"
@@ -208,7 +210,7 @@ export default function ProfileSuperJury() {
 
             <div>
               <label className="block text-sm font-bold text-[#262335] mb-1">
-                Lmax (films max / jury)
+                {t("profileSuperJury.lmaxLabel")}
               </label>
               <input
                 type="number"
@@ -221,7 +223,7 @@ export default function ProfileSuperJury() {
             </div>
 
             <Button onClick={handlePreview} disabled={previewLoading}>
-              {previewLoading ? "Calcul..." : "Apercu"}
+              {previewLoading ? t("profileSuperJury.calculating") : t("profileSuperJury.preview")}
             </Button>
           </div>
 
@@ -229,14 +231,14 @@ export default function ProfileSuperJury() {
           {preview && (
             <div className="bg-[#FBF5F0] rounded-xl p-4 mb-6 space-y-3">
               <h3 className="font-bold text-[#262335]">
-                Apercu (R={preview.R}, Lmax={preview.Lmax})
+                {t("profileSuperJury.previewTitle", { R: preview.R, Lmax: preview.Lmax })}
               </h3>
 
               <div className="flex flex-wrap gap-4">
-                <Stat label="Assignations" value={preview.stats.totalAssignments} />
-                <Stat label="Min / jury" value={preview.stats.minPerJury} />
-                <Stat label="Max / jury" value={preview.stats.maxPerJury} />
-                <Stat label="Moy / jury" value={preview.stats.avgPerJury} />
+                <Stat label={t("profileSuperJury.assignments")} value={preview.stats.totalAssignments} />
+                <Stat label={t("profileSuperJury.minPerJury")} value={preview.stats.minPerJury} />
+                <Stat label={t("profileSuperJury.maxPerJury")} value={preview.stats.maxPerJury} />
+                <Stat label={t("profileSuperJury.avgPerJury")} value={preview.stats.avgPerJury} />
               </div>
 
               {preview.stats.perJury?.length > 0 && (
@@ -244,8 +246,8 @@ export default function ProfileSuperJury() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[#262335]/10">
-                        <th className="text-left py-2 px-3 font-bold text-[#262335]">Jury</th>
-                        <th className="text-center py-2 px-3 font-bold text-[#262335]">Films</th>
+                        <th className="text-left py-2 px-3 font-bold text-[#262335]">{t("profileSuperJury.juryHeader")}</th>
+                        <th className="text-center py-2 px-3 font-bold text-[#262335]">{t("profileSuperJury.films")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -266,13 +268,13 @@ export default function ProfileSuperJury() {
                   disabled={generating}
                   className="bg-[#463699] text-white px-8 py-3 rounded-full font-bold uppercase hover:bg-[#362a7a] transition-colors disabled:opacity-50"
                 >
-                  {generating ? "Generation..." : "Confirmer et generer"}
+                  {generating ? t("profileSuperJury.generating") : t("profileSuperJury.confirmGenerate")}
                 </button>
                 <button
                   onClick={() => setPreview(null)}
                   className="text-[#262335]/60 underline font-bold"
                 >
-                  Annuler
+                  {t("profileSuperJury.cancel")}
                 </button>
               </div>
             </div>
@@ -282,15 +284,13 @@ export default function ProfileSuperJury() {
           {result && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-2">
               <h3 className="font-bold text-green-800">
-                Repartition generee avec succes
+                {t("profileSuperJury.success")}
               </h3>
               <p className="text-green-700">
-                {result.stats.totalAssignments} assignations creees pour{" "}
-                {result.stats.juryCount} jurys (R={result.R}, Lmax={result.Lmax}).
+                {t("profileSuperJury.resultMessage", { total: result.stats.totalAssignments, juryCount: result.stats.juryCount, R: result.R, Lmax: result.Lmax })}
               </p>
               <p className="text-green-600 text-sm">
-                Min: {result.stats.minPerJury} | Max: {result.stats.maxPerJury} | Moy:{" "}
-                {result.stats.avgPerJury} films/jury
+                {t("profileSuperJury.resultStats", { min: result.stats.minPerJury, max: result.stats.maxPerJury, avg: result.stats.avgPerJury })}
               </p>
             </div>
           )}

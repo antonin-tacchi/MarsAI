@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import COUNTRIES from "../constants/countries";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function CountrySelect({ label, value, onChange, error, name }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(value || "");
   const wrapperRef = useRef(null);
@@ -63,7 +65,7 @@ export default function CountrySelect({ label, value, onChange, error, name }) {
         value={search}
         onFocus={() => setOpen(true)}
         onChange={handleInputChange}
-        placeholder="Rechercher un pays..."
+        placeholder={t("countrySelect.search")}
         className={`
           p-4 rounded-2xl border-2 transition-all duration-200 outline-none h-[54px]
           bg-[#FBF5F0] text-[#262335] placeholder:text-[#262335]/30
@@ -92,7 +94,7 @@ export default function CountrySelect({ label, value, onChange, error, name }) {
 
       {open && filtered.length === 0 && search && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-[#262335]/10 rounded-2xl shadow-xl z-50 px-4 py-3 text-[#262335]/50 italic">
-          Aucun pays trouvé
+          {t("countrySelect.noResults")}
         </div>
       )}
 
