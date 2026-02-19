@@ -4,23 +4,40 @@ import { useLanguage } from "../context/LanguageContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
+const STATUS_COLORS = {
+  pending: "bg-yellow-100 text-yellow-800",
+  approved: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-800",
+};
+
 export default function ProfileSuperJury() {
   const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
+  // Distribution state
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState("");
 
   const [R, setR] = useState(3);
   const [Lmax, setLmax] = useState(10);
-
   const [preview, setPreview] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-
   const [generating, setGenerating] = useState(false);
-  const [result, setResult] = useState(null);
+  const [distResult, setDistResult] = useState(null);
+
+  // Film management state
+  const [films, setFilms] = useState([]);
+  const [filmsLoading, setFilmsLoading] = useState(true);
+  const [filmFilter, setFilmFilter] = useState("pending");
+  const [filmPage, setFilmPage] = useState(1);
+  const [filmPagination, setFilmPagination] = useState(null);
+
+  // Rejection modal
+  const [rejectModal, setRejectModal] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [actionLoading, setActionLoading] = useState(null);
 
   const token = localStorage.getItem("token");
 
@@ -56,15 +73,68 @@ export default function ProfileSuperJury() {
     }
   }, [token]);
 
+  const fetchFilms = useCallback(async (page = 1, status = "pending") => {
+    setFilmsLoading(true);
+    try {
+      const params = new URLSearchParams({ page, limit: 20 });
+      if (status) params.set("status", status);
+      const res = await fetch(`${API_URL}/api/admin/films?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.message || "Error");
+      setFilms(json.data || []);
+      setFilmPagination(json.pagination || null);
+    } catch (err) {
+      console.error("Films error:", err);
+      setFilms([]);
+    } finally {
+      setFilmsLoading(false);
+    }
+  }, [token]);
+
   useEffect(() => {
     fetchProfile();
     fetchStats();
   }, [fetchProfile, fetchStats]);
 
+  useEffect(() => {
+    fetchFilms(filmPage, filmFilter);
+  }, [filmPage, filmFilter, fetchFilms]);
+
+  const handleStatusChange = async (filmId, status, reason) => {
+    setActionLoading(filmId);
+    try {
+      const body = { status };
+      if (reason) body.rejection_reason = reason;
+
+      const res = await fetch(`${API_URL}/api/admin/films/${filmId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.message || "Error");
+
+      fetchFilms(filmPage, filmFilter);
+      fetchStats();
+      setRejectModal(null);
+      setRejectReason("");
+    } catch (err) {
+      console.error("Status change error:", err);
+      alert(err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handlePreview = async () => {
     setPreviewLoading(true);
     setPreview(null);
-    setResult(null);
+    setDistResult(null);
     try {
       const res = await fetch(`${API_URL}/api/admin/distribution/preview`, {
         method: "POST",
@@ -79,7 +149,6 @@ export default function ProfileSuperJury() {
       setPreview(json.data);
     } catch (err) {
       console.error("Preview error:", err);
-      setPreview(null);
       setStatsError(err.message);
     } finally {
       setPreviewLoading(false);
@@ -88,7 +157,7 @@ export default function ProfileSuperJury() {
 
   const handleGenerate = async () => {
     setGenerating(true);
-    setResult(null);
+    setDistResult(null);
     try {
       const res = await fetch(`${API_URL}/api/admin/distribution/generate`, {
         method: "POST",
@@ -100,7 +169,7 @@ export default function ProfileSuperJury() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.message || "Error");
-      setResult(json.data);
+      setDistResult(json.data);
       setPreview(null);
       fetchStats();
     } catch (err) {
@@ -140,7 +209,115 @@ export default function ProfileSuperJury() {
           </Button>
         </div>
 
-        {/* Current state */}
+        {/* ── Film management ── */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-[#262335] mb-4">
+            Gestion des films
+          </h2>
+
+          {/* Filter tabs */}
+          <div className="flex gap-2 mb-4">
+            {["pending", "approved", "rejected"].map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => { setFilmFilter(s); setFilmPage(1); }}
+                className={`px-4 py-2 rounded-lg text-sm font-bold capitalize transition-colors ${
+                  filmFilter === s
+                    ? "bg-[#262335] text-white"
+                    : "bg-[#262335]/10 text-[#262335] hover:bg-[#262335]/20"
+                }`}
+              >
+                {s === "pending" ? "En attente" : s === "approved" ? "Approuves" : "Refuses"}
+              </button>
+            ))}
+          </div>
+
+          {filmsLoading ? (
+            <p className="text-[#262335]/50">Chargement...</p>
+          ) : films.length === 0 ? (
+            <p className="text-[#262335]/50 italic">Aucun film avec ce statut.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b-2 border-[#262335]/10">
+                    <th className="py-3 px-3 font-bold text-[#262335]">Titre</th>
+                    <th className="py-3 px-3 font-bold text-[#262335]">Realisateur</th>
+                    <th className="py-3 px-3 font-bold text-[#262335]">Pays</th>
+                    <th className="py-3 px-3 font-bold text-[#262335] text-center">Statut</th>
+                    <th className="py-3 px-3 font-bold text-[#262335] text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {films.map((film) => (
+                    <tr key={film.id} className="border-b border-[#262335]/5 hover:bg-[#463699]/5">
+                      <td className="py-3 px-3 text-[#262335] font-medium">{film.title}</td>
+                      <td className="py-3 px-3 text-[#262335]">
+                        {film.director_firstname} {film.director_lastname}
+                      </td>
+                      <td className="py-3 px-3 text-[#262335]">{film.country}</td>
+                      <td className="py-3 px-3 text-center">
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[film.status] || ""}`}>
+                          {film.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-center">
+                        <div className="flex gap-2 justify-center">
+                          {film.status !== "approved" && (
+                            <button
+                              type="button"
+                              disabled={actionLoading === film.id}
+                              onClick={() => handleStatusChange(film.id, "approved")}
+                              className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 disabled:opacity-50"
+                            >
+                              Approuver
+                            </button>
+                          )}
+                          {film.status !== "rejected" && (
+                            <button
+                              type="button"
+                              disabled={actionLoading === film.id}
+                              onClick={() => setRejectModal(film)}
+                              className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 disabled:opacity-50"
+                            >
+                              Refuser
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {filmPagination && filmPagination.totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-4 text-sm">
+              <button
+                type="button"
+                onClick={() => setFilmPage((p) => Math.max(1, p - 1))}
+                disabled={filmPage === 1}
+                className="px-3 py-1 bg-[#262335]/10 rounded disabled:opacity-30"
+              >
+                &lsaquo;
+              </button>
+              <span className="font-bold">{filmPage} / {filmPagination.totalPages}</span>
+              <button
+                type="button"
+                onClick={() => setFilmPage((p) => Math.min(filmPagination.totalPages, p + 1))}
+                disabled={filmPage === filmPagination.totalPages}
+                className="px-3 py-1 bg-[#262335]/10 rounded disabled:opacity-30"
+              >
+                &rsaquo;
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* ── Current distribution state ── */}
         <section className="bg-white rounded-2xl p-6 shadow-sm">
           <h2 className="text-xl font-bold text-[#262335] mb-4">
             {t("profileSuperJury.currentState")}
@@ -152,7 +329,6 @@ export default function ProfileSuperJury() {
             <p className="text-red-500">{statsError}</p>
           ) : stats ? (
             <>
-              {/* Summary badges */}
               <div className="flex flex-wrap gap-3 mb-6">
                 <span className="bg-[#262335] text-white px-4 py-2 rounded-lg font-bold">
                   {t("profileSuperJury.films")}: {stats.filmCount}
@@ -165,7 +341,6 @@ export default function ProfileSuperJury() {
                 </span>
               </div>
 
-              {/* Jury table */}
               {stats.juries.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
@@ -187,20 +362,11 @@ export default function ProfileSuperJury() {
                     </thead>
                     <tbody>
                       {stats.juries.map((jury) => (
-                        <tr
-                          key={jury.id}
-                          className="border-b border-[#262335]/5 hover:bg-[#463699]/5 transition-colors"
-                        >
+                        <tr key={jury.id} className="border-b border-[#262335]/5 hover:bg-[#463699]/5 transition-colors">
                           <td className="py-3 px-4 text-[#262335]">{jury.name}</td>
-                          <td className="py-3 px-4 text-center font-mono">
-                            {jury.assigned_films}
-                          </td>
-                          <td className="py-3 px-4 text-center font-mono">
-                            {jury.rated}
-                          </td>
-                          <td className="py-3 px-4 text-center font-mono">
-                            {jury.remaining}
-                          </td>
+                          <td className="py-3 px-4 text-center font-mono">{jury.assigned_films}</td>
+                          <td className="py-3 px-4 text-center font-mono">{jury.rated}</td>
+                          <td className="py-3 px-4 text-center font-mono">{jury.remaining}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -213,7 +379,7 @@ export default function ProfileSuperJury() {
           ) : null}
         </section>
 
-        {/* Generate distribution */}
+        {/* ── Generate distribution ── */}
         <section className="bg-white rounded-2xl p-6 shadow-sm">
           <h2 className="text-xl font-bold text-[#262335] mb-4">
             {t("profileSuperJury.generateTitle")}
@@ -247,13 +413,10 @@ export default function ProfileSuperJury() {
               />
             </div>
             <Button onClick={handlePreview} disabled={previewLoading}>
-              {previewLoading
-                ? t("profileSuperJury.calculating")
-                : t("profileSuperJury.preview")}
+              {previewLoading ? t("profileSuperJury.calculating") : t("profileSuperJury.preview")}
             </Button>
           </div>
 
-          {/* Preview result */}
           {preview && (
             <div className="bg-[#FBF5F0] rounded-xl p-5 mb-4">
               <h3 className="font-bold text-[#262335] mb-3">
@@ -279,9 +442,7 @@ export default function ProfileSuperJury() {
               </div>
               <div className="flex gap-3">
                 <Button onClick={handleGenerate} disabled={generating}>
-                  {generating
-                    ? t("profileSuperJury.generating")
-                    : t("profileSuperJury.confirmGenerate")}
+                  {generating ? t("profileSuperJury.generating") : t("profileSuperJury.confirmGenerate")}
                 </Button>
                 <button
                   type="button"
@@ -294,31 +455,66 @@ export default function ProfileSuperJury() {
             </div>
           )}
 
-          {/* Generation result */}
-          {result && (
+          {distResult && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-5">
-              <p className="font-bold text-green-800 mb-1">
-                {t("profileSuperJury.success")}
-              </p>
+              <p className="font-bold text-green-800 mb-1">{t("profileSuperJury.success")}</p>
               <p className="text-green-700 text-sm">
                 {t("profileSuperJury.resultMessage", {
-                  total: result.total,
-                  juryCount: result.juryCount,
-                  R: result.R,
-                  Lmax: result.Lmax,
+                  total: distResult.total,
+                  juryCount: distResult.juryCount,
+                  R: distResult.R,
+                  Lmax: distResult.Lmax,
                 })}
               </p>
               <p className="text-green-700 text-sm">
                 {t("profileSuperJury.resultStats", {
-                  min: result.min,
-                  max: result.max,
-                  avg: result.avg,
+                  min: distResult.min,
+                  max: distResult.max,
+                  avg: distResult.avg,
                 })}
               </p>
             </div>
           )}
         </section>
       </div>
+
+      {/* ── Rejection modal ── */}
+      {rejectModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl">
+            <h3 className="text-lg font-bold text-[#262335] mb-2">
+              Refuser : {rejectModal.title}
+            </h3>
+            <p className="text-sm text-[#262335]/60 mb-4">
+              Un email sera envoye au realisateur avec le motif.
+            </p>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Motif du refus (obligatoire)..."
+              rows={4}
+              className="w-full px-4 py-3 border-2 border-[#262335]/10 rounded-xl focus:outline-none focus:border-[#463699] text-sm"
+            />
+            <div className="flex gap-3 mt-4">
+              <button
+                type="button"
+                disabled={!rejectReason.trim() || actionLoading === rejectModal.id}
+                onClick={() => handleStatusChange(rejectModal.id, "rejected", rejectReason.trim())}
+                className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 disabled:opacity-50"
+              >
+                {actionLoading === rejectModal.id ? "..." : "Confirmer le refus"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setRejectModal(null); setRejectReason(""); }}
+                className="text-[#262335] underline font-bold text-sm"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

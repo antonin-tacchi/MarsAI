@@ -1,7 +1,15 @@
 import { Router } from "express";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/authorize.middleware.js";
-import { getAllUsers } from "../controllers/admin.controller.js";
+import {
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  getAdminFilms,
+  updateFilmStatusAdmin,
+  deleteFilm,
+} from "../controllers/admin.controller.js";
 import {
   getDistributionStats,
   previewDistribution,
@@ -10,36 +18,24 @@ import {
 
 const router = Router();
 
-// Super Jury / Admin only (role 3)
+// Super Jury / Admin only (role 2, 3)
 router.use(authenticateToken);
-router.use(authorize([3]));
+router.use(authorize([2, 3]));
 
-/**
- * @route   GET /api/admin/users
- * @desc    Get all users
- * @access  Super Jury (role 3)
- */
+// ─── USERS CRUD ─────────────────────────────────────────────
 router.get("/users", getAllUsers);
+router.post("/users", createUser);
+router.put("/users/:id", updateUser);
+router.delete("/users/:id", deleteUser);
 
-/**
- * @route   GET /api/admin/distribution/stats
- * @desc    Get current distribution state
- * @access  Super Jury (role 3)
- */
+// ─── FILMS MANAGEMENT ───────────────────────────────────────
+router.get("/films", getAdminFilms);
+router.patch("/films/:id/status", updateFilmStatusAdmin);
+router.delete("/films/:id", deleteFilm);
+
+// ─── DISTRIBUTION (Super Jury) ──────────────────────────────
 router.get("/distribution/stats", getDistributionStats);
-
-/**
- * @route   POST /api/admin/distribution/preview
- * @desc    Preview a distribution (R, Lmax)
- * @access  Super Jury (role 3)
- */
 router.post("/distribution/preview", previewDistribution);
-
-/**
- * @route   POST /api/admin/distribution/generate
- * @desc    Generate the actual distribution (R, Lmax)
- * @access  Super Jury (role 3)
- */
 router.post("/distribution/generate", generateDistribution);
 
 export default router;
