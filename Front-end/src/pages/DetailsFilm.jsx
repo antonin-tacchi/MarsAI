@@ -84,6 +84,110 @@ function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
   );
 }
 
+/* Badge de statut du film */
+const STATUS_CONFIG = {
+  pending: { label: "En attente", bg: "bg-yellow-100", text: "text-yellow-800", border: "border-yellow-300" },
+  approved: { label: "Approuv\u00e9", bg: "bg-green-100", text: "text-green-800", border: "border-green-300" },
+  rejected: { label: "Refus\u00e9", bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
+};
+
+function StatusBadge({ filmStatus }) {
+  const cfg = STATUS_CONFIG[filmStatus] || STATUS_CONFIG.pending;
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+      {cfg.label}
+    </span>
+  );
+}
+
+/* Panneau d'approbation / rejet */
+function ApprovalPanel({
+  filmStatus,
+  rejectionReason,
+  onReasonChange,
+  onApprove,
+  onReject,
+  updating,
+  statusMessage,
+}) {
+  const [showRejectForm, setShowRejectForm] = useState(false);
+
+  return (
+    <div className="mt-8 rounded-xl border border-[#262335]/15 bg-[#f8f6f3] p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-[#262335]">
+          Gestion du film
+        </h3>
+        <StatusBadge filmStatus={filmStatus} />
+      </div>
+
+      {statusMessage && (
+        <div
+          className={`mb-4 rounded-lg px-4 py-3 text-sm font-medium ${
+            statusMessage.type === "success"
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+          }`}
+        >
+          {statusMessage.text}
+        </div>
+      )}
+
+      {!showRejectForm ? (
+        <div className="flex flex-wrap gap-3">
+          {filmStatus !== "approved" && (
+            <button
+              onClick={onApprove}
+              disabled={updating}
+              className="px-5 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              {updating ? "Mise \u00e0 jour..." : "Approuver"}
+            </button>
+          )}
+          {filmStatus !== "rejected" && (
+            <button
+              onClick={() => setShowRejectForm(true)}
+              disabled={updating}
+              className="px-5 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+            >
+              Refuser
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-[#262335]">
+            Raison du refus (envoy\u00e9e par email au r\u00e9alisateur) :
+          </label>
+          <textarea
+            value={rejectionReason}
+            onChange={(e) => onReasonChange(e.target.value)}
+            rows={3}
+            placeholder="Expliquez la raison du refus..."
+            className="w-full rounded-lg border border-[#262335]/20 bg-white px-4 py-3 text-[#262335] placeholder:text-[#262335]/40 outline-none focus:ring-2 focus:ring-red-300 resize-none"
+          />
+          <div className="flex gap-3">
+            <button
+              onClick={onReject}
+              disabled={updating || !rejectionReason.trim()}
+              className="px-5 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+            >
+              {updating ? "Envoi..." : "Confirmer le refus"}
+            </button>
+            <button
+              onClick={() => { setShowRejectForm(false); onReasonChange(""); }}
+              disabled={updating}
+              className="px-5 py-2 rounded-lg border border-[#262335]/20 text-[#262335] font-medium hover:bg-black/5 transition-colors"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* Bouton save extrait pour éviter la duplication mobile/desktop */
 function SaveButton({ onSave, saving, saveSuccess, saveError }) {
   return (
@@ -126,6 +230,12 @@ export default function DetailsFilm() {
   const [error, setError] = useState("");
 
   const [stats, setStats] = useState(null);
+
+  /* Approval states */
+  const [filmStatus, setFilmStatus] = useState("pending");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
 
   /* API */
   const fetchFilmById = useCallback(
@@ -233,6 +343,7 @@ export default function DetailsFilm() {
         ]);
 
         setFilm(filmData);
+        setFilmStatus(filmData.status || "pending");
 
         setSuggestions(
           shuffleArray(allFilms.filter((f) => String(f.id) !== String(id))).slice(
@@ -341,6 +452,46 @@ export default function DetailsFilm() {
       setSaveError(e.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  /* STATUS CHANGE */
+  const handleStatusChange = async (newStatus) => {
+    setStatusUpdating(true);
+    setStatusMessage(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Vous devez être connecté.");
+
+      const res = await fetch(`${API_URL}/api/films/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          rejection_reason: newStatus === "rejected" ? rejectionReason : null,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      setFilmStatus(newStatus);
+      setRejectionReason("");
+      setStatusMessage({
+        type: "success",
+        text:
+          newStatus === "approved"
+            ? "Film approuvé ! Il est maintenant visible pour le jury."
+            : "Film refusé. Un email a été envoyé au réalisateur.",
+      });
+    } catch (e) {
+      setStatusMessage({ type: "error", text: e.message });
+    } finally {
+      setStatusUpdating(false);
     }
   };
 
@@ -506,8 +657,21 @@ export default function DetailsFilm() {
                     </p>
                   </div>
 
-                  {/* Formulaire visible seulement pour jury/admin */}
+                  {/* Panneau approbation/rejet visible pour jury/admin */}
                   {canReview && (
+                    <ApprovalPanel
+                      filmStatus={filmStatus}
+                      rejectionReason={rejectionReason}
+                      onReasonChange={setRejectionReason}
+                      onApprove={() => handleStatusChange("approved")}
+                      onReject={() => handleStatusChange("rejected")}
+                      updating={statusUpdating}
+                      statusMessage={statusMessage}
+                    />
+                  )}
+
+                  {/* Formulaire visible seulement pour jury/admin + film approuvé */}
+                  {canReview && filmStatus === "approved" && (
                     <>
                       <ReviewForm
                         rating={rating}
@@ -524,8 +688,8 @@ export default function DetailsFilm() {
                     </>
                   )}
 
-                  {/* Avis du jury visible seulement pour jury/admin */}
-                  {canReview && <JurySection compact />}
+                  {/* Avis du jury visible seulement pour jury/admin + film approuvé */}
+                  {canReview && filmStatus === "approved" && <JurySection compact />}
                 </div>
               </div>
 
@@ -561,7 +725,21 @@ export default function DetailsFilm() {
                   </p>
                 </div>
 
+                {/* Panneau approbation/rejet visible pour jury/admin */}
                 {canReview && (
+                  <ApprovalPanel
+                    filmStatus={filmStatus}
+                    rejectionReason={rejectionReason}
+                    onReasonChange={setRejectionReason}
+                    onApprove={() => handleStatusChange("approved")}
+                    onReject={() => handleStatusChange("rejected")}
+                    updating={statusUpdating}
+                    statusMessage={statusMessage}
+                  />
+                )}
+
+                {/* Formulaire visible seulement pour jury/admin + film approuvé */}
+                {canReview && filmStatus === "approved" && (
                   <>
                     <ReviewForm
                       rating={rating}
@@ -578,8 +756,8 @@ export default function DetailsFilm() {
                   </>
                 )}
 
-                {/* Avis du jury visible seulement pour jury/admin */}
-                {canReview && <JurySection />}
+                {/* Avis du jury visible seulement pour jury/admin + film approuvé */}
+                {canReview && filmStatus === "approved" && <JurySection />}
               </div>
             </div>
 
