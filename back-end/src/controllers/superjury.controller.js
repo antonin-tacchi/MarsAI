@@ -85,31 +85,54 @@ export const previewDistribution = async (req, res) => {
       });
     }
 
-    // Check feasibility: each film needs R votes, each jury can handle Lmax
-    const totalNeeded = films.length * R;
-    const totalCapacity = juries.length * Lmax;
+    // Load existing assignments
+    const [existingRows] = await db.query(
+      "SELECT jury_id, film_id FROM jury_assignments"
+    );
 
-    if (totalCapacity < totalNeeded) {
-      return res.status(400).json({
-        success: false,
-        message: `Impossible: need ${totalNeeded} assignments but capacity is ${totalCapacity} (${juries.length} juries × ${Lmax})`,
-      });
+    const existing = new Map();
+    juries.forEach((j) => existing.set(j.id, new Set()));
+    for (const row of existingRows) {
+      if (existing.has(row.jury_id)) {
+        existing.get(row.jury_id).add(row.film_id);
+      }
     }
 
-    // Round-robin distribution
+    // Build per-jury list (existing + new to add)
     const assignments = new Map();
-    juries.forEach((j) => assignments.set(j.id, []));
+    juries.forEach((j) => assignments.set(j.id, [...existing.get(j.id)]));
 
+    // Count existing assignments per film
+    const filmAssignCount = new Map();
+    films.forEach((f) => filmAssignCount.set(f.id, 0));
+    for (const row of existingRows) {
+      if (filmAssignCount.has(row.film_id)) {
+        filmAssignCount.set(row.film_id, filmAssignCount.get(row.film_id) + 1);
+      }
+    }
+
+    // Only queue films that still need more assignments to reach R
     const filmQueue = [];
     for (const film of films) {
-      for (let i = 0; i < R; i++) {
+      const still = R - (filmAssignCount.get(film.id) || 0);
+      for (let i = 0; i < still; i++) {
         filmQueue.push(film.id);
       }
     }
 
-    // Sort juries by current load for each assignment
+    // Check feasibility with remaining capacity
+    const usedCapacity = juries.reduce((s, j) => s + assignments.get(j.id).length, 0);
+    const remainingCapacity = juries.length * Lmax - usedCapacity;
+
+    if (remainingCapacity < filmQueue.length) {
+      return res.status(400).json({
+        success: false,
+        message: `Impossible: need ${filmQueue.length} new assignments but remaining capacity is ${remainingCapacity}`,
+      });
+    }
+
+    // Round-robin on what's missing
     for (const filmId of filmQueue) {
-      // Find jury with fewest assignments that doesn't already have this film and is under Lmax
       const sortedJuries = [...juries].sort(
         (a, b) => assignments.get(a.id).length - assignments.get(b.id).length
       );
@@ -128,11 +151,14 @@ export const previewDistribution = async (req, res) => {
     const max = Math.max(...counts);
     const avg = (counts.reduce((a, b) => a + b, 0) / counts.length).toFixed(1);
     const total = counts.reduce((a, b) => a + b, 0);
+    const newAssignments = total - existingRows.length;
 
     return res.status(200).json({
       success: true,
       data: {
         total,
+        newAssignments,
+        existing: existingRows.length,
         juryCount: juries.length,
         filmCount: films.length,
         R,
@@ -192,20 +218,42 @@ export const generateDistribution = async (req, res) => {
       });
     }
 
-    // Clear existing assignments
-    await db.query("DELETE FROM jury_assignments");
+    // Load existing assignments so we keep them and only add what's missing
+    const [existingRows] = await db.query(
+      "SELECT jury_id, film_id FROM jury_assignments"
+    );
 
-    // Round-robin distribution
+    const existing = new Map();
+    juries.forEach((j) => existing.set(j.id, new Set()));
+    for (const row of existingRows) {
+      if (existing.has(row.jury_id)) {
+        existing.get(row.jury_id).add(row.film_id);
+      }
+    }
+
+    // Build per-jury list (existing + new)
     const assignments = new Map();
-    juries.forEach((j) => assignments.set(j.id, []));
+    juries.forEach((j) => assignments.set(j.id, [...existing.get(j.id)]));
 
+    // Count how many juries each film is already assigned to
+    const filmAssignCount = new Map();
+    films.forEach((f) => filmAssignCount.set(f.id, 0));
+    for (const row of existingRows) {
+      if (filmAssignCount.has(row.film_id)) {
+        filmAssignCount.set(row.film_id, filmAssignCount.get(row.film_id) + 1);
+      }
+    }
+
+    // Only queue films that still need more jury assignments to reach R
     const filmQueue = [];
     for (const film of films) {
-      for (let i = 0; i < R; i++) {
+      const still = R - (filmAssignCount.get(film.id) || 0);
+      for (let i = 0; i < still; i++) {
         filmQueue.push(film.id);
       }
     }
 
+    // Round-robin: assign to jury with fewest films, respecting Lmax
     for (const filmId of filmQueue) {
       const sortedJuries = [...juries].sort(
         (a, b) => assignments.get(a.id).length - assignments.get(b.id).length
@@ -220,18 +268,21 @@ export const generateDistribution = async (req, res) => {
       }
     }
 
-    // Insert all assignments
-    const rows = [];
+    // Only insert truly new assignments (not already in DB)
+    const newRows = [];
     for (const [juryId, filmIds] of assignments) {
+      const alreadyHas = existing.get(juryId);
       for (const filmId of filmIds) {
-        rows.push([juryId, filmId]);
+        if (!alreadyHas.has(filmId)) {
+          newRows.push([juryId, filmId]);
+        }
       }
     }
 
-    if (rows.length > 0) {
+    if (newRows.length > 0) {
       await db.query(
         "INSERT INTO jury_assignments (jury_id, film_id) VALUES ?",
-        [rows]
+        [newRows]
       );
     }
 
@@ -244,7 +295,8 @@ export const generateDistribution = async (req, res) => {
       success: true,
       message: "Distribution generated successfully",
       data: {
-        total: rows.length,
+        total: newRows.length + existingRows.length,
+        newAssignments: newRows.length,
         juryCount: juries.length,
         R,
         Lmax,
