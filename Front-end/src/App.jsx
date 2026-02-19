@@ -14,6 +14,7 @@ import ProfileJury from "./pages/ProfileJury.jsx";
 import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import AdminModeration from "./pages/AdminModeration.jsx";
 
 
 const ProtectedRoute = ({ children }) => {
@@ -47,6 +48,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ProfileAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin-moderation"
+            element={
+              <ProtectedRoute>
+                <AdminModeration />
               </ProtectedRoute>
             }
           />

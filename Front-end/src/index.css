@@ -107,3 +107,67 @@ button:focus-visible {
   a:hover {
     color: #747bff;
   }
+/* MarsAI Custom Color Variables */
+:root {
+  --color-beige: #FBF5F0;
+  --color-peach: #FBD5BD;
+  --color-lavender: #C7C2CE;
+  --color-light-purple: #8A83DA;
+  --color-purple: #463699;
+  --color-dark-purple: #262335;
+}
+
+@layer utilities {
+  .bg-beige { background-color: var(--color-beige); }
+  .bg-peach { background-color: var(--color-peach); }
+  .bg-lavender { background-color: var(--color-lavender); }
+  .bg-light-purple { background-color: var(--color-light-purple); }
+  .bg-purple { background-color: var(--color-purple); }
+  .bg-dark-purple { background-color: var(--color-dark-purple); }
+
+  .text-beige { color: var(--color-beige); }
+  .text-peach { color: var(--color-peach); }
+  .text-lavender { color: var(--color-lavender); }
+  .text-light-purple { color: var(--color-light-purple); }
+  .text-purple { color: var(--color-purple); }
+  .text-dark-purple { color: var(--color-dark-purple); }
+
+  .border-beige { border-color: var(--color-beige); }
+  .border-peach { border-color: var(--color-peach); }
+  .border-lavender { border-color: var(--color-lavender); }
+  .border-light-purple { border-color: var(--color-light-purple); }
+  .border-purple { border-color: var(--color-purple); }
+  .border-dark-purple { border-color: var(--color-dark-purple); }
+
+  .hover\:bg-light-purple:hover { background-color: var(--color-light-purple); }
+  .hover\:bg-purple:hover { background-color: var(--color-purple); }
+  .hover\:bg-dark-purple:hover { background-color: var(--color-dark-purple); }
+  .hover\:text-purple:hover { color: var(--color-purple); }
+  .hover\:text-dark-purple:hover { color: var(--color-dark-purple); }
+
+  .bg-beige\/50 { background-color: rgba(251, 245, 240, 0.5); }
+  .bg-lavender\/20 { background-color: rgba(199, 194, 206, 0.2); }
+  .bg-lavender\/10 { background-color: rgba(199, 194, 206, 0.1); }
+  .bg-dark-purple\/80 { background-color: rgba(38, 35, 53, 0.8); }
+
+  .border-lavender\/30 { border-color: rgba(199, 194, 206, 0.3); }
+  .border-lavender\/20 { border-color: rgba(199, 194, 206, 0.2); }
+
+  .animate-modal-appear { animation: modalAppear 0.2s ease-out; }
+  .animate-slide-up { animation: slideUp 0.3s ease-out; }
+
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes modalAppear {
+  0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
