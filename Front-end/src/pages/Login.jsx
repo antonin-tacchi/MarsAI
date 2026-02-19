@@ -63,7 +63,7 @@ export default function Login() {
       if (roles.includes(2)) {
         navigate("/profile-admin");
       } else if (roles.includes(3)) {
-        navigate("/profile-superjury");
+        navigate("/profile-admin");
       } else if (roles.includes(1)) {
         navigate("/profile-jury");
       } else {
