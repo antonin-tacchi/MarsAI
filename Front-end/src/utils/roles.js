@@ -82,7 +82,7 @@ export function getProfileRoute(user = getCurrentUser()) {
   const roles = getUserRoleIds(user);
 
   if (roles.includes(2)) return { path: "/profile-admin", label: "Espace Admin" };
-  if (roles.includes(3)) return { path: "/profile-admin", label: "Espace Admin" };
+  if (roles.includes(3)) return { path: "/profile-superjury", label: "Espace Super Jury" };
   if (roles.includes(1)) return { path: "/profile-jury", label: "Espace Jury" };
 
   return null;
