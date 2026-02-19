@@ -7,10 +7,16 @@ import {
   FaLinkedinIn,
   FaArrowUp,
 } from "react-icons/fa6";
+import { getProfileRoute } from "../utils/roles";
 
 export default function Footer() {
   const scrollToTop = () =>
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const profile = getProfileRoute();
+  const espaceLink = profile
+    ? { label: profile.label, href: profile.path }
+    : { label: "Connexion", href: "/login" };
 
   return (
     <footer className="relative w-full bg-[#262335] text-white">
@@ -26,7 +32,7 @@ export default function Footer() {
                     { label: "Le festival", href: "/about" },
                     { label: "Catalogue", href: "/catalogs" },
                     { label: "Participer", href: "/submissions" },
-                    { label: "Espace Jury", href: "/profile-jury" },
+                    espaceLink,
                     { label: "Les jury", href: "/jury" },
                     { label: "Palmares", href: "/prize-list" },
                     ].map((l) => (
