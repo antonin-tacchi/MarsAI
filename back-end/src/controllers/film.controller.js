@@ -6,6 +6,8 @@ import {
   MAX_FILM_SIZE,
 } from "../routes/film.routes.js";
 import COUNTRIES from "../constants/countries.js";
+import { canChangeFilmStatus } from "../services/filmStatus.service.js";
+import { sendRejectionEmail } from "../services/email.service.js";
 
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
@@ -224,12 +226,41 @@ export const updateFilmStatus = async (req, res) => {
       });
     }
 
-    if (!status || !['pending', 'approved', 'rejected'].includes(status.trim())) 
+    const newStatus = (status || "").trim();
+    if (!newStatus || !['pending', 'approved', 'rejected'].includes(newStatus)) {
       return res.status(400).json({ success: false, message: 'Statut invalide' });
+    }
+
+    // Check the film exists and validate transition
+    const film = await Film.findById(filmId);
+    if (!film) {
+      return res.status(404).json({ success: false, message: "Film non trouvé" });
+    }
+
+    if (!canChangeFilmStatus(film.status, newStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: `Transition de statut non autorisée : ${film.status} → ${newStatus}`,
+      });
+    }
+
+    if (newStatus === "rejected" && !rejection_reason) {
+      return res.status(400).json({
+        success: false,
+        message: "Une raison de rejet est requise",
+      });
+    }
 
     const userId = req.user?.userId;
 
-    const updatedFilm = await Film.updateStatus(filmId, status.trim(), userId, rejection_reason || null);
+    const updatedFilm = await Film.updateStatus(filmId, newStatus, userId, rejection_reason || null);
+
+    // Send rejection email to the director
+    if (newStatus === "rejected") {
+      sendRejectionEmail(updatedFilm, rejection_reason).catch((err) =>
+        console.error("Rejection email failed:", err.message)
+      );
+    }
 
     return res.status(200).json({
       success: true,
