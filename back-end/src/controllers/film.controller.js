@@ -5,7 +5,6 @@ import {
   MAX_THUMBNAIL_SIZE,
   MAX_FILM_SIZE,
 } from "../routes/film.routes.js";
-import COUNTRIES from "../constants/countries.js";
 import { canChangeFilmStatus } from "../services/filmStatus.service.js";
 import { sendRejectionEmail } from "../services/email.service.js";
 
