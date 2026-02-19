@@ -94,7 +94,10 @@ export const updateRating = async (req, res) => {
       });
     }
 
-    const ratingId = parseInt(req.params.id);
+    const ratingId = parseInt(req.params.id, 10);
+    if (!ratingId) {
+      return res.status(400).json({ success: false, message: "Invalid rating ID" });
+    }
     const userId = req.user.userId;
     const { rating, comment } = req.body;
 
@@ -159,7 +162,10 @@ export const getRatingsByFilm = async (req, res) => {
       });
     }
 
-    const filmId = parseInt(req.params.filmId);
+    const filmId = parseInt(req.params.filmId, 10);
+    if (!filmId) {
+      return res.status(400).json({ success: false, message: "Invalid film ID" });
+    }
 
     // Check if film exists
     const [filmRows] = await pool.execute(
@@ -233,7 +239,10 @@ export const getRatingById = async (req, res) => {
       });
     }
 
-    const ratingId = parseInt(req.params.id);
+    const ratingId = parseInt(req.params.id, 10);
+    if (!ratingId) {
+      return res.status(400).json({ success: false, message: "Invalid rating ID" });
+    }
 
     const rating = await Rating.findById(ratingId);
 
@@ -263,7 +272,10 @@ export const getRatingById = async (req, res) => {
  */
 export const deleteRating = async (req, res) => {
   try {
-    const ratingId = parseInt(req.params.id);
+    const ratingId = parseInt(req.params.id, 10);
+    if (!ratingId) {
+      return res.status(400).json({ success: false, message: "Invalid rating ID" });
+    }
     const userId = req.user.userId;
 
     // Check if rating exists and belongs to user
@@ -310,7 +322,10 @@ export const deleteRating = async (req, res) => {
  */
 export const getFilmStats = async (req, res) => {
   try {
-    const filmId = parseInt(req.params.filmId);
+    const filmId = parseInt(req.params.filmId, 10);
+    if (!filmId) {
+      return res.status(400).json({ success: false, message: "Invalid film ID" });
+    }
 
     // Check if film exists
     const [filmRows] = await pool.execute(

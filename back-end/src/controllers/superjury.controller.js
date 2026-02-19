@@ -44,7 +44,7 @@ export const getDistributionStats = async (req, res) => {
     });
   } catch (error) {
     console.error("getDistributionStats error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la récupération des statistiques" });
   }
 };
 
@@ -139,7 +139,7 @@ export const previewDistribution = async (req, res) => {
     });
   } catch (error) {
     console.error("previewDistribution error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la prévisualisation" });
   }
 };
 
@@ -250,6 +250,6 @@ export const generateDistribution = async (req, res) => {
     });
   } catch (error) {
     console.error("generateDistribution error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la génération de la distribution" });
   }
 };
