@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import FilmPlayer from "../components/FilmPlayer";
 import FilmCard from "../components/FilmCard";
 import { isAdminOrJury } from "../utils/roles";
+import { useLanguage } from "../context/LanguageContext";
 
 /* utils */
 function formatDateFR(iso) {
@@ -33,11 +34,12 @@ function withAuthHeaders(headers = {}) {
 
 /* FIX 1 : ReviewForm extrait EN DEHORS du composant parent. */
 function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
+  const { t } = useLanguage();
   return (
     <div className="mt-12 flex flex-col gap-10 md:flex-row items-end mb-[69px]">
       <div className="md:flex-1">
         <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
-          Donnez votre avis
+          {t("detailsFilm.giveOpinion")}
         </h2>
 
         <div className="w-full max-w-[600px] h-[80px] flex items-center justify-between px-[27px] bg-black/10 border border-[#262335]/10 rounded-md">
@@ -67,7 +69,7 @@ function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
 
       <div className="md:flex-1">
         <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
-          Ajoutez un commentaire...
+          {t("detailsFilm.addComment")}
         </h2>
 
         <div className="w-full max-w-[600px] h-[80px] p-[3px] bg-white border border-black/10">
@@ -75,7 +77,7 @@ function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
             name="comment"
             value={comment}
             onChange={(e) => onCommentChange(e.target.value)}
-            placeholder="Votre commentaire..."
+            placeholder={t("detailsFilm.commentPlaceholder")}
             className="w-full h-full bg-black/5 border border-black/10 outline-none resize-none px-4 py-4 text-base text-[#262335] placeholder:text-[#262335]/40"
           />
         </div>
@@ -85,17 +87,25 @@ function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
 }
 
 /* Badge de statut du film */
-const STATUS_CONFIG = {
-  pending: { label: "En attente", bg: "bg-yellow-100", text: "text-yellow-800", border: "border-yellow-300" },
-  approved: { label: "Approuv\u00e9", bg: "bg-green-100", text: "text-green-800", border: "border-green-300" },
-  rejected: { label: "Refus\u00e9", bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
+const STATUS_STYLES = {
+  pending: { bg: "bg-yellow-100", text: "text-yellow-800", border: "border-yellow-300" },
+  approved: { bg: "bg-green-100", text: "text-green-800", border: "border-green-300" },
+  rejected: { bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
+};
+
+const STATUS_LABEL_KEYS = {
+  pending: "detailsFilm.statusPending",
+  approved: "detailsFilm.statusApproved",
+  rejected: "detailsFilm.statusRejected",
 };
 
 function StatusBadge({ filmStatus }) {
-  const cfg = STATUS_CONFIG[filmStatus] || STATUS_CONFIG.pending;
+  const { t } = useLanguage();
+  const cfg = STATUS_STYLES[filmStatus] || STATUS_STYLES.pending;
+  const labelKey = STATUS_LABEL_KEYS[filmStatus] || STATUS_LABEL_KEYS.pending;
   return (
     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
-      {cfg.label}
+      {t(labelKey)}
     </span>
   );
 }
@@ -111,12 +121,13 @@ function ApprovalPanel({
   statusMessage,
 }) {
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <div className="mt-8 rounded-xl border border-[#262335]/15 bg-[#f8f6f3] p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-[#262335]">
-          Gestion du film
+          {t("detailsFilm.filmManagement")}
         </h3>
         <StatusBadge filmStatus={filmStatus} />
       </div>
@@ -141,7 +152,7 @@ function ApprovalPanel({
               disabled={updating}
               className="px-5 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
             >
-              {updating ? "Mise \u00e0 jour..." : "Approuver"}
+              {updating ? t("detailsFilm.updating") : t("detailsFilm.approve")}
             </button>
           )}
           {filmStatus !== "rejected" && (
@@ -150,20 +161,20 @@ function ApprovalPanel({
               disabled={updating}
               className="px-5 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
             >
-              Refuser
+              {t("detailsFilm.reject")}
             </button>
           )}
         </div>
       ) : (
         <div className="space-y-3">
           <label className="block text-sm font-medium text-[#262335]">
-            Raison du refus (envoy\u00e9e par email au r\u00e9alisateur) :
+            {t("detailsFilm.rejectionLabel")}
           </label>
           <textarea
             value={rejectionReason}
             onChange={(e) => onReasonChange(e.target.value)}
             rows={3}
-            placeholder="Expliquez la raison du refus..."
+            placeholder={t("detailsFilm.rejectionPlaceholder")}
             className="w-full rounded-lg border border-[#262335]/20 bg-white px-4 py-3 text-[#262335] placeholder:text-[#262335]/40 outline-none focus:ring-2 focus:ring-red-300 resize-none"
           />
           <div className="flex gap-3">
@@ -172,14 +183,14 @@ function ApprovalPanel({
               disabled={updating || !rejectionReason.trim()}
               className="px-5 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
             >
-              {updating ? "Envoi..." : "Confirmer le refus"}
+              {updating ? t("detailsFilm.sending") : t("detailsFilm.confirmReject")}
             </button>
             <button
               onClick={() => { setShowRejectForm(false); onReasonChange(""); }}
               disabled={updating}
               className="px-5 py-2 rounded-lg border border-[#262335]/20 text-[#262335] font-medium hover:bg-black/5 transition-colors"
             >
-              Annuler
+              {t("detailsFilm.cancel")}
             </button>
           </div>
         </div>
@@ -190,6 +201,7 @@ function ApprovalPanel({
 
 /* Bouton save extrait pour éviter la duplication mobile/desktop */
 function SaveButton({ onSave, saving, saveSuccess, saveError }) {
+  const { t } = useLanguage();
   return (
     <div className="mt-4 flex items-center gap-4 mb-8">
       <button
@@ -197,11 +209,11 @@ function SaveButton({ onSave, saving, saveSuccess, saveError }) {
         disabled={saving}
         className="px-6 py-2 rounded-md bg-[#262335] text-white disabled:opacity-50"
       >
-        {saving ? "Enregistrement..." : "Enregistrer"}
+        {saving ? t("detailsFilm.saving") : t("detailsFilm.save")}
       </button>
 
       {saveSuccess && (
-        <span className="text-green-600 text-sm font-medium">✓ Enregistré</span>
+        <span className="text-green-600 text-sm font-medium">{t("detailsFilm.saved")}</span>
       )}
       {saveError && <span className="text-red-600 text-sm">{saveError}</span>}
     </div>
@@ -210,6 +222,7 @@ function SaveButton({ onSave, saving, saveSuccess, saveError }) {
 
 export default function DetailsFilm() {
   const { id } = useParams();
+  const { t } = useLanguage();
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
   const canReview = isAdminOrJury();
 
@@ -419,7 +432,7 @@ export default function DetailsFilm() {
   /* SAVE */
   const saveRating = async () => {
     if (!rating) {
-      setSaveError("Veuillez sélectionner une note");
+      setSaveError(t("detailsFilm.ratingRequired"));
       return;
     }
 
@@ -429,7 +442,7 @@ export default function DetailsFilm() {
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) throw new Error("Vous devez être connecté pour noter.");
+      if (!token) throw new Error(t("detailsFilm.loginRequired"));
 
       const res = await fetch(
         ratingId ? `${API_URL}/api/ratings/${ratingId}` : `${API_URL}/api/ratings`,
@@ -462,7 +475,7 @@ export default function DetailsFilm() {
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) throw new Error("Vous devez être connecté.");
+      if (!token) throw new Error(t("detailsFilm.mustBeConnected"));
 
       const res = await fetch(`${API_URL}/api/films/${id}/status`, {
         method: "PATCH",
@@ -485,8 +498,8 @@ export default function DetailsFilm() {
         type: "success",
         text:
           newStatus === "approved"
-            ? "Film approuvé ! Il est maintenant visible pour le jury."
-            : "Film refusé. Un email a été envoyé au réalisateur.",
+            ? t("detailsFilm.approvedMessage")
+            : t("detailsFilm.rejectedMessage"),
       });
     } catch (e) {
       setStatusMessage({ type: "error", text: e.message });
