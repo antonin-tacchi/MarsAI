@@ -14,7 +14,7 @@ export const getFilmsForJury = async (req, res) => {
     });
   } catch (err) {
     console.error("getFilmsForJury error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: err.message || "Erreur lors de la récupération des films" });
   }
 };
 
@@ -35,7 +35,7 @@ export const getFilmForJury = async (req, res) => {
     });
   } catch (err) {
     console.error("getFilmForJury error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: err.message || "Erreur lors de la récupération du film" });
   }
 };
 
@@ -76,7 +76,7 @@ export const submitRating = async (req, res) => {
     });
   } catch (err) {
     console.error("submitRating error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: err.message || "Erreur lors de la soumission de la note" });
   }
 };
 
@@ -88,7 +88,7 @@ export const getMyRatings = async (req, res) => {
     return res.status(200).json({ success: true, data: ratings });
   } catch (err) {
     console.error("getMyRatings error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: err.message || "Erreur lors de la récupération des notes" });
   }
 };
 
@@ -106,7 +106,7 @@ export const deleteRating = async (req, res) => {
     return res.status(200).json({ success: true, message: "Rating deleted" });
   } catch (err) {
     console.error("deleteRating error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: err.message || "Erreur lors de la suppression de la note" });
   }
 };
 
@@ -121,7 +121,7 @@ export const getResults = async (req, res) => {
     });
   } catch (err) {
     console.error("getResults error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: err.message || "Erreur lors de la récupération des résultats" });
   }
 };
 

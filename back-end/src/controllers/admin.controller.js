@@ -22,10 +22,10 @@ export const getAllUsers = async (req, res) => {
       roles: u.role_ids ? u.role_ids.split(",").map(Number) : [],
     }));
 
-    res.json({ success: true, data });
+    return res.json({ success: true, data });
   } catch (error) {
     console.error("getAllUsers error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la récupération des utilisateurs" });
   }
 };
 
@@ -67,19 +67,22 @@ export const createUser = async (req, res) => {
       );
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: { id: userId, name, email, roles: roleList },
     });
   } catch (error) {
     console.error("createUser error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la création de l'utilisateur" });
   }
 };
 
 export const updateUser = async (req, res) => {
   try {
     const userId = parseInt(req.params.id, 10);
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
     const { name, email, password, roles } = req.body;
 
     const [existing] = await pool.query("SELECT id FROM users WHERE id = ?", [
@@ -123,16 +126,19 @@ export const updateUser = async (req, res) => {
       }
     }
 
-    res.json({ success: true, message: "User updated" });
+    return res.json({ success: true, message: "User updated" });
   } catch (error) {
     console.error("updateUser error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la mise à jour de l'utilisateur" });
   }
 };
 
 export const deleteUser = async (req, res) => {
   try {
     const userId = parseInt(req.params.id, 10);
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
 
     await pool.query("DELETE FROM user_roles WHERE user_id = ?", [userId]);
     await pool.query("DELETE FROM jury_ratings WHERE user_id = ?", [userId]);
@@ -143,10 +149,10 @@ export const deleteUser = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    res.json({ success: true, message: "User deleted" });
+    return res.json({ success: true, message: "User deleted" });
   } catch (error) {
     console.error("deleteUser error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la suppression de l'utilisateur" });
   }
 };
 
@@ -181,7 +187,7 @@ export const getAdminFilms = async (req, res) => {
     });
   } catch (error) {
     console.error("getAdminFilms error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la récupération des films" });
   }
 };
 
@@ -240,6 +246,9 @@ export const updateFilmStatusAdmin = async (req, res) => {
 export const deleteFilm = async (req, res) => {
   try {
     const filmId = parseInt(req.params.id, 10);
+    if (!filmId) {
+      return res.status(400).json({ success: false, message: "Invalid film ID" });
+    }
 
     await pool.query("DELETE FROM jury_ratings WHERE film_id = ?", [filmId]);
     await pool.query("DELETE FROM jury_assignments WHERE film_id = ?", [filmId]);
@@ -250,9 +259,9 @@ export const deleteFilm = async (req, res) => {
       return res.status(404).json({ success: false, message: "Film not found" });
     }
 
-    res.json({ success: true, message: "Film deleted" });
+    return res.json({ success: true, message: "Film deleted" });
   } catch (error) {
     console.error("deleteFilm error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la suppression du film" });
   }
 };
