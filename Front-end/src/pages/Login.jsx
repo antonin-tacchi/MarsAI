@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/authService";
 import Header from "../components/Header";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,13 +31,13 @@ export default function Login() {
     const newErrors = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = "L'email est requis";
+      newErrors.email = t("login.emailRequired");
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Format d'email invalide";
+      newErrors.email = t("login.emailInvalid");
     }
 
     if (!formData.password.trim()) {
-      newErrors.password = "Le mot de passe est requis";
+      newErrors.password = t("login.passwordRequired");
     }
 
     setErrors(newErrors);
@@ -68,7 +70,7 @@ export default function Login() {
         navigate("/");
       }
     } catch (error) {
-      setApiError(error.message || "La connexion a échoué. Veuillez réessayer.");
+      setApiError(error.message || t("login.error"));
     } finally {
       setLoading(false);
     }
@@ -98,19 +100,19 @@ export default function Login() {
             {/* Tab Toggle */}
             <div className="flex bg-white rounded-full p-1 mb-8 border border-[#463699] text-base">
               <div className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium bg-[#463699] text-white">
-                Se connecter
+                {t("login.title")}
               </div>
               <Link
                 to="/register"
                 className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium text-[#262335] hover:bg-gray-50 transition-colors"
               >
-                S'inscrire
+                {t("login.register")}
               </Link>
             </div>
 
             {/* Title */}
             <h1 className="text-3xl md:text-4xl font-bold text-[#262335] mb-8">
-              Se connecter
+              {t("login.title")}
             </h1>
 
             {/* Form */}
@@ -118,7 +120,7 @@ export default function Login() {
               {/* Email */}
               <div>
                 <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
-                  Email
+                  {t("login.email")}
                 </label>
                 <input
                   type="email"
@@ -136,7 +138,7 @@ export default function Login() {
               {/* Password */}
               <div>
                 <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
-                  Mot de passe
+                  {t("login.password")}
                 </label>
                 <input
                   type="password"
@@ -154,7 +156,7 @@ export default function Login() {
                     to="/forgot-password"
                     className="text-sm text-[#463699] hover:underline"
                   >
-                    mot de passe oublié ?
+                    {t("login.forgotPassword")}
                   </Link>
                 </div>
               </div>
@@ -172,7 +174,7 @@ export default function Login() {
                 disabled={loading}
                 className="w-full bg-[#262335] text-white py-3.5 rounded-md font-semibold hover:bg-[#463699] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6 text-base md:text-lg"
               >
-                {loading ? "Connexion..." : "Connexion"}
+                {loading ? t("login.submitting") : t("login.submit")}
               </button>
             </form>
           </div>

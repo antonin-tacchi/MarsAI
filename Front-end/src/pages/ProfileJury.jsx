@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FilmCard from "../components/FilmCard";
 import Button from "../components/Button";
+import { useLanguage } from "../context/LanguageContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const PER_PAGE = 20;
@@ -14,6 +15,7 @@ const SkeletonCard = () => (
 );
 
 export default function ProfileJury() {
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [uiState, setUiState] = useState("loading");
@@ -109,7 +111,7 @@ export default function ProfileJury() {
   if (profileLoading) {
     return (
       <div className="bg-[#FBF5F0] min-h-screen flex items-center justify-center">
-        <h1>Chargement...</h1>
+        <h1>{t("profileJury.loading")}</h1>
       </div>
     );
   }
@@ -119,7 +121,7 @@ export default function ProfileJury() {
       <div className="flex flex-col gap-4 p-8">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-semibold text-[#262335]">
-            Bonjour {user?.name || "Jury"}
+            {t("profileJury.greeting", { name: user?.name || t("profileJury.defaultName") })}
           </h1>
 
           <Button
@@ -128,28 +130,28 @@ export default function ProfileJury() {
               window.location.reload();
             }}
           >
-            Se déconnecter
+            {t("profileJury.logout")}
           </Button>
         </div>
 
         <div className="bg-gradient-to-br from-[#e7cfc7] via-[#9a92c9] to-[#2f2a73] flex justify-between gap-4 p-4 rounded-lg text-white ml-8">
           <div className="bg-[#262335] rounded-lg p-2">
-            nombre de film : {stats.totalAssigned}
+            {t("profileJury.filmCount", { count: stats.totalAssigned })}
           </div>
 
           <div className="flex gap-8">
             <div className="bg-[#262335] rounded-lg p-2">
-              non Noté : {stats.totalUnrated}
+              {t("profileJury.unrated", { count: stats.totalUnrated })}
             </div>
             <div className="bg-[#262335] rounded-lg p-2">
-              Noté : {stats.totalRated}
+              {t("profileJury.rated", { count: stats.totalRated })}
             </div>
           </div>
         </div>
 
         <div>
           <h2 className="text-[#262335] font-semibold p-4 text-xl">
-            Film à noter :
+            {t("profileJury.filmsToRate")}
           </h2>
 
           {/* LOADING */}
@@ -166,9 +168,9 @@ export default function ProfileJury() {
             <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
               <div className="text-5xl mb-4 text-red-400">⚠️</div>
               <h2 className="text-2xl font-black text-[#262335] uppercase mb-2">
-                Erreur Serveur
+                {t("profileJury.serverError")}
               </h2>
-              <p className="text-[#262335]/70 mb-6">{error || "Une erreur est survenue."}</p>
+              <p className="text-[#262335]/70 mb-6">{error || t("profileJury.defaultError")}</p>
               <Button onClick={() => fetchFilms(page)}>Réessayer</Button>
             </div>
           )}
@@ -178,10 +180,10 @@ export default function ProfileJury() {
             <div className="max-w-2xl mx-auto p-10 rounded-[2.5rem] bg-white border border-black/5 text-center">
               <div className="text-5xl mb-4">🎬</div>
               <h3 className="text-2xl font-black text-[#262335] uppercase mb-2">
-                Rien à noter
+                {t("profileJury.nothingToRate")}
               </h3>
               <p className="text-[#262335]/70">
-                Aucun film assigné pour le moment.
+                {t("profileJury.noAssigned")}
               </p>
             </div>
           )}
@@ -202,7 +204,7 @@ export default function ProfileJury() {
                     onClick={() => setPage(1)}
                     disabled={page === 1}
                     className="hover:opacity-60 disabled:opacity-30"
-                    aria-label="Première page"
+                    aria-label={t("profileJury.firstPage")}
                     type="button"
                   >
                     «
@@ -212,7 +214,7 @@ export default function ProfileJury() {
                     onClick={() => setPage((p) => Math.max(p - 1, 1))}
                     disabled={page === 1}
                     className="hover:opacity-60 disabled:opacity-30"
-                    aria-label="Page précédente"
+                    aria-label={t("profileJury.prevPage")}
                     type="button"
                   >
                     ‹
@@ -224,7 +226,7 @@ export default function ProfileJury() {
                     onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
                     disabled={page === totalPages}
                     className="hover:opacity-60 disabled:opacity-30"
-                    aria-label="Page suivante"
+                    aria-label={t("profileJury.nextPage")}
                     type="button"
                   >
                     ›
@@ -234,7 +236,7 @@ export default function ProfileJury() {
                     onClick={() => setPage(totalPages)}
                     disabled={page === totalPages}
                     className="hover:opacity-60 disabled:opacity-30"
-                    aria-label="Dernière page"
+                    aria-label={t("profileJury.lastPage")}
                     type="button"
                   >
                     »
