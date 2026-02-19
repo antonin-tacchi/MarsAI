@@ -2,6 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import Input from "./Input";
 import successBg from "../images/fondsoumissionfilm.jpg";
 import { submitFilm } from "../services/filmService";
+import { useLanguage } from "../context/LanguageContext";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NAME_REGEX = /^[\p{L}\s\-'.]+$/u;
 
 const Stepper = ({ currentStep }) => {
   const steps = [1, 2, 3];
@@ -44,6 +48,7 @@ const FileUploadZone = ({
 }) => {
   const inputRef = useRef(null);
   const [preview, setPreview] = useState(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!file) {
@@ -92,13 +97,13 @@ const FileUploadZone = ({
               />
             )}
             <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold uppercase text-xs tracking-widest">
-              Modifier le fichier
+              {t("movieForm.changeFile")}
             </div>
           </>
         ) : (
           <div className="p-4 text-center">
             <p className="font-black text-[#262335] uppercase text-sm md:text-base">
-              Ajouter {label.toLowerCase()}
+              {t("movieForm.addFile", { label: label.toLowerCase() })}
             </p>
             <span className="text-[10px] opacity-60 mt-2 font-bold tracking-widest text-[#262335]">
               {accept.replace(/\./g, "").toUpperCase()}
@@ -116,6 +121,7 @@ const FileUploadZone = ({
 };
 
 export default function MovieForm({ onFinalSubmit }) {
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -173,25 +179,38 @@ export default function MovieForm({ onFinalSubmit }) {
       const description = getFieldValue("description");
       const aiTools = getFieldValue("ai_tools");
 
-      if (!title?.trim()) newErrors.title = "Champ obligatoire";
-      if (!country?.trim()) newErrors.country = "Champ obligatoire";
-      if (!description?.trim()) newErrors.description = "Champ obligatoire";
-      if (!aiTools?.trim()) newErrors.ai_tools = "Champ obligatoire";
+      if (!title?.trim()) newErrors.title = t("movieForm.required");
 
-      if (!filmFile) newErrors.film = "Vidéo manquante";
-      if (!posterFile) newErrors.poster = "Poster manquant";
-      if (!thumbFile) newErrors.thumb = "Miniature manquante";
-      if (!fields.certify) newErrors.certify = "Obligatoire";
+      if (!country?.trim()) newErrors.country = t("movieForm.required");
+      else if (!COUNTRIES.includes(country.trim()))
+        newErrors.country = t("movieForm.invalidCountry");
+
+      if (!description?.trim()) newErrors.description = t("movieForm.required");
+      if (!aiTools?.trim()) newErrors.ai_tools = t("movieForm.required");
+
+      if (!filmFile) newErrors.film = t("movieForm.videoMissing");
+      if (!posterFile) newErrors.poster = t("movieForm.posterMissing");
+      if (!thumbFile) newErrors.thumb = t("movieForm.thumbnailMissing");
+      if (!fields.certify) newErrors.certify = t("movieForm.certRequired");
     } else {
       const fname = getFieldValue("fname");
       const lname = getFieldValue("lname");
       const email = getFieldValue("email");
       const bio = getFieldValue("bio");
 
-      if (!fname?.trim()) newErrors.fname = "Champ obligatoire";
-      if (!lname?.trim()) newErrors.lname = "Champ obligatoire";
-      if (!email?.trim()) newErrors.email = "Champ obligatoire";
-      if (!bio?.trim()) newErrors.bio = "Champ obligatoire";
+      if (!fname?.trim()) newErrors.fname = t("movieForm.required");
+      else if (!NAME_REGEX.test(fname.trim()))
+        newErrors.fname = t("movieForm.invalidChars");
+
+      if (!lname?.trim()) newErrors.lname = t("movieForm.required");
+      else if (!NAME_REGEX.test(lname.trim()))
+        newErrors.lname = t("movieForm.invalidChars");
+
+      if (!email?.trim()) newErrors.email = t("movieForm.required");
+      else if (!EMAIL_REGEX.test(email.trim()))
+        newErrors.email = t("movieForm.invalidEmail");
+
+      if (!bio?.trim()) newErrors.bio = t("movieForm.required");
     }
 
     setErrors(newErrors);
@@ -203,27 +222,27 @@ export default function MovieForm({ onFinalSubmit }) {
     const raw = (err?.message || "").toLowerCase();
 
     const fieldErrors = {};
-    if (raw.includes("poster too large")) fieldErrors.poster = "Poster trop lourd (max 5 Mo).";
-    else if (raw.includes("thumbnail too large")) fieldErrors.thumb = "Miniature trop lourde (max 3 Mo).";
+    if (raw.includes("poster too large")) fieldErrors.poster = t("movieForm.posterTooLarge");
+    else if (raw.includes("thumbnail too large")) fieldErrors.thumb = t("movieForm.thumbnailTooLarge");
     else if (raw.includes("film too large") || raw.includes("file too large"))
-      fieldErrors.film = "Vidéo trop lourde (max 800 Mo).";
+      fieldErrors.film = t("movieForm.videoTooLarge");
     else if (raw.includes("invalid image type"))
-      fieldErrors.poster = "Format image invalide (jpg, jpeg, png, webp).";
+      fieldErrors.poster = t("movieForm.invalidImageType");
     else if (raw.includes("invalid video type"))
-      fieldErrors.film = "Format vidéo invalide (mp4, webm, mov).";
+      fieldErrors.film = t("movieForm.invalidVideoType");
     else if (raw.includes("poster and film files are required")) {
-      fieldErrors.poster = "Poster obligatoire";
-      fieldErrors.film = "Vidéo obligatoire";
+      fieldErrors.poster = t("movieForm.posterMissing");
+      fieldErrors.film = t("movieForm.videoMissing");
     }
     if (status === 429 || raw.includes("too many")) {
       return {
-        banner: "Trop de soumissions : attends un peu et réessaye.",
-        hint: "Tu es limité à 5 envois (fenêtre de 15 min environ).",
+        banner: t("movieForm.tooManySubmissions"),
+        hint: t("movieForm.rateLimited"),
         fieldErrors,
       };
     }
     return {
-      banner: err?.message || "Erreur lors de l’envoi du film.",
+      banner: err?.message || t("movieForm.submitError"),
       hint: "",
       fieldErrors,
     };
@@ -261,7 +280,7 @@ export default function MovieForm({ onFinalSubmit }) {
         />
         <div className="relative z-10 bg-[#262335]/80 backdrop-blur-2xl p-8 md:p-20 rounded-[40px] text-center shadow-2xl max-w-2xl w-full">
           <h2 className="text-3xl md:text-6xl font-black text-white mb-8 uppercase italic leading-none">
-            Film soumis <br /> avec succès !
+            {t("movieForm.successTitle1")} <br /> {t("movieForm.successTitle2")}
           </h2>
           <div className="w-20 h-20 md:w-24 md:h-24 bg-[#FBD5BD] rounded-full flex items-center justify-center text-[#262335] text-4xl animate-bounce mx-auto">
             ✓
@@ -270,7 +289,7 @@ export default function MovieForm({ onFinalSubmit }) {
             onClick={() => window.location.reload()}
             className="mt-10 text-white/50 underline hover:text-white transition-all"
           >
-            Envoyer un autre film
+            {t("movieForm.sendAnother")}
           </button>
         </div>
       </section>
@@ -317,7 +336,7 @@ export default function MovieForm({ onFinalSubmit }) {
       {apiError && (
         <div className="mx-auto mt-6 max-w-6xl px-4">
           <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-[#262335]">
-            <p className="font-black uppercase text-sm">Erreur</p>
+            <p className="font-black uppercase text-sm">{t("common.error")}</p>
             <p className="mt-1 font-bold">{apiError}</p>
             {apiHint && <p className="mt-2 text-sm opacity-80">{apiHint}</p>}
           </div>
@@ -333,27 +352,27 @@ export default function MovieForm({ onFinalSubmit }) {
         >
           <div className="w-full max-w-6xl mx-auto">
             <h2 className="text-3xl md:text-[56px] font-black text-[#262335] text-center mb-8 uppercase italic">
-              Informations Générales
+              {t("movieForm.generalInfo")}
             </h2>
             <Stepper currentStep={1} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16">
               <div className="space-y-6">
                 <Input
-                  label="Titre"
+                  label={t("movieForm.title")}
                   name="title"
                   error={errors.title}
                   value={fields.title}
                   onChange={setField("title")}
                 />
-                <Input
-                  label="Pays"
+                <CountrySelect
+                  label={t("movieForm.country")}
                   name="country"
                   error={errors.country}
                   value={fields.country}
                   onChange={setField("country")}
                 />
                 <Input
-                  label="Description"
+                  label={t("movieForm.description")}
                   name="description"
                   type="textarea"
                   error={errors.description}
@@ -361,7 +380,7 @@ export default function MovieForm({ onFinalSubmit }) {
                   onChange={setField("description")}
                 />
                 <FileUploadZone
-                  label="Film"
+                  label={t("movieForm.film")}
                   accept=".mp4,.mov,.webm"
                   file={filmFile}
                   setFile={setFilmFile}
@@ -373,7 +392,7 @@ export default function MovieForm({ onFinalSubmit }) {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FileUploadZone
-                    label="Poster"
+                    label={t("movieForm.poster")}
                     accept=".jpg,.png,.webp"
                     file={posterFile}
                     setFile={setPosterFile}
@@ -382,7 +401,7 @@ export default function MovieForm({ onFinalSubmit }) {
                     type="image"
                   />
                   <FileUploadZone
-                    label="Miniature"
+                    label={t("movieForm.thumbnail")}
                     accept=".jpg,.png,.webp"
                     file={thumbFile}
                     setFile={setThumbFile}
@@ -392,7 +411,7 @@ export default function MovieForm({ onFinalSubmit }) {
                   />
                 </div>
                 <Input
-                  label="Outils IA utilisés :"
+                  label={t("movieForm.aiTools")}
                   name="ai_tools"
                   type="textarea"
                   error={errors.ai_tools}
@@ -418,7 +437,7 @@ export default function MovieForm({ onFinalSubmit }) {
                   />
 
                   <span className="text-sm italic text-[#262335]">
-                    Je certifie que ce film respecte les règles du festival.
+                    {t("movieForm.certification")}
                   </span>
                 </label>
                 <button
@@ -434,7 +453,7 @@ export default function MovieForm({ onFinalSubmit }) {
                   }}
                   className="w-full md:w-auto bg-[#FBF5F0] text-[#262335] px-12 py-4 rounded-full font-black uppercase shadow-xl hover:scale-105 transition-all self-end"
                 >
-                  Suivant →{" "}
+                  {t("movieForm.next")}
                 </button>
               </div>
             </div>
@@ -444,26 +463,26 @@ export default function MovieForm({ onFinalSubmit }) {
         <section className="w-full min-h-screen bg-[#FBF5F0] flex items-center justify-center px-4 py-10 md:py-20">
           <div className="w-full max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-[56px] font-black text-[#262335] mb-8 uppercase italic">
-              Réalisateur
+              {t("movieForm.director")}
             </h2>
             <Stepper currentStep={2} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left mb-12">
               <Input
-                label="Prénom"
+                label={t("movieForm.firstName")}
                 name="fname"
                 error={errors.fname}
                 value={fields.fname}
                 onChange={setField("fname")}
               />
               <Input
-                label="Nom"
+                label={t("movieForm.lastName")}
                 name="lname"
                 error={errors.lname}
                 value={fields.lname}
                 onChange={setField("lname")}
               />
               <Input
-                label="Email"
+                label={t("movieForm.email")}
                 name="email"
                 type="email"
                 error={errors.email}
@@ -471,7 +490,7 @@ export default function MovieForm({ onFinalSubmit }) {
                 onChange={setField("email")}
               />
               <Input
-                label="Bio"
+                label={t("movieForm.bio")}
                 name="bio"
                 type="textarea"
                 error={errors.bio}
@@ -485,7 +504,7 @@ export default function MovieForm({ onFinalSubmit }) {
                 onClick={() => setStep(1)}
                 className="text-[#262335] underline font-bold uppercase"
               >
-                Retour
+                {t("movieForm.back")}
               </button>
               <button
                 type="submit"
@@ -495,7 +514,7 @@ export default function MovieForm({ onFinalSubmit }) {
                 {loading && (
                   <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
                 )}
-                {loading ? "Chargement..." : "Soumettre le film"}
+                {loading ? t("movieForm.submitting") : t("movieForm.submit")}
               </button>
             </div>
           </div>
