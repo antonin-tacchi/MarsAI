@@ -188,6 +188,10 @@ export const getAdminFilms = async (req, res) => {
 export const updateFilmStatusAdmin = async (req, res) => {
   try {
     const filmId = parseInt(req.params.id, 10);
+    if (!filmId) {
+      return res.status(400).json({ success: false, message: "Invalid film ID" });
+    }
+
     const { status, rejection_reason } = req.body;
 
     const newStatus = (status || "").trim();
@@ -226,7 +230,10 @@ export const updateFilmStatusAdmin = async (req, res) => {
     return res.json({ success: true, data: updated });
   } catch (error) {
     console.error("updateFilmStatusAdmin error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Échec de la mise à jour du statut du film",
+    });
   }
 };
 
