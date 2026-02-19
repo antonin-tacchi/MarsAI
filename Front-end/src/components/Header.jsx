@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
 
 import logoClair from "../images/logo-clair.png";
 import logoSombre from "../images/logo-sombre.png";
@@ -8,10 +9,12 @@ import mobileFilmLogo from "../images/mobile-film-logo.png";
 
 export default function Header() {
   const location = useLocation();
+  const { lang, changeLang, t } = useLanguage();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
-  const [lang, setLang] = useState("FR");
+
+  const displayLang = lang.toUpperCase();
 
   // Close menu on route change
   useEffect(() => {
@@ -30,11 +33,16 @@ export default function Header() {
   }, [menuOpen]);
 
   const links = [
-    { to: "/about", label: "Le festival" },
-    { to: "/catalogs", label: "Catalogue" },
-    { to: "/submissions", label: "Participer" },
-    { to: "/prize-list", label: "Palmarès" },
+    { to: "/about", label: t("header.festival") },
+    { to: "/catalogs", label: t("header.catalog") },
+    { to: "/submissions", label: t("header.participate") },
+    { to: "/prize-list", label: t("header.prizes") },
   ];
+
+  const handleLangChange = (language) => {
+    changeLang(language.toLowerCase());
+    setLangOpen(false);
+  };
 
   const DesktopNav = () => (
     <header className="hidden md:flex w-screen bg-white text-black items-center px-8 py-2">
@@ -71,7 +79,7 @@ export default function Header() {
           onClick={() => setLangOpen((v) => !v)}
           className="flex items-center gap-2 text-black"
         >
-          <span className="text-xl">{lang}</span>
+          <span className="text-xl">{displayLang}</span>
           <span className="inline-block w-0 h-0 border-l-[7px] border-r-[7px] border-l-transparent border-r-transparent border-t-[10px] border-t-black" />
         </button>
 
@@ -81,10 +89,7 @@ export default function Header() {
               <button
                 type="button"
                 key={language}
-                onClick={() => {
-                  setLang(language);
-                  setLangOpen(false);
-                }}
+                onClick={() => handleLangChange(language)}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100"
               >
                 {language}
@@ -213,7 +218,7 @@ export default function Header() {
                     onClick={() => setLangOpen((v) => !v)}
                     className="flex items-center gap-2 text-white text-base"
                     >
-                    <span className="font-medium tracking-wide">{lang}</span>
+                    <span className="font-medium tracking-wide">{displayLang}</span>
                     <span className="inline-block w-0 h-0 border-l-[6px] border-r-[6px] border-l-transparent border-r-transparent border-t-[8px] border-t-white/90" />
                     </button>
 
@@ -223,10 +228,7 @@ export default function Header() {
                         <button
                             type="button"
                             key={language}
-                            onClick={() => {
-                            setLang(language);
-                            setLangOpen(false);
-                            }}
+                            onClick={() => handleLangChange(language)}
                             className="block w-full text-left px-4 py-2 hover:bg-white/10 text-white"
                         >
                             {language}
