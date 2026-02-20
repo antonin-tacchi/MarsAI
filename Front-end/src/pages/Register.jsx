@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { register } from "../services/authService";
 import { getProfileRoute } from "../utils/roles";
 import Header from "../components/Header";
+import Footer from "../components/Footer";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function Register() {
@@ -236,6 +237,8 @@ export default function Register() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
