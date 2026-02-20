@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PartnerCard from '../components/PartnerCard';
@@ -177,12 +176,6 @@ export default function Partners() {
           animation: fadeInScale 0.5s ease-out;
         }
       `}</style>
-=======
-export default function Partners() {
-  return (
-    <div>
-      <h1>PARTNERS PAGE</h1>
->>>>>>> 9b73a94 (initial commit)
     </div>
   );
 }
