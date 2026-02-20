@@ -9,6 +9,7 @@ import testRoutes from "./routes/test.routes.js";
 import filmRoutes from "./routes/film.routes.js";
 import juryRoutes from "./routes/jury.routes.js";
 import ratingRoutes from "./routes/rating.routes.js";
+import { getPageContent } from "./controllers/sitepage.controller.js";
 import { testConnection } from "./config/database.js";
 
 
@@ -47,6 +48,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api", healthRoutes);
+app.get("/api/pages/:slug", getPageContent);
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/films", filmRoutes);

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { register } from "../services/authService";
+import { getProfileRoute } from "../utils/roles";
 import Header from "../components/Header";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -78,8 +79,9 @@ export default function Register() {
       };
       const response = await register(registerData);
       console.log("Registration successful:", response);
-      // New users get Jury role by default, redirect to jury dashboard
-      navigate("/profile-jury");
+      // Redirect to profile page based on assigned role
+      const profile = getProfileRoute();
+      navigate(profile ? profile.path : "/");
     } catch (error) {
       setApiError(error.message || t("register.error"));
     } finally {

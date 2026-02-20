@@ -36,6 +36,8 @@ export default class JuryAssignment {
         f.created_at,
 
         ja.assigned_at,
+        ja.status AS assignment_status,
+        ja.refusal_reason,
 
         jr.rating   AS user_rating,
         jr.comment  AS user_comment,
@@ -51,9 +53,12 @@ export default class JuryAssignment {
       LEFT JOIN jury_ratings jr_all
         ON jr_all.film_id = f.id
       WHERE ja.jury_id = ?
+        AND ja.status = 'active'
       GROUP BY
         f.id,
         ja.assigned_at,
+        ja.status,
+        ja.refusal_reason,
         jr.rating,
         jr.comment
       ORDER BY ja.assigned_at ${safeOrder}
@@ -72,8 +77,9 @@ export default class JuryAssignment {
     const sql = `
       SELECT
         COUNT(*) AS total_assigned,
-        SUM(CASE WHEN jr.id IS NULL THEN 1 ELSE 0 END) AS total_unrated,
-        SUM(CASE WHEN jr.id IS NULL THEN 0 ELSE 1 END) AS total_rated
+        SUM(CASE WHEN ja.status = 'refused' THEN 1 ELSE 0 END) AS total_refused,
+        SUM(CASE WHEN ja.status = 'active' AND jr.id IS NULL THEN 1 ELSE 0 END) AS total_unrated,
+        SUM(CASE WHEN ja.status = 'active' AND jr.id IS NOT NULL THEN 1 ELSE 0 END) AS total_rated
       FROM jury_assignments ja
       LEFT JOIN jury_ratings jr
         ON jr.film_id = ja.film_id AND jr.user_id = ?
@@ -81,6 +87,36 @@ export default class JuryAssignment {
     `;
 
     const [rows] = await db.query(sql, [juryId, juryId]);
-    return rows?.[0] || { total_assigned: 0, total_unrated: 0, total_rated: 0 };
+    return rows?.[0] || { total_assigned: 0, total_refused: 0, total_unrated: 0, total_rated: 0 };
+  }
+
+  // Refuse a film assignment
+  static async refuse(juryId, filmId, reason) {
+    // Check assignment exists and is active
+    const [existing] = await db.query(
+      "SELECT id, status FROM jury_assignments WHERE jury_id = ? AND film_id = ?",
+      [juryId, filmId]
+    );
+
+    if (!existing.length) return null;
+    if (existing[0].status === "refused") return { alreadyRefused: true };
+
+    await db.query(
+      `UPDATE jury_assignments
+       SET status = 'refused', refusal_reason = ?, refused_at = NOW()
+       WHERE jury_id = ? AND film_id = ?`,
+      [reason, juryId, filmId]
+    );
+
+    return { success: true };
+  }
+
+  // Check if a jury member is assigned to a film
+  static async isAssigned(juryId, filmId) {
+    const [rows] = await db.query(
+      "SELECT id, status FROM jury_assignments WHERE jury_id = ? AND film_id = ?",
+      [juryId, filmId]
+    );
+    return rows?.[0] || null;
   }
 }

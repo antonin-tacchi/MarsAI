@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import RootLayout from "./layouts/RootLayout.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
@@ -11,10 +12,19 @@ import PrizeList from "./pages/PrizeList.jsx";
 import ProfileAdmin from "./pages/ProfileAdmin.jsx";
 import ProfileDirector from "./pages/ProfileDirector.jsx";
 import ProfileJury from "./pages/ProfileJury.jsx";
+import ProfileSuperJury from "./pages/ProfileSuperJury.jsx";
 import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -29,6 +39,7 @@ const ProtectedRoute = ({ children }) => {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
@@ -63,6 +74,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ProfileJury />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile-superjury"
+            element={
+              <ProtectedRoute>
+                <ProfileSuperJury />
               </ProtectedRoute>
             }
           />

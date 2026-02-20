@@ -45,7 +45,7 @@ export default function Header() {
   };
 
   const DesktopNav = () => (
-    <header className="hidden md:flex w-screen bg-white text-black items-center px-8 py-2">
+    <header className="hidden md:flex w-screen bg-white text-black items-center px-8 py-2 relative z-50">
       <div className="flex items-center">
         <NavLink to="/">
           <img src={logoClair} alt="Logo MarsAI" className="h-[70px] w-auto" />
@@ -102,7 +102,7 @@ export default function Header() {
   );
 
   const MobileHeaderBar = () => (
-    <header className="md:hidden w-screen bg-white text-black flex items-center justify-between px-4 py-2">
+    <header className="md:hidden w-screen bg-white text-black flex items-center justify-between px-4 py-2 relative z-50">
       <NavLink to="/" className="shrink-0">
         <img
           src={logoClair}

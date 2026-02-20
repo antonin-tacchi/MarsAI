@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/authService";
+import { getProfileRoute } from "../utils/roles";
 import Header from "../components/Header";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -56,19 +57,9 @@ export default function Login() {
       const response = await login(formData);
       console.log("Login successful:", response);
 
-      // Redirect based on user role
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const roles = user?.roles || [];
-
-      if (roles.includes(2)) {
-        navigate("/profile-admin");
-      } else if (roles.includes(3)) {
-        navigate("/profile-superjury");
-      } else if (roles.includes(1)) {
-        navigate("/profile-jury");
-      } else {
-        navigate("/");
-      }
+      // Redirect to profile page based on user role
+      const profile = getProfileRoute();
+      navigate(profile ? profile.path : "/");
     } catch (error) {
       setApiError(error.message || t("login.error"));
     } finally {
