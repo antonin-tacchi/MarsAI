@@ -58,6 +58,17 @@ export default function ProfileAdmin() {
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState(null);
 
+  // ── Distribution state ──
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState("");
+  const [R, setR] = useState(3);
+  const [Lmax, setLmax] = useState(10);
+  const [preview, setPreview] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [distResult, setDistResult] = useState(null);
+
   // ── CMS Pages state ──
   const [pageData, setPageData] = useState(null);
   const [pageLoading, setPageLoading] = useState(false);
@@ -134,6 +145,58 @@ export default function ProfileAdmin() {
     }
   }, []);
 
+  // ── Fetch distribution stats ──
+  const fetchStats = useCallback(async () => {
+    setStatsLoading(true);
+    setStatsError("");
+    try {
+      const json = await api(`${API_URL}/api/admin/distribution/stats`, token);
+      setStats(json.data);
+    } catch (err) {
+      console.error("Stats error:", err);
+      setStatsError(err.message);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, [token]);
+
+  const handlePreview = async () => {
+    setPreviewLoading(true);
+    setPreview(null);
+    setDistResult(null);
+    try {
+      const json = await api(`${API_URL}/api/admin/distribution/preview`, token, {
+        method: "POST",
+        body: JSON.stringify({ R, Lmax }),
+      });
+      setPreview(json.data);
+    } catch (err) {
+      console.error("Preview error:", err);
+      setStatsError(err.message);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setDistResult(null);
+    try {
+      const json = await api(`${API_URL}/api/admin/distribution/generate`, token, {
+        method: "POST",
+        body: JSON.stringify({ R, Lmax }),
+      });
+      setDistResult(json.data);
+      setPreview(null);
+      fetchStats();
+    } catch (err) {
+      console.error("Generate error:", err);
+      setStatsError(err.message);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   // Load data based on active tab
   useEffect(() => {
     if (activeTab === "users") fetchUsers();
@@ -146,6 +209,10 @@ export default function ProfileAdmin() {
   useEffect(() => {
     if (activeTab === "pages") fetchPage();
   }, [activeTab, fetchPage]);
+
+  useEffect(() => {
+    if (activeTab === "repartition" || activeTab === "generation") fetchStats();
+  }, [activeTab, fetchStats]);
 
   // ── User CRUD handlers ──
   const openCreateUser = () => {
@@ -343,6 +410,8 @@ export default function ProfileAdmin() {
           {[
             { key: "users", label: "Utilisateurs" },
             { key: "films", label: "Films" },
+            { key: "repartition", label: "Repartition" },
+            { key: "generation", label: "Generation" },
             { key: "pages", label: "Pages" },
           ].map(({ key, label }) => (
             <button
@@ -545,6 +614,153 @@ export default function ProfileAdmin() {
                 >
                   &rsaquo;
                 </button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ════════════════ REPARTITION TAB ════════════════ */}
+        {activeTab === "repartition" && (
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-[#262335] mb-4">
+              Etat actuel de la repartition
+            </h2>
+
+            {statsLoading ? (
+              <p className="text-[#262335]/60">Chargement...</p>
+            ) : statsError ? (
+              <p className="text-red-500">{statsError}</p>
+            ) : stats ? (
+              <>
+                <div className="flex flex-wrap gap-3 mb-6">
+                  <span className="bg-[#262335] text-white px-4 py-2 rounded-lg font-bold">
+                    Films : {stats.filmCount}
+                  </span>
+                  <span className="bg-[#463699] text-white px-4 py-2 rounded-lg font-bold">
+                    Assignations : {stats.assignmentCount}
+                  </span>
+                  <span className="bg-[#463699]/70 text-white px-4 py-2 rounded-lg font-bold">
+                    Jurys : {stats.juryCount}
+                  </span>
+                </div>
+
+                {stats.juries.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b-2 border-[#262335]/10">
+                          <th className="py-3 px-4 font-bold text-[#262335]">Jury</th>
+                          <th className="py-3 px-4 font-bold text-[#262335] text-center">Films assignes</th>
+                          <th className="py-3 px-4 font-bold text-[#262335] text-center">Notes</th>
+                          <th className="py-3 px-4 font-bold text-[#262335] text-center">Restants</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.juries.map((jury) => (
+                          <tr key={jury.id} className="border-b border-[#262335]/5 hover:bg-[#463699]/5 transition-colors">
+                            <td className="py-3 px-4 text-[#262335]">{jury.name}</td>
+                            <td className="py-3 px-4 text-center font-mono">{jury.assigned_films}</td>
+                            <td className="py-3 px-4 text-center font-mono">{jury.rated}</td>
+                            <td className="py-3 px-4 text-center font-mono">{jury.remaining}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-[#262335]/50 italic">Aucune donnee disponible.</p>
+                )}
+              </>
+            ) : null}
+          </section>
+        )}
+
+        {/* ════════════════ GENERATION TAB ════════════════ */}
+        {activeTab === "generation" && (
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-[#262335] mb-4">
+              Generer une repartition
+            </h2>
+
+            <div className="flex flex-wrap gap-4 items-end mb-6">
+              <div>
+                <label className="block text-sm font-bold text-[#262335] mb-1">
+                  R (votes min / film)
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={R}
+                  onChange={(e) => setR(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-24 px-3 py-2 border-2 border-[#262335]/10 rounded-lg text-center font-mono focus:outline-none focus:border-[#463699]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-[#262335] mb-1">
+                  Lmax (films max / jury)
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={Lmax}
+                  onChange={(e) => setLmax(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-24 px-3 py-2 border-2 border-[#262335]/10 rounded-lg text-center font-mono focus:outline-none focus:border-[#463699]"
+                />
+              </div>
+              <Button onClick={handlePreview} disabled={previewLoading}>
+                {previewLoading ? "Calcul..." : "Apercu"}
+              </Button>
+            </div>
+
+            {preview && (
+              <div className="bg-[#FBF5F0] rounded-xl p-5 mb-4">
+                <h3 className="font-bold text-[#262335] mb-3">
+                  Apercu (R={R}, Lmax={Lmax})
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4">
+                  <div className="bg-white rounded-lg p-3 text-center">
+                    <p className="text-[#262335]/60">Films</p>
+                    <p className="font-black text-lg">{preview.filmCount}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 text-center">
+                    <p className="text-[#262335]/60">Assignations</p>
+                    <p className="font-black text-lg">{preview.total}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 text-center">
+                    <p className="text-[#262335]/60">Min / jury</p>
+                    <p className="font-black text-lg">{preview.min}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 text-center">
+                    <p className="text-[#262335]/60">Max / jury</p>
+                    <p className="font-black text-lg">{preview.max}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button onClick={handleGenerate} disabled={generating}>
+                    {generating ? "Generation..." : "Confirmer et generer"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setPreview(null)}
+                    className="text-[#262335] underline font-bold text-sm"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {distResult && (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-5">
+                <p className="font-bold text-green-800 mb-1">Repartition generee avec succes</p>
+                <p className="text-green-700 text-sm">
+                  {distResult.total} assignations creees pour {distResult.juryCount} jurys (R={distResult.R}, Lmax={distResult.Lmax}).
+                </p>
+                <p className="text-green-700 text-sm">
+                  Min: {distResult.min} | Max: {distResult.max} | Moy: {distResult.avg} films/jury
+                </p>
               </div>
             )}
           </section>
