@@ -37,6 +37,25 @@ function decodeJwtPayload(token) {
   }
 }
 
+/**
+ * Returns the numeric role IDs from the JWT token and/or user object.
+ * Backend roles: 1 = Jury, 2 = Admin, 3 = Super Jury
+ */
+export function getUserRoleIds(user = getCurrentUser()) {
+  const token = getToken();
+  const payload = decodeJwtPayload(token);
+  const rolesFromUser = Array.isArray(user?.roles) ? user.roles : [];
+  const rolesFromJwt = Array.isArray(payload?.roles) ? payload.roles : [];
+
+  const ids = new Set();
+  [...rolesFromUser, ...rolesFromJwt].forEach((r) => {
+    const n = Number(r?.role_id ?? r?.id ?? r);
+    if (Number.isFinite(n)) ids.add(n);
+  });
+
+  return [...ids];
+}
+
 export function isAdminOrJury(user = getCurrentUser()) {
   const token = getToken();
   const payload = decodeJwtPayload(token);
@@ -52,4 +71,19 @@ export function isAdminOrJury(user = getCurrentUser()) {
   ].map(normalizeRole);
 
   return allRoles.some((r) => ADMIN_KEYS.has(r) || JURY_KEYS.has(r));
+}
+
+/**
+ * Returns the profile route and label based on the user's highest role.
+ * Priority: Admin (2) > Super Jury (3) > Jury (1)
+ * Returns null if user is not logged in or has no recognized role.
+ */
+export function getProfileRoute(user = getCurrentUser()) {
+  const roles = getUserRoleIds(user);
+
+  if (roles.includes(2)) return { path: "/profile-admin", label: "Espace Admin" };
+  if (roles.includes(3)) return { path: "/profile-superjury", label: "Espace Super Jury" };
+  if (roles.includes(1)) return { path: "/profile-jury", label: "Espace Jury" };
+
+  return null;
 }

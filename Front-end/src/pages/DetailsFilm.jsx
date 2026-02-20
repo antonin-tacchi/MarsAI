@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import FilmPlayer from "../components/FilmPlayer";
 import FilmCard from "../components/FilmCard";
-import { isAdminOrJury } from "../utils/roles";
+import { isAdminOrJury, getUserRoleIds } from "../utils/roles";
+import { useLanguage } from "../context/LanguageContext";
 
 /* utils */
 function formatDateFR(iso) {
@@ -33,11 +34,12 @@ function withAuthHeaders(headers = {}) {
 
 /* FIX 1 : ReviewForm extrait EN DEHORS du composant parent. */
 function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
+  const { t } = useLanguage();
   return (
     <div className="mt-12 flex flex-col gap-10 md:flex-row items-end mb-[69px]">
       <div className="md:flex-1">
         <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
-          Donnez votre avis
+          {t("detailsFilm.giveOpinion")}
         </h2>
 
         <div className="w-full max-w-[600px] h-[80px] flex items-center justify-between px-[27px] bg-black/10 border border-[#262335]/10 rounded-md">
@@ -67,7 +69,7 @@ function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
 
       <div className="md:flex-1">
         <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
-          Ajoutez un commentaire...
+          {t("detailsFilm.addComment")}
         </h2>
 
         <div className="w-full max-w-[600px] h-[80px] p-[3px] bg-white border border-black/10">
@@ -75,7 +77,7 @@ function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
             name="comment"
             value={comment}
             onChange={(e) => onCommentChange(e.target.value)}
-            placeholder="Votre commentaire..."
+            placeholder={t("detailsFilm.commentPlaceholder")}
             className="w-full h-full bg-black/5 border border-black/10 outline-none resize-none px-4 py-4 text-base text-[#262335] placeholder:text-[#262335]/40"
           />
         </div>
@@ -84,20 +86,143 @@ function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
   );
 }
 
-/* Bouton save extrait pour éviter la duplication mobile/desktop */
-function SaveButton({ onSave, saving, saveSuccess, saveError }) {
+/* Badge de statut du film */
+const STATUS_STYLES = {
+  pending: { bg: "bg-yellow-100", text: "text-yellow-800", border: "border-yellow-300" },
+  approved: { bg: "bg-green-100", text: "text-green-800", border: "border-green-300" },
+  rejected: { bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
+};
+
+const STATUS_LABEL_KEYS = {
+  pending: "detailsFilm.statusPending",
+  approved: "detailsFilm.statusApproved",
+  rejected: "detailsFilm.statusRejected",
+};
+
+function StatusBadge({ filmStatus }) {
+  const { t } = useLanguage();
+  const cfg = STATUS_STYLES[filmStatus] || STATUS_STYLES.pending;
+  const labelKey = STATUS_LABEL_KEYS[filmStatus] || STATUS_LABEL_KEYS.pending;
   return (
-    <div className="mt-4 flex items-center gap-4 mb-8">
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+      {t(labelKey)}
+    </span>
+  );
+}
+
+/* Panneau d'approbation / rejet */
+function ApprovalPanel({
+  filmStatus,
+  rejectionReason,
+  onReasonChange,
+  onApprove,
+  onReject,
+  updating,
+  statusMessage,
+}) {
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const { t } = useLanguage();
+
+  return (
+    <div className="mt-8 rounded-xl border border-[#262335]/15 bg-[#f8f6f3] p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-[#262335]">
+          {t("detailsFilm.filmManagement")}
+        </h3>
+        <StatusBadge filmStatus={filmStatus} />
+      </div>
+
+      {statusMessage && (
+        <div
+          className={`mb-4 rounded-lg px-4 py-3 text-sm font-medium ${
+            statusMessage.type === "success"
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+          }`}
+        >
+          {statusMessage.text}
+        </div>
+      )}
+
+      {!showRejectForm ? (
+        <div className="flex flex-wrap gap-3">
+          {filmStatus !== "approved" && (
+            <button
+              onClick={onApprove}
+              disabled={updating}
+              className="px-5 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              {updating ? t("detailsFilm.updating") : t("detailsFilm.approve")}
+            </button>
+          )}
+          {filmStatus !== "rejected" && (
+            <button
+              onClick={() => setShowRejectForm(true)}
+              disabled={updating}
+              className="px-5 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+            >
+              {t("detailsFilm.reject")}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-[#262335]">
+            {t("detailsFilm.rejectionLabel")}
+          </label>
+          <textarea
+            value={rejectionReason}
+            onChange={(e) => onReasonChange(e.target.value)}
+            rows={3}
+            placeholder={t("detailsFilm.rejectionPlaceholder")}
+            className="w-full rounded-lg border border-[#262335]/20 bg-white px-4 py-3 text-[#262335] placeholder:text-[#262335]/40 outline-none focus:ring-2 focus:ring-red-300 resize-none"
+          />
+          <div className="flex gap-3">
+            <button
+              onClick={onReject}
+              disabled={updating || !rejectionReason.trim()}
+              className="px-5 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+            >
+              {updating ? t("detailsFilm.sending") : t("detailsFilm.confirmReject")}
+            </button>
+            <button
+              onClick={() => { setShowRejectForm(false); onReasonChange(""); }}
+              disabled={updating}
+              className="px-5 py-2 rounded-lg border border-[#262335]/20 text-[#262335] font-medium hover:bg-black/5 transition-colors"
+            >
+              {t("detailsFilm.cancel")}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Bouton save extrait pour éviter la duplication mobile/desktop */
+function SaveButton({ onSave, saving, saveSuccess, saveError, onNextFilm, hasNextFilm, hasVoted }) {
+  const { t } = useLanguage();
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-4 mb-8">
       <button
         onClick={onSave}
         disabled={saving}
         className="px-6 py-2 rounded-md bg-[#262335] text-white disabled:opacity-50"
       >
-        {saving ? "Enregistrement..." : "Enregistrer"}
+        {saving ? t("detailsFilm.saving") : t("detailsFilm.save")}
       </button>
 
+      {hasVoted && hasNextFilm && (
+        <button
+          onClick={onNextFilm}
+          className="px-6 py-2 rounded-md bg-[#463699] text-white hover:bg-[#362b7a] transition-colors"
+        >
+          Film suivant →
+        </button>
+      )}
+
       {saveSuccess && (
-        <span className="text-green-600 text-sm font-medium">✓ Enregistré</span>
+        <span className="text-green-600 text-sm font-medium">{t("detailsFilm.saved")}</span>
       )}
       {saveError && <span className="text-red-600 text-sm">{saveError}</span>}
     </div>
@@ -106,8 +231,12 @@ function SaveButton({ onSave, saving, saveSuccess, saveError }) {
 
 export default function DetailsFilm() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { t } = useLanguage();
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
   const canReview = isAdminOrJury();
+  const userRoles = getUserRoleIds();
+  const isJury = userRoles.includes(1) || userRoles.includes(3);
 
   /* STATES */
   const [film, setFilm] = useState(null);
@@ -126,6 +255,13 @@ export default function DetailsFilm() {
   const [error, setError] = useState("");
 
   const [stats, setStats] = useState(null);
+  const [nextFilmId, setNextFilmId] = useState(null);
+
+  /* Approval states */
+  const [filmStatus, setFilmStatus] = useState("pending");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
 
   /* API */
   const fetchFilmById = useCallback(
@@ -233,6 +369,7 @@ export default function DetailsFilm() {
         ]);
 
         setFilm(filmData);
+        setFilmStatus(filmData.status || "pending");
 
         setSuggestions(
           shuffleArray(allFilms.filter((f) => String(f.id) !== String(id))).slice(
@@ -264,8 +401,9 @@ export default function DetailsFilm() {
         }
 
         // 3) Mon avis : seulement si jury/admin
+        let myRatings = [];
         if (canReview) {
-          const myRatings = await fetchMyRatings(controller.signal);
+          myRatings = await fetchMyRatings(controller.signal);
           const existing = myRatings.find(
             (r) => String(r.film_id) === String(id)
           );
@@ -285,6 +423,29 @@ export default function DetailsFilm() {
           setRatingId(null);
         }
 
+        // 4) Film suivant : trouver le prochain film non noté dans la liste assignée
+        if (isJury) {
+          try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(
+              `${API_URL}/api/jury/assigned-films?page=1&limit=200`,
+              {
+                signal: controller.signal,
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+              }
+            );
+            const assigned = await res.json();
+            const assignedFilms = assigned.data || [];
+            const ratedIds = new Set(myRatings.map((r) => String(r.film_id)));
+            const next = assignedFilms.find(
+              (f) => String(f.id) !== String(id) && !ratedIds.has(String(f.id))
+            );
+            setNextFilmId(next ? next.id : null);
+          } catch {
+            setNextFilmId(null);
+          }
+        }
+
         setStatus("success");
       } catch (e) {
         if (e.name === "AbortError") return;
@@ -298,6 +459,8 @@ export default function DetailsFilm() {
   }, [
     id,
     canReview,
+    isJury,
+    API_URL,
     fetchAllFilms,
     fetchFilmById,
     fetchMyRatings,
@@ -308,7 +471,7 @@ export default function DetailsFilm() {
   /* SAVE */
   const saveRating = async () => {
     if (!rating) {
-      setSaveError("Veuillez sélectionner une note");
+      setSaveError(t("detailsFilm.ratingRequired"));
       return;
     }
 
@@ -318,7 +481,7 @@ export default function DetailsFilm() {
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) throw new Error("Vous devez être connecté pour noter.");
+      if (!token) throw new Error(t("detailsFilm.loginRequired"));
 
       const res = await fetch(
         ratingId ? `${API_URL}/api/ratings/${ratingId}` : `${API_URL}/api/ratings`,
@@ -341,6 +504,46 @@ export default function DetailsFilm() {
       setSaveError(e.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  /* STATUS CHANGE */
+  const handleStatusChange = async (newStatus) => {
+    setStatusUpdating(true);
+    setStatusMessage(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error(t("detailsFilm.mustBeConnected"));
+
+      const res = await fetch(`${API_URL}/api/films/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          rejection_reason: newStatus === "rejected" ? rejectionReason : null,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      setFilmStatus(newStatus);
+      setRejectionReason("");
+      setStatusMessage({
+        type: "success",
+        text:
+          newStatus === "approved"
+            ? t("detailsFilm.approvedMessage")
+            : t("detailsFilm.rejectedMessage"),
+      });
+    } catch (e) {
+      setStatusMessage({ type: "error", text: e.message });
+    } finally {
+      setStatusUpdating(false);
     }
   };
 
@@ -442,8 +645,11 @@ export default function DetailsFilm() {
         "
       >
         <div className="mb-6">
-          <Link to="/catalogs" className="text-[#262335]/70 hover:text-[#262335]">
-            ← Retour aux catalogues
+          <Link
+            to={isJury ? "/profile-jury" : "/catalogs"}
+            className="text-[#262335]/70 hover:text-[#262335]"
+          >
+            ← {isJury ? "Retour à mes films" : "Retour aux catalogues"}
           </Link>
         </div>
 
@@ -506,8 +712,21 @@ export default function DetailsFilm() {
                     </p>
                   </div>
 
-                  {/* Formulaire visible seulement pour jury/admin */}
+                  {/* Panneau approbation/rejet visible pour jury/admin */}
                   {canReview && (
+                    <ApprovalPanel
+                      filmStatus={filmStatus}
+                      rejectionReason={rejectionReason}
+                      onReasonChange={setRejectionReason}
+                      onApprove={() => handleStatusChange("approved")}
+                      onReject={() => handleStatusChange("rejected")}
+                      updating={statusUpdating}
+                      statusMessage={statusMessage}
+                    />
+                  )}
+
+                  {/* Formulaire visible seulement pour jury/admin + film approuvé */}
+                  {canReview && filmStatus === "approved" && (
                     <>
                       <ReviewForm
                         rating={rating}
@@ -520,12 +739,15 @@ export default function DetailsFilm() {
                         saving={saving}
                         saveSuccess={saveSuccess}
                         saveError={saveError}
+                        hasNextFilm={!!nextFilmId}
+                        hasVoted={!!ratingId || saveSuccess}
+                        onNextFilm={() => navigate(`/details-film/${nextFilmId}`)}
                       />
                     </>
                   )}
 
-                  {/* Avis du jury visible seulement pour jury/admin */}
-                  {canReview && <JurySection compact />}
+                  {/* Avis du jury visible seulement pour jury/admin + film approuvé */}
+                  {canReview && filmStatus === "approved" && <JurySection compact />}
                 </div>
               </div>
 
@@ -561,7 +783,21 @@ export default function DetailsFilm() {
                   </p>
                 </div>
 
+                {/* Panneau approbation/rejet visible pour jury/admin */}
                 {canReview && (
+                  <ApprovalPanel
+                    filmStatus={filmStatus}
+                    rejectionReason={rejectionReason}
+                    onReasonChange={setRejectionReason}
+                    onApprove={() => handleStatusChange("approved")}
+                    onReject={() => handleStatusChange("rejected")}
+                    updating={statusUpdating}
+                    statusMessage={statusMessage}
+                  />
+                )}
+
+                {/* Formulaire visible seulement pour jury/admin + film approuvé */}
+                {canReview && filmStatus === "approved" && (
                   <>
                     <ReviewForm
                       rating={rating}
@@ -574,50 +810,55 @@ export default function DetailsFilm() {
                       saving={saving}
                       saveSuccess={saveSuccess}
                       saveError={saveError}
+                      hasNextFilm={!!nextFilmId}
+                      hasVoted={!!ratingId || saveSuccess}
+                      onNextFilm={() => navigate(`/details-film/${nextFilmId}`)}
                     />
                   </>
                 )}
 
-                {/* Avis du jury visible seulement pour jury/admin */}
-                {canReview && <JurySection />}
+                {/* Avis du jury visible seulement pour jury/admin + film approuvé */}
+                {canReview && filmStatus === "approved" && <JurySection />}
               </div>
             </div>
 
-            {/* Colonne droite — suggestions */}
-            <aside
-              className="
-                w-full
-                max-w-[300px]
-                mx-auto
-                pt-2
-                space-y-5
-                lg:w-[300px]
-                lg:shrink-0
-                lg:mx-0
-              "
-            >
-              {suggestions.map((s) => (
-                <div
-                  key={`sug-${id}-${s.id}`}
-                  className="
-                    max-w-[260px]
-                    mx-auto
-                    [&>a]:w-full
-                    [&_.relative]:aspect-video
-                    [&_.relative]:h-auto
-                    [&_img]:h-full
-                    [&_img]:w-full
-                    [&_img]:object-cover
-                    [&_p:first-of-type]:text-[14px]
-                    [&_p:first-of-type]:leading-snug
-                    [&_p:last-of-type]:text-[12px]
-                    [&_p:first-of-type]:mt-1
-                  "
-                >
-                  <FilmCard film={s} apiUrl={API_URL} imageVariant="thumbnail" />
-                </div>
-              ))}
-            </aside>
+            {/* Colonne droite — suggestions (masquée pour les jurys) */}
+            {!isJury && (
+              <aside
+                className="
+                  w-full
+                  max-w-[300px]
+                  mx-auto
+                  pt-2
+                  space-y-5
+                  lg:w-[300px]
+                  lg:shrink-0
+                  lg:mx-0
+                "
+              >
+                {suggestions.map((s) => (
+                  <div
+                    key={`sug-${id}-${s.id}`}
+                    className="
+                      max-w-[260px]
+                      mx-auto
+                      [&>a]:w-full
+                      [&_.relative]:aspect-video
+                      [&_.relative]:h-auto
+                      [&_img]:h-full
+                      [&_img]:w-full
+                      [&_img]:object-cover
+                      [&_p:first-of-type]:text-[14px]
+                      [&_p:first-of-type]:leading-snug
+                      [&_p:last-of-type]:text-[12px]
+                      [&_p:first-of-type]:mt-1
+                    "
+                  >
+                    <FilmCard film={s} apiUrl={API_URL} imageVariant="thumbnail" />
+                  </div>
+                ))}
+              </aside>
+            )}
           </div>
         )}
       </div>

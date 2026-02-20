@@ -3,6 +3,7 @@ import FilmCard from "../components/FilmCard";
 import SearchBar from "../components/SearchBar";
 import Button from "../components/Button";
 import FilmFilters from "../components/FilmFilters";
+import { useLanguage } from "../context/LanguageContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 const PER_PAGE = 20;
@@ -17,6 +18,7 @@ const SkeletonCard = () => (
 );
 
 export default function Catalogs() {
+  const { t } = useLanguage();
   const [films, setFilms] = useState([]);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -45,25 +47,20 @@ export default function Catalogs() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.message || "Erreur lors du chargement");
+        throw new Error(data?.message || t("catalogs.loadError"));
       }
 
       setFilms(data?.data || []);
       setStatus("idle");
     } catch (err) {
-      setError("Impossible de se connecter au serveur.");
+      setError(t("catalogs.connectionError"));
       setStatus("idle");
     }
   }, []);
 
-  // --- FETCH RANKING (si connecté) ---
+  // --- FETCH RANKING (public) ---
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    fetch(`${API_URL}/api/jury/results`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch(`${API_URL}/api/films/ranking`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.success) setRanking(data.data);
@@ -184,7 +181,7 @@ export default function Catalogs() {
       <div className="max-w-7xl mx-auto">
         <header className="mb-12">
           <h1 className="text-4xl font-black text-[#262335] uppercase tracking-tighter mb-8 p-6 italic ">
-            Catalogue
+            {t("catalogs.title")}
           </h1>
 
           <div className="max-w-2xl mb-8 p-6">
@@ -212,7 +209,7 @@ export default function Catalogs() {
               onClick={() => setPage(1)}
               disabled={page === 1}
               className="hover:opacity-60 disabled:opacity-30"
-              aria-label="Première page"
+              aria-label={t("catalogs.firstPage")}
               type="button"
             >
               «
@@ -222,7 +219,7 @@ export default function Catalogs() {
               onClick={() => setPage((p) => Math.max(p - 1, 1))}
               disabled={page === 1}
               className="hover:opacity-60 disabled:opacity-30"
-              aria-label="Page précédente"
+              aria-label={t("catalogs.prevPage")}
               type="button"
             >
               ‹
@@ -234,7 +231,7 @@ export default function Catalogs() {
               onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
               disabled={page === totalPages}
               className="hover:opacity-60 disabled:opacity-30"
-              aria-label="Page suivante"
+              aria-label={t("catalogs.nextPage")}
               type="button"
             >
               ›
@@ -244,7 +241,7 @@ export default function Catalogs() {
               onClick={() => setPage(totalPages)}
               disabled={page === totalPages}
               className="hover:opacity-60 disabled:opacity-30"
-              aria-label="Dernière page"
+              aria-label={t("catalogs.lastPage")}
               type="button"
             >
               »
@@ -257,10 +254,10 @@ export default function Catalogs() {
           <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto">
             <div className="text-5xl mb-4 text-red-400">⚠️</div>
             <h2 className="text-2xl font-black text-[#262335] uppercase mb-2">
-              Erreur Serveur
+              {t("catalogs.serverError")}
             </h2>
             <p className="text-[#262335]/70 mb-6">{error}</p>
-            <Button onClick={fetchFilms}>Réessayer</Button>
+            <Button onClick={fetchFilms}>{t("catalogs.retry")}</Button>
           </div>
         )}
 
@@ -283,7 +280,7 @@ export default function Catalogs() {
             {query ? (
               <>
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
-                  Aucun résultat pour cette recherche
+                  {t("catalogs.noResults")}
                 </h2>
                 <Button
                   onClick={() => {
@@ -292,13 +289,13 @@ export default function Catalogs() {
                   }}
                   className="mt-8 scale-90"
                 >
-                  Effacer la recherche
+                  {t("catalogs.clearSearch")}
                 </Button>
               </>
             ) : (
               <>
                 <h2 className="text-2xl md:text-3xl font-black text-[#262335] uppercase tracking-tighter">
-                  Aucun film dans le catalogue
+                  {t("catalogs.empty")}
                 </h2>
               </>
             )}
@@ -337,7 +334,7 @@ export default function Catalogs() {
                   onClick={() => setPage(1)}
                   disabled={page === 1}
                   className="hover:opacity-60 disabled:opacity-30"
-                  aria-label="Première page"
+                  aria-label={t("catalogs.firstPage")}
                   type="button"
                 >
                   «
@@ -347,7 +344,7 @@ export default function Catalogs() {
                   onClick={() => setPage((p) => Math.max(p - 1, 1))}
                   disabled={page === 1}
                   className="hover:opacity-60 disabled:opacity-30"
-                  aria-label="Page précédente"
+                  aria-label={t("catalogs.prevPage")}
                   type="button"
                 >
                   ‹
@@ -359,7 +356,7 @@ export default function Catalogs() {
                   onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
                   disabled={page === totalPages}
                   className="hover:opacity-60 disabled:opacity-30"
-                  aria-label="Page suivante"
+                  aria-label={t("catalogs.nextPage")}
                   type="button"
                 >
                   ›
@@ -369,7 +366,7 @@ export default function Catalogs() {
                   onClick={() => setPage(totalPages)}
                   disabled={page === totalPages}
                   className="hover:opacity-60 disabled:opacity-30"
-                  aria-label="Dernière page"
+                  aria-label={t("catalogs.lastPage")}
                   type="button"
                 >
                   »
