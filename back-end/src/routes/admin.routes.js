@@ -15,6 +15,9 @@ import {
   previewDistribution,
   generateDistribution,
 } from "../controllers/superjury.controller.js";
+import {
+  updatePageContent,
+} from "../controllers/sitepage.controller.js";
 
 const router = Router();
 
@@ -37,5 +40,8 @@ router.delete("/films/:id", deleteFilm);
 router.get("/distribution/stats", getDistributionStats);
 router.post("/distribution/preview", previewDistribution);
 router.post("/distribution/generate", generateDistribution);
+
+// ─── CMS / SITE CONTENT (Admin) ─────────────────────────
+router.put("/pages/:slug", updatePageContent);
 
 export default router;

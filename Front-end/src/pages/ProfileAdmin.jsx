@@ -58,6 +58,13 @@ export default function ProfileAdmin() {
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState(null);
 
+  // ── CMS Pages state ──
+  const [pageData, setPageData] = useState(null);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [pageSaving, setPageSaving] = useState(false);
+  const [pageLang, setPageLang] = useState("fr"); // which language tab is active in editor
+  const [pageForm, setPageForm] = useState({ fr: null, en: null });
+
   // ── Fetch profile ──
   useEffect(() => {
     (async () => {
@@ -102,6 +109,31 @@ export default function ProfileAdmin() {
     }
   }, [token]);
 
+  // ── Fetch page content (CMS) ──
+  const fetchPage = useCallback(async () => {
+    setPageLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/pages/home`);
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setPageData(json.data);
+        const parseFr =
+          typeof json.data.content_fr === "string"
+            ? JSON.parse(json.data.content_fr)
+            : json.data.content_fr || {};
+        const parseEn =
+          typeof json.data.content_en === "string"
+            ? JSON.parse(json.data.content_en)
+            : json.data.content_en || {};
+        setPageForm({ fr: parseFr, en: parseEn });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPageLoading(false);
+    }
+  }, []);
+
   // Load data based on active tab
   useEffect(() => {
     if (activeTab === "users") fetchUsers();
@@ -110,6 +142,10 @@ export default function ProfileAdmin() {
   useEffect(() => {
     if (activeTab === "films") fetchFilms(filmPage, filmFilter);
   }, [activeTab, filmPage, filmFilter, fetchFilms]);
+
+  useEffect(() => {
+    if (activeTab === "pages") fetchPage();
+  }, [activeTab, fetchPage]);
 
   // ── User CRUD handlers ──
   const openCreateUser = () => {
@@ -168,6 +204,78 @@ export default function ProfileAdmin() {
       return {
         ...prev,
         roles: has ? prev.roles.filter((r) => r !== roleId) : [...prev.roles, roleId],
+      };
+    });
+  };
+
+  // ── CMS save handler ──
+  const handleSavePage = async () => {
+    setPageSaving(true);
+    try {
+      await api(`${API_URL}/api/admin/pages/home`, token, {
+        method: "PUT",
+        body: JSON.stringify({
+          content_fr: pageForm.fr,
+          content_en: pageForm.en,
+        }),
+      });
+      await fetchPage();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setPageSaving(false);
+    }
+  };
+
+  const updateSection = (section, field, value) => {
+    setPageForm((prev) => ({
+      ...prev,
+      [pageLang]: {
+        ...prev[pageLang],
+        [section]: {
+          ...(prev[pageLang]?.[section] || {}),
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  const updateDateItem = (index, field, value) => {
+    setPageForm((prev) => {
+      const items = [...(prev[pageLang]?.dates?.items || [])];
+      items[index] = { ...items[index], [field]: value };
+      return {
+        ...prev,
+        [pageLang]: {
+          ...prev[pageLang],
+          dates: { ...prev[pageLang]?.dates, items },
+        },
+      };
+    });
+  };
+
+  const addDateItem = () => {
+    setPageForm((prev) => {
+      const items = [...(prev[pageLang]?.dates?.items || []), { label: "", date: "" }];
+      return {
+        ...prev,
+        [pageLang]: {
+          ...prev[pageLang],
+          dates: { ...prev[pageLang]?.dates, items },
+        },
+      };
+    });
+  };
+
+  const removeDateItem = (index) => {
+    setPageForm((prev) => {
+      const items = (prev[pageLang]?.dates?.items || []).filter((_, i) => i !== index);
+      return {
+        ...prev,
+        [pageLang]: {
+          ...prev[pageLang],
+          dates: { ...prev[pageLang]?.dates, items },
+        },
       };
     });
   };
@@ -232,18 +340,22 @@ export default function ProfileAdmin() {
 
         {/* Tabs */}
         <div className="flex gap-2">
-          {["users", "films"].map((tab) => (
+          {[
+            { key: "users", label: "Utilisateurs" },
+            { key: "films", label: "Films" },
+            { key: "pages", label: "Pages" },
+          ].map(({ key, label }) => (
             <button
-              key={tab}
+              key={key}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => setActiveTab(key)}
               className={`px-6 py-2 rounded-lg font-bold text-sm transition-colors ${
-                activeTab === tab
+                activeTab === key
                   ? "bg-[#262335] text-white"
                   : "bg-[#262335]/10 text-[#262335] hover:bg-[#262335]/20"
               }`}
             >
-              {tab === "users" ? "Utilisateurs" : "Films"}
+              {label}
             </button>
           ))}
         </div>
@@ -433,6 +545,219 @@ export default function ProfileAdmin() {
                 >
                   &rsaquo;
                 </button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ════════════════ PAGES TAB (CMS) ════════════════ */}
+        {activeTab === "pages" && (
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-[#262335]">Page d&apos;accueil</h2>
+              <div className="flex gap-2">
+                {["fr", "en"].map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => setPageLang(l)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-colors ${
+                      pageLang === l
+                        ? "bg-[#463699] text-white"
+                        : "bg-[#463699]/10 text-[#463699] hover:bg-[#463699]/20"
+                    }`}
+                  >
+                    {l.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {pageLoading ? (
+              <p className="text-[#262335]/50">Chargement...</p>
+            ) : !pageForm[pageLang] ? (
+              <p className="text-[#262335]/50 italic">Aucun contenu.</p>
+            ) : (
+              <div className="space-y-8">
+                {/* ── Hero Section ── */}
+                <fieldset className="border border-[#262335]/10 rounded-xl p-4">
+                  <legend className="px-2 font-bold text-[#262335] text-sm">Hero</legend>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#262335]/60 mb-1">Titre</label>
+                      <input
+                        type="text"
+                        value={pageForm[pageLang]?.hero?.title || ""}
+                        onChange={(e) => updateSection("hero", "title", e.target.value)}
+                        className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#262335]/60 mb-1">Sous-titre</label>
+                      <textarea
+                        rows={2}
+                        value={pageForm[pageLang]?.hero?.subtitle || ""}
+                        onChange={(e) => updateSection("hero", "subtitle", e.target.value)}
+                        className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#262335]/60 mb-1">
+                        Image de fond (URL)
+                      </label>
+                      <input
+                        type="text"
+                        value={pageForm[pageLang]?.hero?.backgroundImage || ""}
+                        onChange={(e) => updateSection("hero", "backgroundImage", e.target.value)}
+                        placeholder="https://example.com/image.jpg"
+                        className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+
+                {/* ── About Section ── */}
+                <fieldset className="border border-[#262335]/10 rounded-xl p-4">
+                  <legend className="px-2 font-bold text-[#262335] text-sm">A propos</legend>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#262335]/60 mb-1">Titre</label>
+                      <input
+                        type="text"
+                        value={pageForm[pageLang]?.about?.title || ""}
+                        onChange={(e) => updateSection("about", "title", e.target.value)}
+                        className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#262335]/60 mb-1">Texte</label>
+                      <textarea
+                        rows={4}
+                        value={pageForm[pageLang]?.about?.text || ""}
+                        onChange={(e) => updateSection("about", "text", e.target.value)}
+                        className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+
+                {/* ── Dates Section ── */}
+                <fieldset className="border border-[#262335]/10 rounded-xl p-4">
+                  <legend className="px-2 font-bold text-[#262335] text-sm">Dates cles</legend>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#262335]/60 mb-1">Titre</label>
+                      <input
+                        type="text"
+                        value={pageForm[pageLang]?.dates?.title || ""}
+                        onChange={(e) => updateSection("dates", "title", e.target.value)}
+                        className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                      />
+                    </div>
+                    {(pageForm[pageLang]?.dates?.items || []).map((item, i) => (
+                      <div key={i} className="flex gap-3 items-center">
+                        <input
+                          type="text"
+                          value={item.label || ""}
+                          onChange={(e) => updateDateItem(i, "label", e.target.value)}
+                          placeholder="Label"
+                          className="flex-1 px-3 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699] text-sm"
+                        />
+                        <input
+                          type="text"
+                          value={item.date || ""}
+                          onChange={(e) => updateDateItem(i, "date", e.target.value)}
+                          placeholder="Date"
+                          className="flex-1 px-3 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699] text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeDateItem(i)}
+                          className="px-2 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-bold hover:bg-red-200"
+                        >
+                          X
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addDateItem}
+                      className="px-4 py-2 bg-[#262335]/5 text-[#262335] rounded-lg text-sm font-bold hover:bg-[#262335]/10"
+                    >
+                      + Ajouter une date
+                    </button>
+                  </div>
+                </fieldset>
+
+                {/* ── CTA Section ── */}
+                <fieldset className="border border-[#262335]/10 rounded-xl p-4">
+                  <legend className="px-2 font-bold text-[#262335] text-sm">Appel a l&apos;action</legend>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#262335]/60 mb-1">Titre</label>
+                      <input
+                        type="text"
+                        value={pageForm[pageLang]?.cta?.title || ""}
+                        onChange={(e) => updateSection("cta", "title", e.target.value)}
+                        className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#262335]/60 mb-1">Texte</label>
+                      <textarea
+                        rows={2}
+                        value={pageForm[pageLang]?.cta?.text || ""}
+                        onChange={(e) => updateSection("cta", "text", e.target.value)}
+                        className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-[#262335]/60 mb-1">
+                          Texte du bouton
+                        </label>
+                        <input
+                          type="text"
+                          value={pageForm[pageLang]?.cta?.buttonText || ""}
+                          onChange={(e) => updateSection("cta", "buttonText", e.target.value)}
+                          className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#262335]/60 mb-1">
+                          Lien du bouton
+                        </label>
+                        <input
+                          type="text"
+                          value={pageForm[pageLang]?.cta?.buttonLink || ""}
+                          onChange={(e) => updateSection("cta", "buttonLink", e.target.value)}
+                          placeholder="/submissions"
+                          className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </fieldset>
+
+                {/* Save button */}
+                <div className="flex gap-3 pt-2">
+                  <Button onClick={handleSavePage} disabled={pageSaving}>
+                    {pageSaving ? "Enregistrement..." : "Enregistrer les modifications"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={fetchPage}
+                    className="text-[#262335] underline font-bold text-sm"
+                  >
+                    Annuler
+                  </button>
+                </div>
+
+                {pageData?.updated_at && (
+                  <p className="text-xs text-[#262335]/40">
+                    Derniere modification : {new Date(pageData.updated_at).toLocaleString("fr-FR")}
+                  </p>
+                )}
               </div>
             )}
           </section>
