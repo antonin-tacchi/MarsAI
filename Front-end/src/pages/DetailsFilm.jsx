@@ -200,7 +200,7 @@ function ApprovalPanel({
 }
 
 /* Bouton save extrait pour éviter la duplication mobile/desktop */
-function SaveButton({ onSave, saving, saveSuccess, saveError, onNextFilm, hasNextFilm }) {
+function SaveButton({ onSave, saving, saveSuccess, saveError, onNextFilm, hasNextFilm, hasVoted }) {
   const { t } = useLanguage();
   return (
     <div className="mt-4 flex flex-wrap items-center gap-4 mb-8">
@@ -212,7 +212,7 @@ function SaveButton({ onSave, saving, saveSuccess, saveError, onNextFilm, hasNex
         {saving ? t("detailsFilm.saving") : t("detailsFilm.save")}
       </button>
 
-      {saveSuccess && hasNextFilm && (
+      {hasVoted && hasNextFilm && (
         <button
           onClick={onNextFilm}
           className="px-6 py-2 rounded-md bg-[#463699] text-white hover:bg-[#362b7a] transition-colors"
@@ -740,6 +740,7 @@ export default function DetailsFilm() {
                         saveSuccess={saveSuccess}
                         saveError={saveError}
                         hasNextFilm={!!nextFilmId}
+                        hasVoted={!!ratingId || saveSuccess}
                         onNextFilm={() => navigate(`/details-film/${nextFilmId}`)}
                       />
                     </>
@@ -810,6 +811,7 @@ export default function DetailsFilm() {
                       saveSuccess={saveSuccess}
                       saveError={saveError}
                       hasNextFilm={!!nextFilmId}
+                      hasVoted={!!ratingId || saveSuccess}
                       onNextFilm={() => navigate(`/details-film/${nextFilmId}`)}
                     />
                   </>
@@ -820,41 +822,43 @@ export default function DetailsFilm() {
               </div>
             </div>
 
-            {/* Colonne droite — suggestions */}
-            <aside
-              className="
-                w-full
-                max-w-[300px]
-                mx-auto
-                pt-2
-                space-y-5
-                lg:w-[300px]
-                lg:shrink-0
-                lg:mx-0
-              "
-            >
-              {suggestions.map((s) => (
-                <div
-                  key={`sug-${id}-${s.id}`}
-                  className="
-                    max-w-[260px]
-                    mx-auto
-                    [&>a]:w-full
-                    [&_.relative]:aspect-video
-                    [&_.relative]:h-auto
-                    [&_img]:h-full
-                    [&_img]:w-full
-                    [&_img]:object-cover
-                    [&_p:first-of-type]:text-[14px]
-                    [&_p:first-of-type]:leading-snug
-                    [&_p:last-of-type]:text-[12px]
-                    [&_p:first-of-type]:mt-1
-                  "
-                >
-                  <FilmCard film={s} apiUrl={API_URL} imageVariant="thumbnail" />
-                </div>
-              ))}
-            </aside>
+            {/* Colonne droite — suggestions (masquée pour les jurys) */}
+            {!isJury && (
+              <aside
+                className="
+                  w-full
+                  max-w-[300px]
+                  mx-auto
+                  pt-2
+                  space-y-5
+                  lg:w-[300px]
+                  lg:shrink-0
+                  lg:mx-0
+                "
+              >
+                {suggestions.map((s) => (
+                  <div
+                    key={`sug-${id}-${s.id}`}
+                    className="
+                      max-w-[260px]
+                      mx-auto
+                      [&>a]:w-full
+                      [&_.relative]:aspect-video
+                      [&_.relative]:h-auto
+                      [&_img]:h-full
+                      [&_img]:w-full
+                      [&_img]:object-cover
+                      [&_p:first-of-type]:text-[14px]
+                      [&_p:first-of-type]:leading-snug
+                      [&_p:last-of-type]:text-[12px]
+                      [&_p:first-of-type]:mt-1
+                    "
+                  >
+                    <FilmCard film={s} apiUrl={API_URL} imageVariant="thumbnail" />
+                  </div>
+                ))}
+              </aside>
+            )}
           </div>
         )}
       </div>
