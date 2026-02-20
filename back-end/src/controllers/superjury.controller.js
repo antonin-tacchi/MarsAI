@@ -216,16 +216,17 @@ export const generateDistribution = async (req, res) => {
     }
 
     // Insert all assignments
+    const assignedBy = req.user.userId;
     const rows = [];
     for (const [juryId, filmIds] of assignments) {
       for (const filmId of filmIds) {
-        rows.push([juryId, filmId]);
+        rows.push([juryId, filmId, assignedBy]);
       }
     }
 
     if (rows.length > 0) {
       await db.query(
-        "INSERT INTO jury_assignments (jury_id, film_id) VALUES ?",
+        "INSERT INTO jury_assignments (jury_id, film_id, assigned_by) VALUES ?",
         [rows]
       );
     }
