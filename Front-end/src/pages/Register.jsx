@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { register } from "../services/authService";
+import { getProfileRoute } from "../utils/roles";
 import Header from "../components/Header";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Register() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -31,31 +34,29 @@ export default function Register() {
     const newErrors = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = "Le prénom est requis";
+      newErrors.firstName = t("register.firstNameRequired");
     } else if (formData.firstName.trim().length < 2) {
-      newErrors.firstName = "Le prénom doit contenir au moins 2 caractères";
+      newErrors.firstName = t("register.firstNameMinLength");
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = "Le nom est requis";
+      newErrors.lastName = t("register.lastNameRequired");
     } else if (formData.lastName.trim().length < 2) {
-      newErrors.lastName = "Le nom doit contenir au moins 2 caractères";
+      newErrors.lastName = t("register.lastNameMinLength");
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = "L'email est requis";
+      newErrors.email = t("register.emailRequired");
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Format d'email invalide";
+      newErrors.email = t("register.emailInvalid");
     }
 
     if (!formData.password) {
-      newErrors.password = "Le mot de passe est requis";
+      newErrors.password = t("register.passwordRequired");
     } else if (formData.password.length < 8) {
-      newErrors.password =
-        "Le mot de passe doit contenir au moins 8 caractères";
+      newErrors.password = t("register.passwordMinLength");
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password =
-        "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre";
+      newErrors.password = t("register.passwordComplexity");
     }
 
     setErrors(newErrors);
@@ -78,10 +79,11 @@ export default function Register() {
       };
       const response = await register(registerData);
       console.log("Registration successful:", response);
-      // New users get Jury role by default, redirect to jury dashboard
-      navigate("/profile-jury");
+      // Redirect to profile page based on assigned role
+      const profile = getProfileRoute();
+      navigate(profile ? profile.path : "/");
     } catch (error) {
-      setApiError(error.message || "L'inscription a échoué. Veuillez réessayer.");
+      setApiError(error.message || t("register.error"));
     } finally {
       setLoading(false);
     }
@@ -101,27 +103,24 @@ export default function Register() {
                 to="/login"
                 className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium text-[#262335] hover:bg-gray-50 transition-colors"
               >
-                Se connecter
+                {t("register.login")}
               </Link>
               <div className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium bg-[#463699] text-white">
-                S'inscrire
+                {t("register.title")}
               </div>
             </div>
 
             {/* Title */}
             <h1 className="text-3xl md:text-4xl font-bold text-[#262335] mb-3">
-              S'inscrire
+              {t("register.title")}
             </h1>
 
             <p className="text-sm md:text-base text-gray-600 mb-4">
-              Si vous êtes <span className="font-semibold">jury</span> ou{" "}
-              <span className="font-semibold">réalisateur</span>, veuillez
-              utiliser le mot de passe reçu par email
+              {t("register.juryNote")}
             </p>
 
             <p className="text-sm md:text-base text-gray-600 mb-6">
-              Si vous êtes <span className="font-semibold">visiteur</span>, vous
-              pouvez créer un compte librement.
+              {t("register.visitorNote")}
             </p>
 
             {/* Form */}
@@ -131,7 +130,7 @@ export default function Register() {
                 {/* First Name */}
                 <div>
                   <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
-                    Prénom
+                    {t("register.firstName")}
                   </label>
                   <input
                     type="text"
@@ -151,7 +150,7 @@ export default function Register() {
                 {/* Last Name */}
                 <div>
                   <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
-                    Nom
+                    {t("register.lastName")}
                   </label>
                   <input
                     type="text"
@@ -172,7 +171,7 @@ export default function Register() {
               {/* Email */}
               <div>
                 <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
-                  Email
+                  {t("register.email")}
                 </label>
                 <input
                   type="email"
@@ -190,7 +189,7 @@ export default function Register() {
               {/* Password */}
               <div>
                 <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
-                  Mot de passe
+                  {t("register.password")}
                 </label>
                 <input
                   type="password"
@@ -218,7 +217,7 @@ export default function Register() {
                 disabled={loading}
                 className="w-full bg-[#262335] text-white py-3.5 rounded-md font-semibold hover:bg-[#463699] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6 text-base md:text-lg"
               >
-                {loading ? "Inscription..." : "S'inscrire"}
+                {loading ? t("register.submitting") : t("register.submit")}
               </button>
             </form>
           </div>

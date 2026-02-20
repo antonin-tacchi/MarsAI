@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 function youtubeThumb(url) {
   if (!url) return "";
@@ -21,6 +22,7 @@ function youtubeThumb(url) {
 }
 
 export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) {
+  const { t } = useLanguage();
   const imgRef = useRef(null);
   const [imgStatus, setImgStatus] = useState("loading");
   const [fallback, setFallback] = useState(0);
@@ -74,9 +76,9 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
     }
   }, [src]);
 
-  const title = film?.title || "Titre inconnu";
-  const directorFirst = film?.director_firstname || "Prénom";
-  const directorLast = film?.director_lastname || "Nom";
+  const title = film?.title || t("filmCard.unknownTitle");
+  const directorFirst = film?.director_firstname || t("filmCard.defaultFirstName");
+  const directorLast = film?.director_lastname || t("filmCard.defaultLastName");
 
   return (
     <Link
@@ -135,7 +137,7 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
 
           {imgStatus === "error" && (
             <div className="absolute bottom-2 right-2 rounded-md bg-black/60 px-2 py-1 text-xs text-white">
-              Image indisponible
+              {t("filmCard.imageUnavailable")}
             </div>
           )}
         </div>
@@ -152,7 +154,7 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
             </span>
             {film.rating_count != null && (
               <span className="text-xs text-[#262335]/50">
-                ({film.rating_count} vote{film.rating_count !== 1 ? "s" : ""})
+                ({film.rating_count} {film.rating_count !== 1 ? t("filmCard.votes") : t("filmCard.vote")})
               </span>
             )}
           </div>

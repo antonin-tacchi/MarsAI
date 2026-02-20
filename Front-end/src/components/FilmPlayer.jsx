@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 function isVideoFile(url = "") {
   return /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(url);
@@ -54,6 +55,7 @@ export default function FilmPlayer({
   const API_URL =
     apiUrl || import.meta.env.VITE_API_URL || "http://localhost:5001";
 
+  const { t } = useLanguage();
   const [videoError, setVideoError] = useState(false);
   const [imgError, setImgError] = useState(false);
 
@@ -167,7 +169,7 @@ export default function FilmPlayer({
           onError={() => setVideoError(true)}
         >
           <source src={aiAbs} type="video/mp4" />
-          Votre navigateur ne supporte pas la lecture vidéo.
+          {t("filmPlayer.videoNotSupported")}
         </video>
       )}
 

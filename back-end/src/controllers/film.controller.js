@@ -1,11 +1,13 @@
 import Film from "../models/Film.js";
+import JuryRating from "../models/JuryRating.js";
 import fs from "fs";
 import {
   MAX_POSTER_SIZE,
   MAX_THUMBNAIL_SIZE,
   MAX_FILM_SIZE,
 } from "../routes/film.routes.js";
-
+import { canChangeFilmStatus } from "../services/filmStatus.service.js";
+import { sendRejectionEmail } from "../services/email.service.js";
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
 const MAX_DESCRIPTION = 2000;
@@ -90,9 +92,22 @@ export const createFilm = async (req, res) => {
       });
     }
 
+    const countryClean = String(country || "").trim();
+
+    if (!countryClean) {
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
+      return res.status(400).json({ success: false, message: "Pays requis" });
+    }
+
+    if (Array.isArray(COUNTRIES) && COUNTRIES.length > 0 && !COUNTRIES.includes(countryClean)) {
+      cleanupFiles(posterFile, filmFile, thumbnailFile);
+      return res.status(400).json({ success: false, message: "Pays invalide" });
+    }
+
+
     const tooLong =
       title.length > MAX_TITLE ||
-      country.length > MAX_COUNTRY ||
+      countryClean.length > MAX_COUNTRY ||
       description.length > MAX_DESCRIPTION ||
       (ai_tools_used && ai_tools_used.length > MAX_AI_TOOLS) ||
       director_firstname.length > MAX_NAME ||
@@ -130,7 +145,7 @@ export const createFilm = async (req, res) => {
 
     const created = await Film.create({
       title,
-      country,
+      country: countryClean,
       description,
       film_url: filmUrl,
       youtube_url: null,
@@ -173,12 +188,41 @@ export const updateFilmStatus = async (req, res) => {
       });
     }
 
-    if (!status || !['pending', 'approved', 'rejected'].includes(status.trim())) 
+    const newStatus = (status || "").trim();
+    if (!newStatus || !['pending', 'approved', 'rejected'].includes(newStatus)) {
       return res.status(400).json({ success: false, message: 'Statut invalide' });
+    }
+
+    // Check the film exists and validate transition
+    const film = await Film.findById(filmId);
+    if (!film) {
+      return res.status(404).json({ success: false, message: "Film non trouvé" });
+    }
+
+    if (!canChangeFilmStatus(film.status, newStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: `Transition de statut non autorisée : ${film.status} → ${newStatus}`,
+      });
+    }
+
+    if (newStatus === "rejected" && !rejection_reason) {
+      return res.status(400).json({
+        success: false,
+        message: "Une raison de rejet est requise",
+      });
+    }
 
     const userId = req.user?.userId;
 
-    const updatedFilm = await Film.updateStatus(filmId, status.trim(), userId, rejection_reason || null);
+    const updatedFilm = await Film.updateStatus(filmId, newStatus, userId, rejection_reason || null);
+
+    // Send rejection email to the director
+    if (newStatus === "rejected") {
+      sendRejectionEmail(updatedFilm, rejection_reason).catch((err) =>
+        console.error("Rejection email failed:", err.message)
+      );
+    }
 
     return res.status(200).json({
       success: true,
@@ -288,6 +332,20 @@ export const getPublicFilm = async (req, res) => {
   } catch (err) {
     console.error("getPublicFilm error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Public ranking - no auth required
+export const getPublicRanking = async (req, res) => {
+  try {
+    const ranking = await JuryRating.getRanking();
+    return res.status(200).json({ success: true, data: ranking });
+  } catch (err) {
+    console.error("getPublicRanking error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la récupération du classement",
+    });
   }
 };
 
