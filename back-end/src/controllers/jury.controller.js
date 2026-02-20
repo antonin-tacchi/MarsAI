@@ -143,10 +143,11 @@ export const getAssignedFilmsForJury = async (req, res) => {
     const offset = all ? 0 : (page - 1) * limit;
 
     const sortOrder = req.query.sortOrder || "DESC";
+    const listId = req.query.list_id ? parseInt(req.query.list_id, 10) : null;
 
     const [{ rows, count }, stats] = await Promise.all([
-      JuryAssignment.findAssignedFilms({ juryId, limit, offset, sortOrder }),
-      JuryAssignment.getJuryStats(juryId),
+      JuryAssignment.findAssignedFilms({ juryId, limit, offset, sortOrder, listId }),
+      JuryAssignment.getJuryStats(juryId, listId),
     ]);
 
     return res.status(200).json({
