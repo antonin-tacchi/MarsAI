@@ -27,6 +27,9 @@ export default function ProfileSuperJury() {
   const [generating, setGenerating] = useState(false);
   const [distResult, setDistResult] = useState(null);
 
+  // Active tab
+  const [activeTab, setActiveTab] = useState("films");
+
   // Film management state
   const [films, setFilms] = useState([]);
   const [filmsLoading, setFilmsLoading] = useState(true);
@@ -95,12 +98,15 @@ export default function ProfileSuperJury() {
 
   useEffect(() => {
     fetchProfile();
-    fetchStats();
-  }, [fetchProfile, fetchStats]);
+  }, [fetchProfile]);
 
   useEffect(() => {
-    fetchFilms(filmPage, filmFilter);
-  }, [filmPage, filmFilter, fetchFilms]);
+    if (activeTab === "films") fetchFilms(filmPage, filmFilter);
+  }, [activeTab, filmPage, filmFilter, fetchFilms]);
+
+  useEffect(() => {
+    if (activeTab === "repartition" || activeTab === "generation") fetchStats();
+  }, [activeTab, fetchStats]);
 
   const handleStatusChange = async (filmId, status, reason) => {
     setActionLoading(filmId);
@@ -209,7 +215,30 @@ export default function ProfileSuperJury() {
           </Button>
         </div>
 
+        {/* ── Tabs ── */}
+        <div className="flex gap-2">
+          {[
+            { key: "films", label: "Films" },
+            { key: "repartition", label: t("profileSuperJury.currentState") },
+            { key: "generation", label: t("profileSuperJury.generateTitle") },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActiveTab(key)}
+              className={`px-6 py-2 rounded-lg font-bold text-sm transition-colors ${
+                activeTab === key
+                  ? "bg-[#262335] text-white"
+                  : "bg-[#262335]/10 text-[#262335] hover:bg-[#262335]/20"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         {/* ── Film management ── */}
+        {activeTab === "films" && (
         <section className="bg-white rounded-2xl p-6 shadow-sm">
           <h2 className="text-xl font-bold text-[#262335] mb-4">
             Gestion des films
@@ -316,8 +345,10 @@ export default function ProfileSuperJury() {
             </div>
           )}
         </section>
+        )}
 
         {/* ── Current distribution state ── */}
+        {activeTab === "repartition" && (
         <section className="bg-white rounded-2xl p-6 shadow-sm">
           <h2 className="text-xl font-bold text-[#262335] mb-4">
             {t("profileSuperJury.currentState")}
@@ -378,8 +409,10 @@ export default function ProfileSuperJury() {
             </>
           ) : null}
         </section>
+        )}
 
         {/* ── Generate distribution ── */}
+        {activeTab === "generation" && (
         <section className="bg-white rounded-2xl p-6 shadow-sm">
           <h2 className="text-xl font-bold text-[#262335] mb-4">
             {t("profileSuperJury.generateTitle")}
@@ -476,6 +509,7 @@ export default function ProfileSuperJury() {
             </div>
           )}
         </section>
+        )}
       </div>
 
       {/* ── Rejection modal ── */}
