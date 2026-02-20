@@ -254,6 +254,34 @@ export default {
     profileDirector: "PROFIL DIRECTOR PAGE",
   },
 
+  // ProfileAdmin CMS
+  profileAdmin: {
+    pageEditor: "Page d'accueil",
+    french: "FR",
+    english: "EN",
+    heroSection: "Hero",
+    heroTitle: "Titre",
+    heroSubtitle: "Sous-titre",
+    heroBackground: "Image de fond (URL)",
+    aboutSection: "A propos",
+    aboutTitle: "Titre",
+    aboutText: "Texte",
+    datesSection: "Dates cles",
+    datesTitle: "Titre",
+    addDate: "+ Ajouter une date",
+    ctaSection: "Appel a l'action",
+    ctaTitle: "Titre",
+    ctaText: "Texte",
+    ctaButtonText: "Texte du bouton",
+    ctaButtonLink: "Lien du bouton",
+    saving: "Enregistrement...",
+    save: "Enregistrer les modifications",
+    cancelEdit: "Annuler",
+    lastModified: "Derniere modification : {date}",
+    noContent: "Aucun contenu.",
+    pagesTab: "Pages",
+  },
+
   // Common
   common: {
     loading: "Chargement...",

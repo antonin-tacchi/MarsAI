@@ -307,6 +307,76 @@ CREATE TABLE `invitations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
+-- Table: site_pages (CMS-like editable page content)
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `site_pages`;
+CREATE TABLE `site_pages` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `slug` varchar(50) NOT NULL COMMENT 'Page identifier (e.g. home)',
+  `content_fr` json DEFAULT NULL COMMENT 'French content as JSON',
+  `content_en` json DEFAULT NULL COMMENT 'English content as JSON',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_slug` (`slug`),
+  KEY `fk_sp_user` (`updated_by`),
+  CONSTRAINT `fk_sp_user` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Default home page content
+INSERT INTO `site_pages` (`slug`, `content_fr`, `content_en`) VALUES
+('home', JSON_OBJECT(
+  'hero', JSON_OBJECT(
+    'title', 'MarsAI Festival',
+    'subtitle', 'Le premier festival international du film réalisé avec l''intelligence artificielle',
+    'backgroundImage', ''
+  ),
+  'about', JSON_OBJECT(
+    'title', 'À propos du festival',
+    'text', 'MarsAI est un festival unique dédié aux films créés avec l''aide de l''intelligence artificielle. Rejoignez-nous pour découvrir le futur du cinéma.'
+  ),
+  'dates', JSON_OBJECT(
+    'title', 'Dates clés',
+    'items', JSON_ARRAY(
+      JSON_OBJECT('label', 'Soumissions', 'date', '20 Jan - 20 Mars 2026'),
+      JSON_OBJECT('label', 'Sélection du jury', 'date', 'Avril 2026'),
+      JSON_OBJECT('label', 'Cérémonie', 'date', '15 Juin 2026')
+    )
+  ),
+  'cta', JSON_OBJECT(
+    'title', 'Participez au festival',
+    'text', 'Soumettez votre film réalisé avec l''IA et tentez de remporter un prix.',
+    'buttonText', 'Soumettre un film',
+    'buttonLink', '/submissions'
+  )
+), JSON_OBJECT(
+  'hero', JSON_OBJECT(
+    'title', 'MarsAI Festival',
+    'subtitle', 'The first international film festival for AI-made cinema',
+    'backgroundImage', ''
+  ),
+  'about', JSON_OBJECT(
+    'title', 'About the festival',
+    'text', 'MarsAI is a unique festival dedicated to films created with the help of artificial intelligence. Join us to discover the future of cinema.'
+  ),
+  'dates', JSON_OBJECT(
+    'title', 'Key dates',
+    'items', JSON_ARRAY(
+      JSON_OBJECT('label', 'Submissions', 'date', 'Jan 20 - Mar 20, 2026'),
+      JSON_OBJECT('label', 'Jury selection', 'date', 'April 2026'),
+      JSON_OBJECT('label', 'Ceremony', 'date', 'June 15, 2026')
+    )
+  ),
+  'cta', JSON_OBJECT(
+    'title', 'Join the festival',
+    'text', 'Submit your AI-made film and compete for an award.',
+    'buttonText', 'Submit a film',
+    'buttonLink', '/submissions'
+  )
+));
+
+-- --------------------------------------------------------
 -- Sample films for testing
 -- --------------------------------------------------------
 
