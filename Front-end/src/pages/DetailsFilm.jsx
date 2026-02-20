@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import FilmPlayer from "../components/FilmPlayer";
 import FilmCard from "../components/FilmCard";
-import { isAdminOrJury } from "../utils/roles";
+import { isAdminOrJury, getUserRoleIds } from "../utils/roles";
 import { useLanguage } from "../context/LanguageContext";
 
 /* utils */
@@ -200,10 +200,10 @@ function ApprovalPanel({
 }
 
 /* Bouton save extrait pour éviter la duplication mobile/desktop */
-function SaveButton({ onSave, saving, saveSuccess, saveError }) {
+function SaveButton({ onSave, saving, saveSuccess, saveError, onNextFilm, hasNextFilm }) {
   const { t } = useLanguage();
   return (
-    <div className="mt-4 flex items-center gap-4 mb-8">
+    <div className="mt-4 flex flex-wrap items-center gap-4 mb-8">
       <button
         onClick={onSave}
         disabled={saving}
@@ -211,6 +211,15 @@ function SaveButton({ onSave, saving, saveSuccess, saveError }) {
       >
         {saving ? t("detailsFilm.saving") : t("detailsFilm.save")}
       </button>
+
+      {saveSuccess && hasNextFilm && (
+        <button
+          onClick={onNextFilm}
+          className="px-6 py-2 rounded-md bg-[#463699] text-white hover:bg-[#362b7a] transition-colors"
+        >
+          Film suivant →
+        </button>
+      )}
 
       {saveSuccess && (
         <span className="text-green-600 text-sm font-medium">{t("detailsFilm.saved")}</span>
@@ -222,9 +231,12 @@ function SaveButton({ onSave, saving, saveSuccess, saveError }) {
 
 export default function DetailsFilm() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
   const canReview = isAdminOrJury();
+  const userRoles = getUserRoleIds();
+  const isJury = userRoles.includes(1) || userRoles.includes(3);
 
   /* STATES */
   const [film, setFilm] = useState(null);
@@ -243,6 +255,7 @@ export default function DetailsFilm() {
   const [error, setError] = useState("");
 
   const [stats, setStats] = useState(null);
+  const [nextFilmId, setNextFilmId] = useState(null);
 
   /* Approval states */
   const [filmStatus, setFilmStatus] = useState("pending");
@@ -388,8 +401,9 @@ export default function DetailsFilm() {
         }
 
         // 3) Mon avis : seulement si jury/admin
+        let myRatings = [];
         if (canReview) {
-          const myRatings = await fetchMyRatings(controller.signal);
+          myRatings = await fetchMyRatings(controller.signal);
           const existing = myRatings.find(
             (r) => String(r.film_id) === String(id)
           );
@@ -409,6 +423,29 @@ export default function DetailsFilm() {
           setRatingId(null);
         }
 
+        // 4) Film suivant : trouver le prochain film non noté dans la liste assignée
+        if (isJury) {
+          try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(
+              `${API_URL}/api/jury/assigned-films?page=1&limit=200`,
+              {
+                signal: controller.signal,
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+              }
+            );
+            const assigned = await res.json();
+            const assignedFilms = assigned.data || [];
+            const ratedIds = new Set(myRatings.map((r) => String(r.film_id)));
+            const next = assignedFilms.find(
+              (f) => String(f.id) !== String(id) && !ratedIds.has(String(f.id))
+            );
+            setNextFilmId(next ? next.id : null);
+          } catch {
+            setNextFilmId(null);
+          }
+        }
+
         setStatus("success");
       } catch (e) {
         if (e.name === "AbortError") return;
@@ -422,6 +459,8 @@ export default function DetailsFilm() {
   }, [
     id,
     canReview,
+    isJury,
+    API_URL,
     fetchAllFilms,
     fetchFilmById,
     fetchMyRatings,
@@ -606,8 +645,11 @@ export default function DetailsFilm() {
         "
       >
         <div className="mb-6">
-          <Link to="/catalogs" className="text-[#262335]/70 hover:text-[#262335]">
-            ← Retour aux catalogues
+          <Link
+            to={isJury ? "/profile-jury" : "/catalogs"}
+            className="text-[#262335]/70 hover:text-[#262335]"
+          >
+            ← {isJury ? "Retour à mes films" : "Retour aux catalogues"}
           </Link>
         </div>
 
@@ -697,6 +739,8 @@ export default function DetailsFilm() {
                         saving={saving}
                         saveSuccess={saveSuccess}
                         saveError={saveError}
+                        hasNextFilm={!!nextFilmId}
+                        onNextFilm={() => navigate(`/details-film/${nextFilmId}`)}
                       />
                     </>
                   )}
@@ -765,6 +809,8 @@ export default function DetailsFilm() {
                       saving={saving}
                       saveSuccess={saveSuccess}
                       saveError={saveError}
+                      hasNextFilm={!!nextFilmId}
+                      onNextFilm={() => navigate(`/details-film/${nextFilmId}`)}
                     />
                   </>
                 )}
