@@ -63,7 +63,7 @@ export default function ProfileAdmin() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState("");
   const [R, setR] = useState(3);
-  const [Lmax, setLmax] = useState(10);
+  const [Lmax, setLmax] = useState(70);
   const [preview, setPreview] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
