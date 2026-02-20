@@ -9,6 +9,7 @@ import {
   deleteRating,
   getAssignedFilmsForJury,
   getResults,
+  refuseFilm,
 } from "../controllers/jury.controller.js";
 
 const router = Router();
@@ -41,5 +42,8 @@ router.get("/results", getResults);
 
 // Delete a rating
 router.delete("/films/:id/rate", deleteRating);
+
+// Refuse an assigned film
+router.post("/films/:id/refuse", refuseFilm);
 
 export default router;

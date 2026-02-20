@@ -58,14 +58,9 @@ export default function Catalogs() {
     }
   }, []);
 
-  // --- FETCH RANKING (si connecté) ---
+  // --- FETCH RANKING (public) ---
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    fetch(`${API_URL}/api/jury/results`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch(`${API_URL}/api/films/ranking`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.success) setRanking(data.data);

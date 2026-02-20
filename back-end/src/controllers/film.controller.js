@@ -1,11 +1,11 @@
 import Film from "../models/Film.js";
+import JuryRating from "../models/JuryRating.js";
 import fs from "fs";
 import {
   MAX_POSTER_SIZE,
   MAX_THUMBNAIL_SIZE,
   MAX_FILM_SIZE,
 } from "../routes/film.routes.js";
-import COUNTRIES from "../constants/countries.js";
 import { canChangeFilmStatus } from "../services/filmStatus.service.js";
 import { sendRejectionEmail } from "../services/email.service.js";
 const MAX_TITLE = 255;
@@ -332,6 +332,20 @@ export const getPublicFilm = async (req, res) => {
   } catch (err) {
     console.error("getPublicFilm error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Public ranking - no auth required
+export const getPublicRanking = async (req, res) => {
+  try {
+    const ranking = await JuryRating.getRanking();
+    return res.status(200).json({ success: true, data: ranking });
+  } catch (err) {
+    console.error("getPublicRanking error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Erreur lors de la récupération du classement",
+    });
   }
 };
 

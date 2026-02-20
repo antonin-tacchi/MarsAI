@@ -13,6 +13,7 @@ import {
   getFilmStats,
   getPublicCatalog,
   getPublicFilm,
+  getPublicRanking,
 } from "../controllers/film.controller.js";
 
 const router = express.Router();
@@ -130,6 +131,7 @@ const uploadMiddleware = (req, res, next) => {
 // Public routes (no auth)
 router.get("/public/catalog", getPublicCatalog);
 router.get("/public/:id", getPublicFilm);
+router.get("/ranking", getPublicRanking);
 
 // PATCH : mise à jour du statut d’un film (authentifié + autorisation)
 router.patch(
