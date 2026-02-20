@@ -16,6 +16,8 @@ import ProfileSuperJury from "./pages/ProfileSuperJury.jsx";
 import Regulation from "./pages/Regulations.jsx";
 import Submissions from "./pages/Submissions.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import AdminModeration from "./pages/AdminModeration.jsx";
+import Partners from "./pages/Partners.jsx";
 
 
 function ScrollToTop() {
@@ -50,6 +52,7 @@ export default function App() {
           <Route path="catalogs" element={<Catalogs />} />
           <Route path="contact" element={<Contact />} />
           <Route path="details-film/:id" element={<DetailsFilm />} />
+          <Route path= "nos-partenaires" element={<Partners/>} />
           <Route path="prize-list" element={<PrizeList />} />
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />
@@ -58,6 +61,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ProfileAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin-moderation"
+            element={
+              <ProtectedRoute>
+                <AdminModeration />
               </ProtectedRoute>
             }
           />
