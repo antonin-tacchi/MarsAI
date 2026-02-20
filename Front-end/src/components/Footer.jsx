@@ -28,7 +28,7 @@ export default function Footer() {
                     { label: "Participer", href: "/submissions" },
                     { label: "Espace Jury", href: "/profile-jury" },
                     { label: "Les jury", href: "/jury" },
-                    { label: "Nos partenaires", href: "/partners" },
+                    { label: "Nos partenaires", href: "/nos-partenaires" },
                     { label: "Palmares", href: "/prize-list" },
                     ].map((l) => (
                     <a
