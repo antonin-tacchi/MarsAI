@@ -154,6 +154,7 @@ export const getAssignedFilmsForJury = async (req, res) => {
       data: rows,
       stats: {
         totalAssigned: Number(stats.total_assigned || 0),
+        totalRefused: Number(stats.total_refused || 0),
         totalUnrated: Number(stats.total_unrated || 0),
         totalRated: Number(stats.total_rated || 0),
       },
@@ -169,6 +170,53 @@ export const getAssignedFilmsForJury = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error retrieving assigned films",
+    });
+  }
+};
+
+// Refuse an assigned film
+export const refuseFilm = async (req, res) => {
+  try {
+    const filmId = parseInt(req.params.id, 10);
+    if (!filmId) {
+      return res.status(400).json({ success: false, message: "Invalid film ID" });
+    }
+
+    const userId = req.user.userId;
+    const { reason } = req.body;
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Une raison de refus est requise",
+      });
+    }
+
+    const result = await JuryAssignment.refuse(userId, filmId, reason.trim());
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "Ce film ne vous est pas assigné",
+      });
+    }
+
+    if (result.alreadyRefused) {
+      return res.status(409).json({
+        success: false,
+        message: "Vous avez déjà refusé ce film",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Film refusé avec succès",
+    });
+  } catch (err) {
+    console.error("refuseFilm error:", err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Erreur lors du refus du film",
     });
   }
 };
