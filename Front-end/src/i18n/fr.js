@@ -144,6 +144,15 @@ export default {
     prevPage: "Page pr\u00e9c\u00e9dente",
     nextPage: "Page suivante",
     lastPage: "Derni\u00e8re page",
+    myLists: "Mes listes",
+    backToLists: "Retour aux listes",
+    gridView: "Grille",
+    listView: "Liste",
+    noLists: "Aucune liste",
+    noListsDesc: "Aucune liste ne vous a \u00e9t\u00e9 attribu\u00e9e pour le moment.",
+    ratedLabel: "not\u00e9s",
+    unratedLabel: "non not\u00e9s",
+    completed: "termin\u00e9",
   },
 
   // ProfileSuperJury
