@@ -43,5 +43,3 @@ const COUNTRIES = [
 ];
 
 export default COUNTRIES;
-
-export default COUNTRIES;
