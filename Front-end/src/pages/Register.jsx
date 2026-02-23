@@ -80,8 +80,7 @@ export default function Register() {
         email: formData.email,
         password: formData.password,
       };
-      const response = await register(registerData);
-      console.log("Registration successful:", response);
+      await register(registerData);
       // Redirect to profile page based on assigned role
       const profile = getProfileRoute();
       navigate(profile ? profile.path : "/");

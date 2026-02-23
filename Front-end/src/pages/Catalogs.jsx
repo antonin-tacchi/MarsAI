@@ -65,7 +65,7 @@ export default function Catalogs() {
       .then((data) => {
         if (data?.success) setRanking(data.data);
       })
-      .catch(() => {});
+      .catch((err) => { console.error("Ranking fetch error:", err); });
   }, []);
 
   // --- FETCH STATS ---
@@ -76,7 +76,8 @@ export default function Catalogs() {
         if (data.success) {
           setStats(data.data);
         }
-      });
+      })
+      .catch((err) => { console.error("Stats fetch error:", err); });
   }, []);
 
   useEffect(() => {
