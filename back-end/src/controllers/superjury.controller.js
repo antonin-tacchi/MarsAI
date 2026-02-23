@@ -215,18 +215,42 @@ export const generateDistribution = async (req, res) => {
       }
     }
 
-    // Insert all assignments
+    // Create a jury_list to track this distribution
     const assignedBy = req.user.userId;
+    const listName = `Répartition ${new Date().toLocaleDateString("fr-FR")} (R=${R}, Lmax=${Lmax})`;
+    const [listResult] = await db.query(
+      "INSERT INTO jury_lists (name, description, created_by) VALUES (?, ?, ?)",
+      [listName, `Générée automatiquement le ${new Date().toLocaleDateString("fr-FR")}`, assignedBy]
+    );
+    const listId = listResult.insertId;
+
+    // Add all approved films to jury_list_films
+    if (films.length > 0) {
+      const listFilmValues = films.map((f) => [listId, f.id]);
+      await db.query(
+        "INSERT IGNORE INTO jury_list_films (list_id, film_id) VALUES ?",
+        [listFilmValues]
+      );
+    }
+
+    // Assign list to all jury members
+    const listAssignValues = juries.map((j) => [listId, j.id, assignedBy]);
+    await db.query(
+      "INSERT IGNORE INTO jury_list_assignments (list_id, jury_id, assigned_by) VALUES ?",
+      [listAssignValues]
+    );
+
+    // Insert all individual assignments with list_id
     const rows = [];
     for (const [juryId, filmIds] of assignments) {
       for (const filmId of filmIds) {
-        rows.push([juryId, filmId, assignedBy]);
+        rows.push([juryId, filmId, listId, assignedBy]);
       }
     }
 
     if (rows.length > 0) {
       await db.query(
-        "INSERT INTO jury_assignments (jury_id, film_id, assigned_by) VALUES ?",
+        "INSERT INTO jury_assignments (jury_id, film_id, list_id, assigned_by) VALUES ?",
         [rows]
       );
     }
