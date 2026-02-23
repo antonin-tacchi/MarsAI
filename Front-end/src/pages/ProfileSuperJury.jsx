@@ -30,6 +30,13 @@ export default function ProfileSuperJury() {
   // Active tab
   const [activeTab, setActiveTab] = useState("films");
 
+  // Lists state
+  const [lists, setLists] = useState([]);
+  const [listsLoading, setListsLoading] = useState(false);
+  const [listsError, setListsError] = useState("");
+  const [openList, setOpenList] = useState(null);
+  const [openListLoading, setOpenListLoading] = useState(false);
+
   // Film management state
   const [films, setFilms] = useState([]);
   const [filmsLoading, setFilmsLoading] = useState(true);
@@ -107,6 +114,44 @@ export default function ProfileSuperJury() {
   useEffect(() => {
     if (activeTab === "repartition") fetchStats();
   }, [activeTab, fetchStats]);
+
+  const fetchLists = useCallback(async () => {
+    setListsLoading(true);
+    setListsError("");
+    try {
+      const res = await fetch(`${API_URL}/api/admin/lists`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.message || "Erreur");
+      setLists(json.data || []);
+    } catch (err) {
+      console.error("Lists error:", err);
+      setListsError(err.message);
+    } finally {
+      setListsLoading(false);
+    }
+  }, [token]);
+
+  const fetchListById = useCallback(async (listId) => {
+    setOpenListLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/lists/${listId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.message || "Erreur");
+      setOpenList(json.data);
+    } catch (err) {
+      console.error("List detail error:", err);
+    } finally {
+      setOpenListLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (activeTab === "lists") { setOpenList(null); fetchLists(); }
+  }, [activeTab, fetchLists]);
 
   const handleStatusChange = async (filmId, status, reason) => {
     setActionLoading(filmId);
@@ -216,10 +261,11 @@ export default function ProfileSuperJury() {
         </div>
 
         {/* ── Tabs ── */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {[
             { key: "films", label: "Films" },
             { key: "repartition", label: t("profileSuperJury.currentState") },
+            { key: "lists", label: "Listes" },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -511,6 +557,131 @@ export default function ProfileSuperJury() {
         </>
         )}
       </div>
+
+      {/* ── Lists tab ── */}
+      {activeTab === "lists" && (
+        <section className="bg-white rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            {openList ? (
+              <button
+                type="button"
+                onClick={() => setOpenList(null)}
+                className="flex items-center gap-2 text-[#463699] hover:text-[#262335] font-medium transition-colors"
+              >
+                ← Retour aux listes
+              </button>
+            ) : (
+              <h2 className="text-xl font-bold text-[#262335]">Listes de répartition</h2>
+            )}
+          </div>
+
+          {/* Detail view of one list */}
+          {openList && (
+            <div>
+              <h3 className="text-lg font-bold text-[#262335] mb-1">{openList.name}</h3>
+              {openList.description && (
+                <p className="text-sm text-[#262335]/60 mb-4">{openList.description}</p>
+              )}
+
+              <div className="flex gap-3 mb-6">
+                <span className="bg-[#262335] text-white px-3 py-1 rounded-full text-sm font-bold">
+                  {openList.films?.length || 0} films
+                </span>
+                <span className="bg-[#463699] text-white px-3 py-1 rounded-full text-sm font-bold">
+                  {openList.juries?.length || 0} jurys assignés
+                </span>
+              </div>
+
+              {/* Juries assigned */}
+              {openList.juries?.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-bold text-[#262335] uppercase tracking-wide mb-2">Jurys</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {openList.juries.map((j) => (
+                      <span key={j.id} className="bg-[#263335]/5 border border-[#262335]/10 text-[#262335] text-sm px-3 py-1 rounded-full">
+                        {j.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Films list */}
+              {openList.films?.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b-2 border-[#262335]/10">
+                        <th className="py-3 px-3 font-bold text-[#262335]">Titre</th>
+                        <th className="py-3 px-3 font-bold text-[#262335]">Réalisateur</th>
+                        <th className="py-3 px-3 font-bold text-[#262335]">Pays</th>
+                        <th className="py-3 px-3 font-bold text-[#262335] text-center">Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {openList.films.map((film) => (
+                        <tr key={film.id} className="border-b border-[#262335]/5 hover:bg-[#463699]/5">
+                          <td className="py-3 px-3 text-[#262335] font-medium">{film.title}</td>
+                          <td className="py-3 px-3 text-[#262335]">
+                            {film.director_firstname} {film.director_lastname}
+                          </td>
+                          <td className="py-3 px-3 text-[#262335]">{film.country}</td>
+                          <td className="py-3 px-3 text-center">
+                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[film.status] || ""}`}>
+                              {film.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-[#262335]/50 italic">Aucun film dans cette liste.</p>
+              )}
+            </div>
+          )}
+
+          {/* List of all lists */}
+          {!openList && (
+            <>
+              {listsLoading && <p className="text-[#262335]/50">Chargement...</p>}
+              {listsError && <p className="text-red-500">{listsError}</p>}
+              {!listsLoading && !listsError && lists.length === 0 && (
+                <p className="text-[#262335]/50 italic">Aucune liste créée. Générez une répartition pour en créer une automatiquement.</p>
+              )}
+              {!listsLoading && lists.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {lists.map((list) => (
+                    <button
+                      key={list.id}
+                      type="button"
+                      onClick={() => fetchListById(list.id)}
+                      disabled={openListLoading}
+                      className="bg-[#FBF5F0] rounded-xl p-5 border border-[#262335]/5 hover:border-[#463699]/40 hover:shadow-md transition-all text-left group disabled:opacity-50"
+                    >
+                      <h3 className="text-base font-bold text-[#262335] group-hover:text-[#463699] transition-colors mb-1">
+                        {list.name}
+                      </h3>
+                      {list.description && (
+                        <p className="text-xs text-[#262335]/60 mb-3 line-clamp-2">{list.description}</p>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-[#262335] text-white text-xs font-bold px-3 py-1 rounded-full">
+                          {list.film_count} films
+                        </span>
+                        <span className="bg-[#463699] text-white text-xs font-bold px-3 py-1 rounded-full">
+                          {list.jury_count} jurys
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
 
       {/* ── Rejection modal ── */}
       {rejectModal && (

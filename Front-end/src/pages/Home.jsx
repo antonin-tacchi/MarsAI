@@ -43,11 +43,18 @@ export default function Home() {
   };
 
   const page = lang === "en" ? content?.content_en : content?.content_fr;
-  const data = page
-    ? typeof page === "string"
-      ? JSON.parse(page)
-      : page
-    : fallback;
+  let data = fallback;
+  if (page) {
+    if (typeof page === "string") {
+      try {
+        data = JSON.parse(page);
+      } catch {
+        data = fallback;
+      }
+    } else {
+      data = page;
+    }
+  }
 
   const hero = data.hero || fallback.hero;
   const about = data.about || fallback.about;

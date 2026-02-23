@@ -57,8 +57,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await login(formData);
-      console.log("Login successful:", response);
+      await login(formData);
 
       // Redirect to profile page based on user role
       const profile = getProfileRoute();
