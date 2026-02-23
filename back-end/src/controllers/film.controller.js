@@ -8,6 +8,7 @@ import {
 } from "../routes/film.routes.js";
 import { canChangeFilmStatus } from "../services/filmStatus.service.js";
 import { sendRejectionEmail } from "../services/email.service.js";
+import COUNTRIES from "../constants/countries.js";
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
 const MAX_DESCRIPTION = 2000;
