@@ -936,4 +936,3 @@ Returns first 10 users.
 ---
 
 **Last updated**: January 2026  
-**Support**: support@marsai.com
