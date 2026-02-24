@@ -86,7 +86,7 @@ export default function Partners() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FBF5F0] to-white">
       
-      {/* Section Hero : Titre + CT (call to action) */}
+      {/* Section Hero : Titre + CTA (call to action) */}
       <section className="relative overflow-hidden pt-20 pb-16 md:pt-24 md:pb-20">
         
         <div className="container mx-auto px-5 md:px-8 lg:px-12 xl:px-16 max-w-[1440px] relative z-10">
