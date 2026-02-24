@@ -74,6 +74,7 @@ export default function MovieForm({ onFinalSubmit }) {
     synopsis: "",
     synopsisEnglish: "",
     ai_tools: "",
+    classification: "", // Nouveau champ pour 100% IA ou Hybride
     certify: false,
     fname: "",
     lname: "",
@@ -90,6 +91,12 @@ export default function MovieForm({ onFinalSubmit }) {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
+  // Fonction spécifique pour les boutons de classification
+  const selectClassification = (type) => {
+    setFields(prev => ({ ...prev, classification: type }));
+    if (errors.classification) setErrors(prev => ({ ...prev, classification: "" }));
+  };
+
   const validate = (s) => {
     const err = {};
     if (s === 1) {
@@ -99,6 +106,7 @@ export default function MovieForm({ onFinalSubmit }) {
       if (!fields.synopsis.trim()) err.synopsis = t("movieForm.required");
       if (!fields.synopsisEnglish.trim()) err.synopsisEnglish = t("movieForm.required");
       if (!fields.ai_tools.trim()) err.ai_tools = t("movieForm.required");
+      if (!fields.classification) err.classification = "Veuillez choisir une catégorie";
       if (!filmFile) err.film = t("movieForm.videoMissing");
       if (!posterFile) err.poster = t("movieForm.posterMissing");
       if (!thumbFile) err.thumb = t("movieForm.thumbnailMissing");
@@ -122,14 +130,14 @@ export default function MovieForm({ onFinalSubmit }) {
     setApiError("");
 
     try {
-      // ⚡️ IMPORTANT : On mappe ici les champs vers ce que votre service attend
       const payload = {
         title: fields.title,
-        title_en: fields.titleEnglish, // Ajout pour le futur
+        title_en: fields.titleEnglish,
         country: fields.country,
-        description: fields.synopsis, // Le service attend 'description'
+        description: fields.synopsis,
         synopsis_en: fields.synopsisEnglish,
-        ai_tools_used: fields.ai_tools, // Le service attend 'ai_tools_used'
+        ai_tools_used: fields.ai_tools,
+        classification: fields.classification, // On envoie la classification
         ai_certification: fields.certify ? 1 : 0,
         director_firstname: fields.fname,
         director_lastname: fields.lname,
@@ -146,7 +154,7 @@ export default function MovieForm({ onFinalSubmit }) {
         onFinalSubmit({ payloadSent: payload });
       }
       
-      setStep(3); // Affiche enfin la page de succès
+      setStep(3);
     } catch (err) {
       setApiError(err.message || "Erreur de connexion");
       console.error(err);
@@ -189,10 +197,36 @@ export default function MovieForm({ onFinalSubmit }) {
                   <FileUploadZone label={t("movieForm.thumbnail")} accept="image/*" file={thumbFile} setFile={setThumbFile} error={errors.thumb} ratioClass="aspect-video" type="image" />
                 </div>
                 <Input label={t("movieForm.aiTools")} type="textarea" value={fields.ai_tools} onChange={setField("ai_tools")} error={errors.ai_tools} />
-                <label className="flex items-start gap-4 cursor-pointer">
+                
+                {/* --- AJOUT DES DEUX BOUTONS DE CLASSIFICATION --- */}
+                <div className="space-y-3 pt-4">
+                  <p className="text-xs font-black uppercase tracking-widest text-[#262335] ml-1">
+                    Classification de l'œuvre : * choix exclusif entre :
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button 
+                      type="button"
+                      onClick={() => selectClassification("100% IA")}
+                      className={`py-4 px-4 rounded-3xl font-bold uppercase text-[10px] tracking-tighter border-2 transition-all shadow-sm ${fields.classification === "100% IA" ? "bg-[#463699] border-[#463699] text-white" : "bg-white/40 border-[#262335]/20 text-[#262335] hover:bg-white/60"}`}
+                    >
+                      Génération intégrale (100% IA)
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => selectClassification("Hybride")}
+                      className={`py-4 px-4 rounded-3xl font-bold uppercase text-[10px] tracking-tighter border-2 transition-all shadow-sm ${fields.classification === "Hybride" ? "bg-[#463699] border-[#463699] text-white" : "bg-white/40 border-[#262335]/20 text-[#262335] hover:bg-white/60"}`}
+                    >
+                      Production hybride (Prises de vues réelles + Apports IA)
+                    </button>
+                  </div>
+                  {errors.classification && <span className="text-red-500 text-[10px] font-bold italic ml-2">{errors.classification}</span>}
+                </div>
+
+                <label className="flex items-start gap-4 cursor-pointer pt-2">
                   <input type="checkbox" checked={fields.certify} onChange={setField("certify")} className="mt-1 w-6 h-6 accent-[#463699]" />
                   <span className="text-sm italic text-[#262335]">{t("movieForm.certification")}</span>
                 </label>
+                
                 <button type="button" onClick={() => validate(1) && setStep(2)} className="w-full bg-[#FBF5F0] text-[#262335] px-12 py-4 rounded-full font-black uppercase shadow-xl hover:scale-105 transition-all">{t("movieForm.next")}</button>
               </div>
             </div>

@@ -39,120 +39,49 @@ export const createFilm = async (req, res) => {
   try {
     if (!posterFile || !filmFile) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({
-        success: false,
-        message: "Les fichiers poster et film sont requis",
-      });
+      return res.status(400).json({ success: false, message: "Les fichiers poster et film sont requis" });
     }
 
-    if (posterFile.size > MAX_POSTER_SIZE) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Le fichier poster est trop volumineux" });
-    }
-
-    if (thumbnailFile && thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Le fichier thumbnail est trop volumineux" });
-    }
-
-    if (filmFile.size > MAX_FILM_SIZE) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Le fichier film est trop volumineux" });
-    }
-
+    // Récupération de classification depuis le body
     const {
-      title,
-      country,
-      description,
-      ai_tools_used,
-      ai_certification,
-      director_firstname,
-      director_lastname,
-      director_email,
-      director_bio,
-      director_school,
-      director_website,
-      social_instagram,
-      social_youtube,
-      social_vimeo,
+      title, country, description, ai_tools_used, classification,
+      ai_certification, director_firstname, director_lastname,
+      director_email, director_bio, director_school, director_website,
+      social_instagram, social_youtube, social_vimeo,
     } = req.body;
 
-    if (
-      !title ||
-      !country ||
-      !description ||
-      !director_firstname ||
-      !director_lastname ||
-      !director_email
-    ) {
+    if (!title || !country || !description || !director_firstname || !director_lastname || !director_email) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({
-        success: false,
-        message:
-          "Titre, pays, description, prénom, nom et email du réalisateur sont requis",
-      });
+      return res.status(400).json({ success: false, message: "Champs obligatoires manquants" });
     }
 
     const countryClean = String(country || "").trim();
 
-    if (!countryClean) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({ success: false, message: "Pays requis" });
-    }
-
+    // Validation pays (COUNTRIES importé en haut du fichier)
     if (Array.isArray(COUNTRIES) && COUNTRIES.length > 0 && !COUNTRIES.includes(countryClean)) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
       return res.status(400).json({ success: false, message: "Pays invalide" });
     }
 
-
-    const tooLong =
-      title.length > MAX_TITLE ||
-      countryClean.length > MAX_COUNTRY ||
-      description.length > MAX_DESCRIPTION ||
-      (ai_tools_used && ai_tools_used.length > MAX_AI_TOOLS) ||
-      director_firstname.length > MAX_NAME ||
-      director_lastname.length > MAX_NAME ||
-      director_email.length > MAX_EMAIL ||
-      (director_bio && director_bio.length > MAX_BIO) ||
-      (director_school && director_school.length > MAX_SCHOOL) ||
-      (director_website && director_website.length > MAX_WEBSITE) ||
-      (social_instagram && social_instagram.length > MAX_SOCIAL) ||
-      (social_youtube && social_youtube.length > MAX_SOCIAL) ||
-      (social_vimeo && social_vimeo.length > MAX_SOCIAL);
-
-    if (tooLong) {
-      cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(400).json({
-        success: false,
-        message: "Un ou plusieurs champs dépassent la longueur maximale autorisée",
-      });
-    }
-
     const recentCount = await Film.countRecentByEmail(director_email);
     if (recentCount >= 5) {
       cleanupFiles(posterFile, filmFile, thumbnailFile);
-      return res.status(429).json({
-        success: false,
-        message: "Trop de soumissions pour cet email. Veuillez réessayer plus tard",
-      });
+      return res.status(429).json({ success: false, message: "Trop de soumissions (limite atteinte)" });
     }
 
     const filmUrl = `/uploads/films/${filmFile.filename}`;
     const posterUrl = `/uploads/posters/${posterFile.filename}`;
-    const thumbnailUrl = thumbnailFile
-      ? `/uploads/thumbnails/${thumbnailFile.filename}`
-      : null;
+    const thumbnailUrl = thumbnailFile ? `/uploads/thumbnails/${thumbnailFile.filename}` : null;
 
     const created = await Film.create({
       title,
       country: countryClean,
       description,
       film_url: filmUrl,
-      youtube_url: null,
       poster_url: posterUrl,
       thumbnail_url: thumbnailUrl,
       ai_tools_used: ai_tools_used || null,
+      classification: classification || "Hybride", // Transmission au modèle
       ai_certification: ai_certification,
       director_firstname,
       director_lastname,
@@ -165,11 +94,7 @@ export const createFilm = async (req, res) => {
       social_vimeo: social_vimeo || null,
     });
 
-    return res.status(201).json({
-      success: true,
-      message: "Film soumis avec succès",
-      data: created,
-    });
+    return res.status(201).json({ success: true, message: "Film soumis avec succès", data: created });
   } catch (err) {
     console.error("createFilm error:", err);
     cleanupFiles(posterFile, filmFile, thumbnailFile);
