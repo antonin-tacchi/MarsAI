@@ -1,5 +1,6 @@
 import Film from "../models/Film.js";
 import JuryRating from "../models/JuryRating.js";
+import COUNTRIES from "../constants/countries.js";
 import fs from "fs";
 import {
   MAX_POSTER_SIZE,
