@@ -100,6 +100,7 @@ CREATE TABLE `films` (
   `thumbnail_url` varchar(500) DEFAULT NULL COMMENT 'Small thumbnail for lists',
   `ai_tools_used` text COMMENT 'AI tools used (free text)',
   `ai_certification` tinyint(1) DEFAULT 0 COMMENT 'Certifies film was made with AI tools',
+  `classification` varchar(50) DEFAULT NULL COMMENT 'Classification du film, ex: G, PG, PG-13, R',
 
   -- Director Information
   `director_firstname` varchar(100) NOT NULL,
