@@ -16,6 +16,8 @@ import {
   deleteObject,
 } from "../services/scalewayStorage.service.js";
 
+import { signGetUrl } from "../services/scalewaySignedUrl.service.js";
+
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
 const MAX_DESCRIPTION = 2000;
@@ -31,12 +33,28 @@ function getFile(req, field) {
   return req.files?.[field]?.[0] || null;
 }
 
+async function withSignedMedia(film) {
+  if (!film) return film;
+
+  const [filmStream, posterStream, thumbStream] = await Promise.all([
+    film.film_url ? signGetUrl(film.film_url) : Promise.resolve(null),
+    film.poster_url ? signGetUrl(film.poster_url) : Promise.resolve(null),
+    film.thumbnail_url ? signGetUrl(film.thumbnail_url) : Promise.resolve(null),
+  ]);
+
+  return {
+    ...film,
+    film_stream_url: filmStream,
+    poster_stream_url: posterStream,
+    thumbnail_stream_url: thumbStream,
+  };
+}
+
 export const createFilm = async (req, res) => {
   const posterFile = getFile(req, "poster");
   const filmFile = getFile(req, "film");
   const thumbnailFile = getFile(req, "thumbnail");
 
-  // Pour rollback en cas d’erreur : on garde les keys uploadées
   const uploadedKeys = [];
 
   try {
@@ -95,8 +113,11 @@ export const createFilm = async (req, res) => {
       return res.status(400).json({ success: false, message: "Pays requis" });
     }
 
-    // ⚠️ COUNTRIES pas défini dans ton snippet : je laisse comme avant si tu l’as ailleurs
-    if (Array.isArray(globalThis.COUNTRIES) && globalThis.COUNTRIES.length > 0 && !globalThis.COUNTRIES.includes(countryClean)) {
+    if (
+      Array.isArray(globalThis.COUNTRIES) &&
+      globalThis.COUNTRIES.length > 0 &&
+      !globalThis.COUNTRIES.includes(countryClean)
+    ) {
       return res.status(400).json({ success: false, message: "Pays invalide" });
     }
 
@@ -118,7 +139,8 @@ export const createFilm = async (req, res) => {
     if (tooLong) {
       return res.status(400).json({
         success: false,
-        message: "Un ou plusieurs champs dépassent la longueur maximale autorisée",
+        message:
+          "Un ou plusieurs champs dépassent la longueur maximale autorisée",
       });
     }
 
@@ -126,11 +148,11 @@ export const createFilm = async (req, res) => {
     if (recentCount >= 5) {
       return res.status(429).json({
         success: false,
-        message: "Trop de soumissions pour cet email. Veuillez réessayer plus tard",
+        message:
+          "Trop de soumissions pour cet email. Veuillez réessayer plus tard",
       });
     }
 
-    // 1) Upload poster
     const posterKey = buildKey("posters", posterFile.originalname);
     const posterUp = await uploadBuffer({
       buffer: posterFile.buffer,
@@ -139,7 +161,6 @@ export const createFilm = async (req, res) => {
     });
     uploadedKeys.push(posterUp.key);
 
-    // 2) Upload film
     const filmKey = buildKey("films", filmFile.originalname);
     const filmUp = await uploadBuffer({
       buffer: filmFile.buffer,
@@ -148,27 +169,27 @@ export const createFilm = async (req, res) => {
     });
     uploadedKeys.push(filmUp.key);
 
-    // 3) Upload thumbnail (optional)
-    let thumbUrl = null;
+    // 3) Upload thumbnail (optional, PRIVATE)
+    let thumbKey = null;
     if (thumbnailFile) {
-      const thumbKey = buildKey("thumbnails", thumbnailFile.originalname);
+      const tKey = buildKey("thumbnails", thumbnailFile.originalname);
       const thumbUp = await uploadBuffer({
         buffer: thumbnailFile.buffer,
-        key: thumbKey,
+        key: tKey,
         contentType: thumbnailFile.mimetype,
       });
       uploadedKeys.push(thumbUp.key);
-      thumbUrl = thumbUp.url;
+      thumbKey = thumbUp.key;
     }
 
     const created = await Film.create({
       title,
       country: countryClean,
       description,
-      film_url: filmUp.url,
+      film_url: filmUp.key,
       youtube_url: null,
-      poster_url: posterUp.url,
-      thumbnail_url: thumbUrl,
+      poster_url: posterUp.key,
+      thumbnail_url: thumbKey,
       ai_tools_used: ai_tools_used || null,
       classification: classification || "Hybride", // Transmission au modèle
       ai_certification: ai_certification,
@@ -183,13 +204,16 @@ export const createFilm = async (req, res) => {
       social_vimeo: social_vimeo || null,
     });
 
-    return res.status(201).json({ success: true, message: "Film soumis avec succès", data: created });
+    const createdSigned = await withSignedMedia(created);
+
+    return res.status(201).json({
+      success: true,
+      message: "Film soumis avec succès",
+      data: createdSigned,
+    });
   } catch (err) {
     console.error("createFilm error:", err);
-
-    // rollback : supprime ce qui a été uploadé avant l’erreur
     await Promise.allSettled(uploadedKeys.map((k) => deleteObject(k)));
-
     return res.status(500).json({ success: false, message: "Erreur serveur" });
   }
 };
@@ -245,10 +269,12 @@ export const updateFilmStatus = async (req, res) => {
       );
     }
 
+    const signed = await withSignedMedia(updatedFilm);
+
     return res.status(200).json({
       success: true,
       message: "Statut du film mis à jour avec succès",
-      data: updatedFilm,
+      data: signed,
     });
   } catch (err) {
     console.error("updateFilmStatus error:", err);
@@ -281,6 +307,8 @@ export const getFilms = async (req, res) => {
       status: "approved",
     });
 
+    const signedRows = await Promise.all(rows.map(withSignedMedia));
+
     return res.status(200).json({
       success: true,
       pagination: {
@@ -291,7 +319,7 @@ export const getFilms = async (req, res) => {
         hasNextPage: all ? false : page < Math.ceil(count / limit),
         hasPrevPage: all ? false : page > 1,
       },
-      data: rows,
+      data: signedRows,
     });
   } catch (err) {
     console.error("getFilms error:", err);
@@ -314,7 +342,8 @@ export async function getFilmById(req, res) {
       return res.status(404).json({ success: false, message: "Film non trouvé" });
     }
 
-    return res.json({ success: true, data: film });
+    const signed = await withSignedMedia(film);
+    return res.json({ success: true, data: signed });
   } catch (err) {
     return res.status(500).json({ success: false, message: "Erreur serveur" });
   }
@@ -323,7 +352,8 @@ export async function getFilmById(req, res) {
 export const getPublicCatalog = async (req, res) => {
   try {
     const films = await Film.findForPublicCatalog();
-    return res.status(200).json({ success: true, data: films });
+    const signed = await Promise.all((films || []).map(withSignedMedia));
+    return res.status(200).json({ success: true, data: signed });
   } catch (err) {
     console.error("getApprovedFilms error:", err);
     return res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -342,7 +372,8 @@ export const getPublicFilm = async (req, res) => {
       return res.status(404).json({ success: false, message: "Film not found" });
     }
 
-    return res.json({ success: true, data: film });
+    const signed = await withSignedMedia(film);
+    return res.json({ success: true, data: signed });
   } catch (err) {
     console.error("getPublicFilm error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -378,3 +409,19 @@ export const getFilmStats = async (req, res) => {
     });
   }
 };
+
+export async function getFilmStreamUrl(req, res) {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: "Invalid film id" });
+
+    const film = await Film.findById(id);
+    if (!film) return res.status(404).json({ success: false, message: "Film not found" });
+
+    const url = await signGetUrl(film.film_url);
+    return res.json({ success: true, url });
+  } catch (err) {
+    console.error("getFilmStreamUrl error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}

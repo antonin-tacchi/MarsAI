@@ -12,6 +12,7 @@ import {
   getPublicCatalog,
   getPublicFilm,
   getPublicRanking,
+  getFilmStreamUrl,
 } from "../controllers/film.controller.js";
 
 const router = express.Router();
@@ -40,7 +41,9 @@ const VIDEO_EXT = [".mp4", ".webm", ".mov"];
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  const ext = (file.originalname || "").toLowerCase().slice(((file.originalname || "").lastIndexOf(".")) >>> 0);
+  const ext = (file.originalname || "")
+    .toLowerCase()
+    .slice(((file.originalname || "").lastIndexOf(".")) >>> 0);
 
   if (file.fieldname === "poster" || file.fieldname === "thumbnail") {
     const ok = IMAGE_MIME.includes(file.mimetype) && IMAGE_EXT.includes(ext);
@@ -69,6 +72,7 @@ const upload = multer({
 router.get("/public/catalog", getPublicCatalog);
 router.get("/public/:id", getPublicFilm);
 router.get("/ranking", getPublicRanking);
+router.get("/:id/stream-url", getFilmStreamUrl);
 
 router.patch(
   "/:id/status",
