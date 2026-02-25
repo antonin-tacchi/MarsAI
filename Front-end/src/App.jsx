@@ -18,6 +18,7 @@ import Submissions from "./pages/Submissions.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import AdminModeration from "./pages/AdminModeration.jsx";
 import Partners from "./pages/Partners.jsx";
+import InfosPratiques from "./pages/PracticalInfo.jsx";
 
 
 function ScrollToTop() {
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="prize-list" element={<PrizeList />} />
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />
+          <Route path="practicalinfos" element={<InfosPratiques />} />
           <Route
             path="profile-admin"
             element={
