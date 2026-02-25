@@ -16,6 +16,17 @@ import {
   generateDistribution,
 } from "../controllers/superjury.controller.js";
 import {
+  getAllLists,
+  getListById,
+  createList,
+  updateList,
+  deleteList,
+  addFilmsToList,
+  removeFilmsFromList,
+  assignListToJuries,
+  removeJuriesFromList,
+} from "../controllers/jurylist.controller.js";
+import {
   updatePageContent,
 } from "../controllers/sitepage.controller.js";
 
@@ -40,6 +51,17 @@ router.delete("/films/:id", deleteFilm);
 router.get("/distribution/stats", getDistributionStats);
 router.post("/distribution/preview", previewDistribution);
 router.post("/distribution/generate", generateDistribution);
+
+// ─── JURY LISTS (Super Jury) ─────────────────────────────
+router.get("/lists", getAllLists);
+router.get("/lists/:id", getListById);
+router.post("/lists", createList);
+router.put("/lists/:id", updateList);
+router.delete("/lists/:id", deleteList);
+router.post("/lists/:id/films", addFilmsToList);
+router.delete("/lists/:id/films", removeFilmsFromList);
+router.post("/lists/:id/assign", assignListToJuries);
+router.delete("/lists/:id/assign", removeJuriesFromList);
 
 // ─── CMS / SITE CONTENT (Admin) ─────────────────────────
 router.put("/pages/:slug", updatePageContent);
