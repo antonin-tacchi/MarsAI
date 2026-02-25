@@ -933,6 +933,4 @@ WARNING: Disable in production.
 
 Returns first 10 users.
 
----
-
-**Last updated**: January 2026  
+**Last updated**: January 2026

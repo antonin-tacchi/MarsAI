@@ -282,6 +282,18 @@ export default {
     pagesTab: "Pages",
   },
 
+  // Jury
+  jury: {
+    title: "LES MEMBRES",
+    titleHighlight: "DU JURY",
+    subtitle: "Experts IA, cinéastes et visionnaires réunis pour délibérer sur la sélection officielle.",
+    loadError: "Erreur lors du chargement des membres du jury",
+    connectionError: "Erreur de connexion au serveur",
+    serverError: "Erreur serveur",
+    retry: "Réessayer",
+    empty: "Aucun membre du jury pour le moment",
+  },
+
   // Common
   common: {
     loading: "Chargement...",

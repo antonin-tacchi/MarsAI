@@ -282,6 +282,18 @@ export default {
     pagesTab: "Pages",
   },
 
+  // Jury
+  jury: {
+    title: "JURY",
+    titleHighlight: "MEMBERS",
+    subtitle: "AI experts, filmmakers, and visionaries united to deliberate on the official selection.",
+    loadError: "Error loading jury members",
+    connectionError: "Server connection error",
+    serverError: "Server error",
+    retry: "Retry",
+    empty: "No jury members at the moment",
+  },
+
   // Common
   common: {
     loading: "Loading...",
