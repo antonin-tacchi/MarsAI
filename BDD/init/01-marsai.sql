@@ -92,8 +92,10 @@ CREATE TABLE `films` (
 
   -- Film Information
   `title` varchar(255) NOT NULL,
-  `country` varchar(100) DEFAULT NULL,
-  `description` text,
+  `title_english` varchar(255) DEFAULT NULL COMMENT 'English title for international audiences',
+  `country` varchar(100) DEFAULT NULL COMMENT 'Country of origin',
+  `description` text COMMENT 'Original description in the director''s language',
+  `description_english` text COMMENT 'English description for international audiences',
   `film_url` varchar(500) DEFAULT NULL COMMENT 'URL to uploaded film file',
   `youtube_url` varchar(500) DEFAULT NULL COMMENT 'YouTube video URL for public viewing',
   `poster_url` varchar(500) DEFAULT NULL COMMENT 'Main poster image',
