@@ -5,10 +5,9 @@ import Button from "../components/Button";
 import FilmFilters from "../components/FilmFilters";
 import { useLanguage } from "../context/LanguageContext";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5001";
 const PER_PAGE = 20;
 
-// --- COMPOSANT SKELETON (ÉTAT DE CHARGEMENT) ---
 const SkeletonCard = () => (
   <div className="block w-[260px]">
     <div className="w-full h-[160px] rounded-lg animate-shimmer mb-4" />
@@ -58,7 +57,7 @@ export default function Catalogs() {
     }
   }, []);
 
-  // --- FETCH RANKING (public) ---
+  // --- FETCH RANKING ---
   useEffect(() => {
     fetch(`${API_URL}/api/films/ranking`)
       .then((res) => (res.ok ? res.json() : null))
@@ -111,7 +110,6 @@ export default function Catalogs() {
     return map;
   }, [ranking]);
 
-  // Nombre de films notés (pour le badge du filtre)
   const ratedCount = useMemo(() => {
     return films.filter((f) => rankingMap.has(f.id) && rankingMap.get(f.id).average_rating !== null).length;
   }, [films, rankingMap]);
@@ -135,7 +133,6 @@ export default function Catalogs() {
       )
         return false;
 
-      // Filtre par catégorie
       if (filters.category && film.categories) {
         if (
           !film.categories
@@ -162,15 +159,13 @@ export default function Catalogs() {
     });
   }, [filteredFilms, filters.rated, rankingMap]);
 
-  // --- PAGINATION (basée sur le résultat filtré) ---
+  // --- PAGINATION ---
   const totalPages = Math.max(1, Math.ceil(sortedFilms.length / PER_PAGE));
 
-  // Si filtres/recherche changent et que la page dépasse, on recadre
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
-  // Films à afficher sur la page courante
   const paginatedFilms = useMemo(() => {
     const start = (page - 1) * PER_PAGE;
     return sortedFilms.slice(start, start + PER_PAGE);
@@ -192,7 +187,7 @@ export default function Catalogs() {
             filters={filters}
             onChange={(next) => {
               setFilters(next);
-              setPage(1); // reset page quand on change les filtres
+              setPage(1);
             }}
             countries={countries}
             aiTools={aiTools}
@@ -202,7 +197,6 @@ export default function Catalogs() {
           />
         </header>
 
-        {/* --- PAGINATION STYLE « ‹ 1 › » --- */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-4 mt-12 mb-12 text-2xl text-[#262335]">
             <button

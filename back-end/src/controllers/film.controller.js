@@ -87,7 +87,7 @@ export const createFilm = async (req, res) => {
     }
 
     const {
-      title, country, description, ai_tools_used, classification,
+      title, title_english, country, description, description_english, ai_tools_used, classification,
       ai_certification, director_firstname, director_lastname,
       director_email, director_bio, director_school, director_website,
       social_instagram, social_youtube, social_vimeo,
@@ -95,8 +95,10 @@ export const createFilm = async (req, res) => {
 
     if (
       !title ||
+      !title_english ||
       !country ||
       !description ||
+      !description_english ||
       !director_firstname ||
       !director_lastname ||
       !director_email
@@ -104,7 +106,7 @@ export const createFilm = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          "Titre, pays, description, prénom, nom et email du réalisateur sont requis",
+          "Titre, titre anglais, pays, description, description anglaise, prénom, nom et email du réalisateur sont requis",
       });
     }
 
@@ -123,8 +125,10 @@ export const createFilm = async (req, res) => {
 
     const tooLong =
       title.length > MAX_TITLE ||
+      title_english.length > MAX_TITLE ||
       countryClean.length > MAX_COUNTRY ||
       description.length > MAX_DESCRIPTION ||
+      description_english.length > MAX_DESCRIPTION ||
       (ai_tools_used && ai_tools_used.length > MAX_AI_TOOLS) ||
       director_firstname.length > MAX_NAME ||
       director_lastname.length > MAX_NAME ||
@@ -169,7 +173,6 @@ export const createFilm = async (req, res) => {
     });
     uploadedKeys.push(filmUp.key);
 
-    // 3) Upload thumbnail (optional, PRIVATE)
     let thumbKey = null;
     if (thumbnailFile) {
       const tKey = buildKey("thumbnails", thumbnailFile.originalname);
@@ -184,14 +187,16 @@ export const createFilm = async (req, res) => {
 
     const created = await Film.create({
       title,
+      title_english,
       country: countryClean,
       description,
+      description_english,
       film_url: filmUp.key,
       youtube_url: null,
       poster_url: posterUp.key,
       thumbnail_url: thumbKey,
       ai_tools_used: ai_tools_used || null,
-      classification: classification || "Hybride", // Transmission au modèle
+      classification: classification || "Hybride",
       ai_certification: ai_certification,
       director_firstname,
       director_lastname,
