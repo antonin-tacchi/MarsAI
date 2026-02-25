@@ -62,8 +62,14 @@ export default function FilmPlayer({
   const videoRef = useRef(null);
 
   const aiAbs = useMemo(() => absolutize(aiUrl, API_URL), [aiUrl, API_URL]);
-  const thumbAbs = useMemo(() => absolutize(thumbnailUrl, API_URL), [thumbnailUrl, API_URL]);
-  const posterAbs = useMemo(() => absolutize(posterUrl, API_URL), [posterUrl, API_URL]);
+  const thumbAbs = useMemo(
+    () => absolutize(thumbnailUrl, API_URL),
+    [thumbnailUrl, API_URL]
+  );
+  const posterAbs = useMemo(
+    () => absolutize(posterUrl, API_URL),
+    [posterUrl, API_URL]
+  );
 
   const mode = useMemo(() => {
     if (!aiAbs) return "image";
@@ -76,7 +82,16 @@ export default function FilmPlayer({
 
   // 🔑 clés de persistance (unique par URL)
   const storageKeyTime = useMemo(() => `filmplayer:time:${aiAbs}`, [aiAbs]);
-  const storageKeyPlaying = useMemo(() => `filmplayer:playing:${aiAbs}`, [aiAbs]);
+  const storageKeyPlaying = useMemo(
+    () => `filmplayer:playing:${aiAbs}`,
+    [aiAbs]
+  );
+
+  // Reset erreurs quand on change de film/source
+  useEffect(() => {
+    setVideoError(false);
+    setImgError(false);
+  }, [aiAbs, previewImage]);
 
   useEffect(() => {
     if (mode !== "video") return;
@@ -97,31 +112,25 @@ export default function FilmPlayer({
     };
 
     const restore = async () => {
-      // attendre metadata pour pouvoir set currentTime
       const tRaw = localStorage.getItem(storageKeyTime);
       const wasPlaying = localStorage.getItem(storageKeyPlaying) === "1";
 
-      const t = tRaw ? Number(tRaw) : 0;
-      if (Number.isFinite(t) && t > 0) {
-        // si la durée est connue, clamp
+      const tSaved = tRaw ? Number(tRaw) : 0;
+      if (Number.isFinite(tSaved) && tSaved > 0) {
         const safeTime =
           Number.isFinite(video.duration) && video.duration > 0
-            ? Math.min(t, Math.max(0, video.duration - 0.25))
-            : t;
+            ? Math.min(tSaved, Math.max(0, video.duration - 0.25))
+            : tSaved;
 
         try {
           video.currentTime = safeTime;
         } catch {}
       }
 
-      // si elle était en lecture avant reload, on relance
-      // ⚠️ autoplay sera de toute façon soumis aux règles navigateur (muted => OK)
       if (wasPlaying) {
         try {
           await video.play();
-        } catch {
-          // ignore: navigateur peut bloquer si conditions pas remplies
-        }
+        } catch {}
       }
     };
 
@@ -132,7 +141,6 @@ export default function FilmPlayer({
     video.addEventListener("play", savePlaying);
     video.addEventListener("loadedmetadata", onLoadedMetadata);
 
-    // au cas où l’onglet se ferme (dernier save)
     window.addEventListener("beforeunload", saveTime);
 
     return () => {
@@ -168,6 +176,7 @@ export default function FilmPlayer({
           className="w-full h-full object-cover bg-black"
           onError={() => setVideoError(true)}
         >
+          {/* Optionnel: on tente de déduire un type propre, sinon mp4 */}
           <source src={aiAbs} type="video/mp4" />
           {t("filmPlayer.videoNotSupported")}
         </video>

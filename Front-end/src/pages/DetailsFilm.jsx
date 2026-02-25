@@ -552,8 +552,15 @@ export default function DetailsFilm() {
   const director = film?.director || "";
   const description = film?.description || "";
   const views = film?.views ?? "";
-  const aiUrl = film?.film_url || film?.youtube_url || "";
-  const posterUrl = film?.poster_url || "/placeholder.jpg";
+  const aiUrl =
+    film?.film_stream_url ||
+    film?.film_url ||
+    film?.youtube_url ||
+    "";
+  const posterUrl =
+    film?.poster_stream_url ||
+    film?.poster_url ||
+    "/placeholder.jpg";
   const published = useMemo(() => formatDateFR(film?.created_at), [film]);
 
   /* Jury section */
@@ -672,8 +679,8 @@ export default function DetailsFilm() {
                     <FilmPlayer
                       title={title}
                       aiUrl={aiUrl}
-                      thumbnailUrl={film?.thumbnail_url}
-                      posterUrl={film?.poster_url}
+                      thumbnailUrl={film?.thumbnail_stream_url || film?.thumbnail_url}
+                      posterUrl={film?.poster_stream_url || film?.poster_url}
                       apiUrl={API_URL}
                     />
                   </div>
@@ -758,8 +765,8 @@ export default function DetailsFilm() {
                     <FilmPlayer
                       title={title}
                       aiUrl={aiUrl}
-                      thumbnailUrl={film?.thumbnail_url}
-                      posterUrl={film?.poster_url}
+                      thumbnailUrl={film?.thumbnail_stream_url || film?.thumbnail_url}
+                      posterUrl={film?.poster_stream_url || film?.poster_url}
                       apiUrl={API_URL}
                     />
                   </div>
