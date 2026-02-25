@@ -340,6 +340,13 @@ export default {
     pagesTab: "Pages",
   },
 
+  // About
+  about: {
+    submitFilm: "Submit a film",
+    newsletter: "Newsletter",
+    regulation: "Regulations",
+  },
+
   // Contact Page
   contact: {
     subtitle: "A question? A bug? An AI that decided to go on vacation? We’re reachable.",
