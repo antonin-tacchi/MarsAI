@@ -41,7 +41,7 @@ app.options("*", cors());
 
 app.use(express.json());
 
-app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+// app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 app.get("/", (req, res) => {
   res.json({ message: "MarsAI API online 🚀" });
