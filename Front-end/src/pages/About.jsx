@@ -1,5 +1,9 @@
+import { Link } from "react-router-dom";
 import image1 from "/src/images/imgregister.png";
+import { useLanguage } from "../context/LanguageContext";
+
 export default function About() {
+  const { t } = useLanguage();
   const sections = [
     {
       title: "Pourquoi MarsAI",
@@ -129,17 +133,23 @@ export default function About() {
       {/* CTA */}
       <section className="bg-[#FBF5F0]">
         <div className="max-w-5xl mx-auto px-6 py-24 flex flex-wrap gap-5 justify-center">
-          <button className="bg-[#262335] text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:opacity-90 transition">
-            Soumettre un film
-          </button>
+          <Link
+            to="/submissions"
+            className="bg-[#262335] text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:opacity-90 transition"
+          >
+            {t("about.submitFilm")}
+          </Link>
 
           <button className="border border-[#262335] text-[#262335] px-8 py-4 rounded-xl font-semibold hover:bg-[#262335] hover:text-white transition">
-            Newsletter
+            {t("about.newsletter")}
           </button>
 
-          <button className="border border-[#262335] text-[#262335] px-8 py-4 rounded-xl font-semibold hover:bg-[#262335] hover:text-white transition">
-            Règlement
-          </button>
+          <Link
+            to="/regulation"
+            className="border border-[#262335] text-[#262335] px-8 py-4 rounded-xl font-semibold hover:bg-[#262335] hover:text-white transition"
+          >
+            {t("about.regulation")}
+          </Link>
         </div>
       </section>
     </div>
