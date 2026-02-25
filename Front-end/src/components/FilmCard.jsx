@@ -17,7 +17,9 @@ function youtubeThumb(url) {
       const id = url.split("/embed/")[1].split(/[?&#]/)[0];
       return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return "";
 }
 
@@ -28,8 +30,16 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
   const [fallback, setFallback] = useState(0);
 
   const filePath = useMemo(() => {
-    const thumb = film?.thumbnail_url || "";
-    const poster = film?.poster_url || "";
+    // ✅ priorités: stream_url > ancien champ
+    const thumb =
+      film?.thumbnail_stream_url ||
+      film?.thumbnail_url ||
+      "";
+
+    const poster =
+      film?.poster_stream_url ||
+      film?.poster_url ||
+      "";
 
     if (imageVariant === "thumbnail") return thumb;
     if (imageVariant === "poster") return poster;
@@ -37,7 +47,6 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
     return thumb || poster;
   }, [film, imageVariant]);
 
-  // Chaine ordonnée : YouTube → DB image → placeholder
   const sources = useMemo(() => {
     const list = [];
 
@@ -45,9 +54,11 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
     if (yt) list.push(yt);
 
     if (filePath) {
+      // si c'est déjà une presigned url => direct
       if (/^https?:\/\//i.test(filePath)) {
         list.push(filePath);
       } else {
+        // fallback ancien: fichier local relatif
         try {
           list.push(new URL(filePath, apiUrl).href);
         } catch {
@@ -62,13 +73,11 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
 
   const src = sources[Math.min(fallback, sources.length - 1)];
 
-  // Reset quand les sources changent (nouveau film)
   useEffect(() => {
     setFallback(0);
     setImgStatus("loading");
   }, [sources]);
 
-  // Détecter les images déjà en cache
   useEffect(() => {
     const el = imgRef.current;
     if (el && el.complete && el.naturalWidth > 0) {
@@ -77,8 +86,10 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
   }, [src]);
 
   const title = film?.title || t("filmCard.unknownTitle");
-  const directorFirst = film?.director_firstname || t("filmCard.defaultFirstName");
-  const directorLast = film?.director_lastname || t("filmCard.defaultLastName");
+  const directorFirst =
+    film?.director_firstname || t("filmCard.defaultFirstName");
+  const directorLast =
+    film?.director_lastname || t("filmCard.defaultLastName");
 
   return (
     <Link
@@ -110,30 +121,27 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
             decoding="async"
           />
 
-          {/* BADGE RANG */}
           {rank != null && (
             <div
               className={`absolute top-2 left-2 text-white text-sm font-bold w-8 h-8 rounded-full shadow-lg flex items-center justify-center z-10 bg-gradient-to-r ${
                 rank === 1
                   ? "from-yellow-400 to-yellow-600"
                   : rank === 2
-                    ? "from-gray-300 to-gray-500"
-                    : rank === 3
-                      ? "from-amber-600 to-amber-800"
-                      : "from-[#9a92c9] to-[#2f2a73]"
+                  ? "from-gray-300 to-gray-500"
+                  : rank === 3
+                  ? "from-amber-600 to-amber-800"
+                  : "from-[#9a92c9] to-[#2f2a73]"
               }`}
             >
               {rank}
             </div>
           )}
 
-          {/* BADGE NOTE JURY */}
           {film?.user_rating !== null && film?.user_rating !== undefined && (
             <div className="absolute top-2 right-2 bg-gradient-to-r from-[#9a92c9] to-[#2f2a73] text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg backdrop-blur-sm">
               ⭐ {film.user_rating}/10
             </div>
           )}
-
 
           {imgStatus === "error" && (
             <div className="absolute bottom-2 right-2 rounded-md bg-black/60 px-2 py-1 text-xs text-white">
@@ -154,7 +162,11 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
             </span>
             {film.rating_count != null && (
               <span className="text-xs text-[#262335]/50">
-                ({film.rating_count} {film.rating_count !== 1 ? t("filmCard.votes") : t("filmCard.vote")})
+                ({film.rating_count}{" "}
+                {film.rating_count !== 1
+                  ? t("filmCard.votes")
+                  : t("filmCard.vote")}
+                )
               </span>
             )}
           </div>
