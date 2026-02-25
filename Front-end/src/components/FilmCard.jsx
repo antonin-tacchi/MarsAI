@@ -24,22 +24,14 @@ function youtubeThumb(url) {
 }
 
 export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const imgRef = useRef(null);
   const [imgStatus, setImgStatus] = useState("loading");
   const [fallback, setFallback] = useState(0);
 
   const filePath = useMemo(() => {
-    // ✅ priorités: stream_url > ancien champ
-    const thumb =
-      film?.thumbnail_stream_url ||
-      film?.thumbnail_url ||
-      "";
-
-    const poster =
-      film?.poster_stream_url ||
-      film?.poster_url ||
-      "";
+    const thumb = film?.thumbnail_stream_url || film?.thumbnail_url || "";
+    const poster = film?.poster_stream_url || film?.poster_url || "";
 
     if (imageVariant === "thumbnail") return thumb;
     if (imageVariant === "poster") return poster;
@@ -54,11 +46,9 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
     if (yt) list.push(yt);
 
     if (filePath) {
-      // si c'est déjà une presigned url => direct
       if (/^https?:\/\//i.test(filePath)) {
         list.push(filePath);
       } else {
-        // fallback ancien: fichier local relatif
         try {
           list.push(new URL(filePath, apiUrl).href);
         } catch {
@@ -85,17 +75,16 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
     }
   }, [src]);
 
-  const title = film?.title || t("filmCard.unknownTitle");
-  const directorFirst =
-    film?.director_firstname || t("filmCard.defaultFirstName");
-  const directorLast =
-    film?.director_lastname || t("filmCard.defaultLastName");
+  const title =
+    lang === "en"
+      ? (film?.title_english || film?.title || t("filmCard.unknownTitle"))
+      : (film?.title || film?.title_english || t("filmCard.unknownTitle"));
+
+  const directorFirst = film?.director_firstname || t("filmCard.defaultFirstName");
+  const directorLast = film?.director_lastname || t("filmCard.defaultLastName");
 
   return (
-    <Link
-      to={`/details-film/${film?.id ?? ""}`}
-      className="block w-[260px] cursor-pointer"
-    >
+    <Link to={`/details-film/${film?.id ?? ""}`} className="block w-[260px] cursor-pointer">
       <div className="group h-full flex flex-col">
         <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-[#C7C2CE]">
           {imgStatus !== "loaded" && (
@@ -157,15 +146,11 @@ export default function FilmCard({ film, apiUrl, imageVariant = "auto", rank }) 
 
         {film?.average_rating != null && (
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm font-bold text-[#463699]">
-              {film.average_rating}/10
-            </span>
+            <span className="text-sm font-bold text-[#463699]">{film.average_rating}/10</span>
             {film.rating_count != null && (
               <span className="text-xs text-[#262335]/50">
                 ({film.rating_count}{" "}
-                {film.rating_count !== 1
-                  ? t("filmCard.votes")
-                  : t("filmCard.vote")}
+                {film.rating_count !== 1 ? t("filmCard.votes") : t("filmCard.vote")}
                 )
               </span>
             )}
