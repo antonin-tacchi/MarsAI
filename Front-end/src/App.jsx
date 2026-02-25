@@ -8,6 +8,7 @@ import About from "./pages/About.jsx";
 import Catalogs from "./pages/Catalogs.jsx";
 import Contact from "./pages/Contact.jsx";
 import DetailsFilm from "./pages/DetailsFilm.jsx";
+import Jury from "./pages/JuryMembers.jsx";
 import PrizeList from "./pages/PrizeList.jsx";
 import ProfileAdmin from "./pages/ProfileAdmin.jsx";
 import ProfileDirector from "./pages/ProfileDirector.jsx";
@@ -53,7 +54,8 @@ export default function App() {
           <Route path="catalogs" element={<Catalogs />} />
           <Route path="contact" element={<Contact />} />
           <Route path="details-film/:id" element={<DetailsFilm />} />
-          <Route path= "nos-partenaires" element={<Partners/>} />
+          <Route path="nos-partenaires" element={<Partners/>} />
+          <Route path="membres-du-jury" element={<Jury/>} />
           <Route path="prize-list" element={<PrizeList />} />
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />
