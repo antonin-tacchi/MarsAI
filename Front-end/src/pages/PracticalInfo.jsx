@@ -1,0 +1,157 @@
+import { Link } from "react-router-dom";
+import Header from "../components/Header";
+
+const programme = [
+  { time: "09:30", title: "Accueil & Café Networking", pill: "Ouverture" },
+  { time: "10:30", title: "Conférence d'ouverture", sub: "L'IA au service du cinéma" },
+  { time: "13:00", title: "Déjeuner Libre" },
+  { time: "14:30", title: "Projection & Débat Officielle" },
+  { time: "16:30", title: "Table Ronde : Futurs souhaitables", sub: "Conférence" },
+  { time: "19:00", title: "Grand Prix & Cérémonie de Clôture" },
+  { time: "21:00", title: "MARS A.I Night - DJ Set immersif", sub: "On fête ça ensemble !", pill: "Soirée" },
+];
+
+const acces = [
+  {
+    icon: "🚇",
+    title: "Transports en commun",
+    desc: "Métro ligne 1 – station Vieux-Port\nBus lignes 82, 83 – arrêt Joliette",
+  },
+  {
+    icon: "🚗",
+    title: "Voiture",
+    desc: "Parking Euroméditerranée à 200m\nStationnement payant en surface disponible",
+  },
+  {
+    icon: "✈️",
+    title: "Avion",
+    desc: "Aéroport Marseille-Provence\nNavette directe vers le centre-ville (30 min)",
+  },
+  {
+    icon: "🚆",
+    title: "Train",
+    desc: "Gare Saint-Charles – TGV\n15 min à pied ou métro ligne 1",
+  },
+];
+
+export default function InfosPratiques() {
+  return (
+    <div className="min-h-screen flex flex-col bg-[#FBF5F0]">
+
+      {/* Back nav */}
+      <nav className="bg-white border-b border-[#C7C2CE] px-8 py-3">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B6578] hover:text-[#463699] transition-colors"
+        >
+          ← Retour accueil
+        </Link>
+      </nav>
+
+      {/* Page header */}
+      <header className="bg-[#262335] px-8 py-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#463699]/50 to-[#8A83DA]/15 pointer-events-none" />
+        <div className="absolute -right-24 -top-24 w-96 h-96 rounded-full bg-[#8A83DA]/20 blur-2xl pointer-events-none" />
+
+        <div className="max-w-4xl mx-auto relative z-10">
+          <span className="inline-flex items-center gap-1.5 bg-white/10 border border-white/15 text-[#8A83DA] text-sm font-medium px-3 py-1 rounded-full mb-4">
+            📍 Infos pratiques
+          </span>
+          <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+            13 Juin 2026
+            <br />
+            <span className="text-[#8A83DA]">Marseille</span>
+          </h1>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="max-w-4xl mx-auto w-full px-4 md:px-8 py-10 flex flex-col gap-10">
+
+        {/* La Plateforme */}
+        <section>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#262335] mb-5">
+            La Plateforme
+          </h2>
+          <div className="bg-white border border-[#C7C2CE] rounded-md p-6">
+            <p className="text-base text-[#6B6578] leading-relaxed">
+              L'événement se tiendra dans un espace créatif et numérique au cœur de Marseille.
+              Retrouvez toutes les informations pratiques sur le lieu du festival :{" "}
+              <a href="#" className="text-[#463699] font-semibold hover:underline">
+                La Plateforme
+              </a>
+              .
+            </p>
+          </div>
+        </section>
+
+        {/* Programme */}
+        <section>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#262335] mb-5">
+            Programme des conférences
+          </h2>
+          <div className="bg-white border border-[#C7C2CE] rounded-md overflow-hidden">
+            {programme.map((item, i) => (
+              <div
+                key={i}
+                className="grid grid-cols-[80px_1fr] gap-4 px-6 py-4 border-b last:border-b-0 border-[#C7C2CE] items-center hover:bg-[#f5f3ff] transition-colors"
+              >
+                <span className="text-base font-semibold text-[#463699] tabular-nums">{item.time}</span>
+                <div>
+                  <p className="text-base font-medium text-[#262335]">{item.title}</p>
+                  {item.sub && <p className="text-sm text-[#6B6578] mt-0.5">{item.sub}</p>}
+                  {item.pill && (
+                    <span className="inline-block mt-1 text-sm font-medium bg-[#eeeaf9] text-[#463699] px-2.5 py-0.5 rounded-full">
+                      {item.pill}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Accès */}
+        <section>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#262335] mb-5">
+            Accès
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {acces.map((item, i) => (
+              <div
+                key={i}
+                className="bg-white border border-[#C7C2CE] rounded-md p-5 flex gap-4 items-start hover:border-[#463699] transition-all"
+              >
+                <div className="w-10 h-10 bg-[#262335] rounded-md flex items-center justify-center text-lg flex-shrink-0">
+                  {item.icon}
+                </div>
+                <div>
+                  <h4 className="text-base font-semibold text-[#262335] mb-1">
+                    {item.title}
+                  </h4>
+                  <p className="text-sm text-[#6B6578] leading-relaxed whitespace-pre-line">
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Map */}
+          <div className="mt-4 rounded-md overflow-hidden border border-[#C7C2CE]">
+            <iframe
+              src="https://www.openstreetmap.org/export/embed.html?bbox=5.33,43.27,5.40,43.32&layer=mapnik&marker=43.2965,5.3698"
+              className="w-full h-64 block"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              title="Carte Marseille"
+            />
+          </div>
+        </section>
+
+      </main>
+    </div>
+  );
+}
