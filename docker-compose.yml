@@ -68,6 +68,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=200
       - WATCHPACK_POLLING=true
+      - NODE_OPTIONS=--max-old-space-size=2048
     command: npm run dev -- --host --port 5173
     depends_on:
       - backend
