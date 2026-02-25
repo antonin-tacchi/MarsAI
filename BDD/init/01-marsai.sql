@@ -236,6 +236,56 @@ CREATE TABLE `awards` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
+-- Table: jury_lists (Named film lists created by Super Jury)
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `jury_lists`;
+CREATE TABLE `jury_lists` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_by` int NOT NULL COMMENT 'Super Jury who created the list',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_jl_creator` (`created_by`),
+  CONSTRAINT `fk_jl_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+-- Table: jury_list_films (Films belonging to a jury list)
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `jury_list_films`;
+CREATE TABLE `jury_list_films` (
+  `list_id` int NOT NULL,
+  `film_id` int NOT NULL,
+  PRIMARY KEY (`list_id`, `film_id`),
+  KEY `fk_jlf_film` (`film_id`),
+  CONSTRAINT `fk_jlf_list` FOREIGN KEY (`list_id`) REFERENCES `jury_lists` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_jlf_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+-- Table: jury_list_assignments (Assign a list to a jury member)
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `jury_list_assignments`;
+CREATE TABLE `jury_list_assignments` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `list_id` int NOT NULL,
+  `jury_id` int NOT NULL,
+  `assigned_by` int NOT NULL,
+  `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_list_jury` (`list_id`, `jury_id`),
+  KEY `fk_jla_jury` (`jury_id`),
+  KEY `fk_jla_assigner` (`assigned_by`),
+  CONSTRAINT `fk_jla_list` FOREIGN KEY (`list_id`) REFERENCES `jury_lists` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_jla_jury` FOREIGN KEY (`jury_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_jla_assigner` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
 -- Table: jury_assignments (Super Jury assigns films to Jury)
 -- --------------------------------------------------------
 
@@ -244,6 +294,7 @@ CREATE TABLE `jury_assignments` (
   `id` int NOT NULL AUTO_INCREMENT,
   `jury_id` int NOT NULL COMMENT 'Jury member assigned to review',
   `film_id` int NOT NULL,
+  `list_id` int DEFAULT NULL COMMENT 'Jury list this assignment belongs to',
   `assigned_by` int NOT NULL COMMENT 'Super Jury who made the assignment',
   `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `status` enum('active','refused') NOT NULL DEFAULT 'active' COMMENT 'Assignment status',
@@ -254,10 +305,12 @@ CREATE TABLE `jury_assignments` (
   KEY `fk_ja_jury` (`jury_id`),
   KEY `fk_ja_film` (`film_id`),
   KEY `fk_ja_assigner` (`assigned_by`),
+  KEY `fk_ja_list` (`list_id`),
   KEY `idx_ja_status` (`status`),
   CONSTRAINT `fk_ja_jury` FOREIGN KEY (`jury_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ja_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_ja_assigner` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_ja_assigner` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ja_list` FOREIGN KEY (`list_id`) REFERENCES `jury_lists` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------

@@ -18,6 +18,7 @@ import {
 
 import { signGetUrl } from "../services/scalewaySignedUrl.service.js";
 
+
 const MAX_TITLE = 255;
 const MAX_COUNTRY = 100;
 const MAX_DESCRIPTION = 2000;

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Button from "../components/Button";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -46,6 +47,7 @@ export default function ProfileAdmin() {
   const [usersLoading, setUsersLoading] = useState(false);
   const [userModal, setUserModal] = useState(null); // null | "create" | user object (edit)
   const [userForm, setUserForm] = useState({ name: "", email: "", password: "", roles: [1] });
+  const [showPassword, setShowPassword] = useState(false);
   const [userSaving, setUserSaving] = useState(false);
 
   // ── Films state ──
@@ -1011,12 +1013,21 @@ export default function ProfileAdmin() {
                 <label className="block text-sm font-bold text-[#262335] mb-1">
                   Mot de passe {userModal !== "create" && "(laisser vide pour ne pas changer)"}
                 </label>
-                <input
-                  type="password"
-                  value={userForm.password}
-                  onChange={(e) => setUserForm((f) => ({ ...f, password: e.target.value }))}
-                  className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={userForm.password}
+                    onChange={(e) => setUserForm((f) => ({ ...f, password: e.target.value }))}
+                    className="w-full px-4 py-2 pr-12 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#262335]/50 hover:text-[#463699] transition-colors"
+                  >
+                    {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-bold text-[#262335] mb-2">Roles</label>
