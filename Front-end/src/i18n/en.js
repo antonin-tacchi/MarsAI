@@ -21,6 +21,11 @@ export default {
     regulation: "Regulations",
     communication: "CONTACT US",
     contact: "Contact",
+    jurySpace: "Jury Space",
+    adminSpace: "Admin Space",
+    superJurySpace: "Super Jury Space",
+    directorSpace: "Director Space",
+    partners: "Our partners",
   },
 
   login: {
