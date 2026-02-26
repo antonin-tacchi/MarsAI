@@ -74,16 +74,19 @@ export function isAdminOrJury(user = getCurrentUser()) {
 }
 
 /**
- * Returns the profile route and label based on the user's highest role.
- * Priority: Admin (2) > Super Jury (3) > Jury (1)
- * Returns null if user is not logged in or has no recognized role.
+ * Returns the profile route and translation key based on the user's highest role.
+ * Priority: Admin (2) > Super Jury (3) > Jury (1) > Director (authenticated)
+ * Returns null if user is not logged in.
  */
 export function getProfileRoute(user = getCurrentUser()) {
   const roles = getUserRoleIds(user);
 
-  if (roles.includes(2)) return { path: "/profile-admin", label: "Espace Admin" };
-  if (roles.includes(3)) return { path: "/profile-superjury", label: "Espace Super Jury" };
-  if (roles.includes(1)) return { path: "/profile-jury", label: "Espace Jury" };
+  if (roles.includes(2)) return { path: "/profile-admin", labelKey: "footer.adminSpace" };
+  if (roles.includes(3)) return { path: "/profile-superjury", labelKey: "footer.superJurySpace" };
+  if (roles.includes(1)) return { path: "/profile-jury", labelKey: "footer.jurySpace" };
+
+  // Authenticated user with director role (no special role)
+  if (getToken()) return { path: "/profile-director", labelKey: "footer.directorSpace" };
 
   return null;
 }
