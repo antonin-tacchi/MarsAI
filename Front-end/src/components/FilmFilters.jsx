@@ -45,7 +45,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
         {/* Dropdown Catégories */}
         <div className="relative">
           <button
-            onClick={() => toggleDropdown("categories")}
+            onClick={() => filters.category ? toggle("category", filters.category) : toggleDropdown("categories")}
             className={`${baseBtn} ${filters.category ? active : inactive} flex items-center gap-2`}
           >
             {filters.category
@@ -81,7 +81,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
         {/* Dropdown Pays */}
         <div className="relative">
           <button
-            onClick={() => toggleDropdown("pays")}
+            onClick={() => filters.country ? toggle("country", filters.country) : toggleDropdown("pays")}
             className={`${baseBtn} ${filters.country ? active : inactive} flex items-center gap-2`}
           >
             {filters.country
@@ -120,7 +120,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
         {/* Dropdown Outils IA */}
         <div className="relative">
           <button
-            onClick={() => toggleDropdown("outils")}
+            onClick={() => filters.ai ? toggle("ai", filters.ai) : toggleDropdown("outils")}
             className={`${baseBtn} ${filters.ai ? active : inactive} flex items-center gap-2`}
           >
             {filters.ai
