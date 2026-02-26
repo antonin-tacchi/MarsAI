@@ -4,7 +4,8 @@ import imgHero from "../images/Hero.jpg";
 import imgCountdown from "../images/homepage.png";
 import "../styles/Home.css";
 
-const FESTIVAL_DATE = new Date("2026-09-15T00:00:00");
+import FilmCard from "../components/FilmCard.jsx";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 // Fallback si API indisponible (évite un compte à rebours mort-né)
