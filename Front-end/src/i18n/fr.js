@@ -23,6 +23,11 @@ export default {
     regulation: "Règlement",
     communication: "COMMUNICATION",
     contact: "Contact",
+    jurySpace: "Espace Jury",
+    adminSpace: "Espace Admin",
+    superJurySpace: "Espace Super Jury",
+    directorSpace: "Espace Réalisateur",
+    partners: "Nos partenaires",
   },
 
   // Login
