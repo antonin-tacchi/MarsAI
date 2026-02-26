@@ -19,7 +19,6 @@ export const findAll = async () => {
   return rows;
 };
 
-/* Récupérer un membre du jury par son ID */
 export const findById = async (id) => {
   const [rows] = await db.query(`
     SELECT 
@@ -38,7 +37,6 @@ export const findById = async (id) => {
   return rows[0] || null;
 };
 
-/* Mettre à jour les informations de profil d'un jury (photo, role_title, bio uniquement)    */
 export const updateProfile = async (id, updates) => {
   const fields = [];
   const values = [];
