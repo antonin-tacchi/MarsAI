@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function FilmFilters({ filters, onChange, countries, aiTools, categories, stats, ratedCount }) {
+  const { t } = useLanguage();
   const [openDropdown, setOpenDropdown] = useState(null);
 
   const toggle = (key, value) => {
@@ -33,7 +35,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
               }
               className={`${baseBtn} ${filters.rated ? active : inactive}`}
             >
-              Films not&eacute;s ({ratedCount})
+              {t("filmFilters.ratedFilms")} ({ratedCount})
             </button>
 
             <div className="h-6 w-px bg-[#262335]/20"></div>
@@ -48,7 +50,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
           >
             {filters.category 
               ? `${filters.category} (${stats?.byCategory.find(c => c.category_name === filters.category)?.count || 0})`
-              : "Catégories"}
+              : t("filmFilters.categories")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "categories" ? "rotate-180" : ""}`}
               fill="none"
@@ -84,7 +86,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
           >
             {filters.country
               ? `${filters.country} (${stats?.byCountry.find(c => c.country === filters.country)?.count || 0})`
-              : "Pays"}
+              : t("filmFilters.countries")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "pays" ? "rotate-180" : ""}`}
               fill="none"
@@ -122,8 +124,8 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
             className={`${baseBtn} ${filters.ai ? active : inactive} flex items-center gap-2`}
           >
             {filters.ai
-              ? `${filters.ai} (${stats?.byAITool.find(t => t.tool === filters.ai)?.count || 0})`
-              : "Outils IA"}
+              ? `${filters.ai} (${stats?.byAITool.find(tool => tool.tool === filters.ai)?.count || 0})`
+              : t("filmFilters.aiTools")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "outils" ? "rotate-180" : ""}`}
               fill="none"
@@ -137,7 +139,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
           {openDropdown === "outils" && (
             <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10 max-h-[300px] overflow-y-auto">
               {aiTools.map((tool) => {
-                const toolData = stats?.byAITool.find(t => t.tool === tool);
+                const toolData = stats?.byAITool.find(item => item.tool === tool);
                 return (
                   <button
                     key={tool}
