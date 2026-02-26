@@ -23,6 +23,11 @@ export default {
     regulation: "Règlement",
     communication: "COMMUNICATION",
     contact: "Contact",
+    jurySpace: "Espace Jury",
+    adminSpace: "Espace Admin",
+    superJurySpace: "Espace Super Jury",
+    directorSpace: "Espace Réalisateur",
+    partners: "Nos partenaires",
   },
 
   // Login
@@ -241,6 +246,7 @@ export default {
     generalInfo: "Informations Générales",
     title: "Titre",
     country: "Pays",
+    selectCountry: "Pays",
     description: "Description",
     film: "Film",
     poster: "Poster",
@@ -390,5 +396,189 @@ export default {
     save: "Enregistrer",
     delete: "Supprimer",
     confirm: "Confirmer",
+  },
+
+  // Home
+  home: {
+    heroDescription:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam.",
+    discoverBtn: "Découvrir →",
+    countdownDays: "JOURS",
+    countdownHours: "HEURES",
+    countdownMinutes: "MINUTES",
+    countdownSeconds: "SECONDES",
+    participateBtn: "JE PARTICIPE",
+    followBtn: "NOUS SUIVRE",
+    statsTitle: "Le festival\nen chiffre",
+    statsDescription:
+      "Des chiffres qui reflètent l'ampleur et l'impact du Festival Mars AI sur la scène internationale du cinéma et de la créativité.",
+    stat1: "Visiteurs minimum à attendre lors du Festival",
+    stat2: "Pays représentés en sélection",
+    stat3: "professionnels de l'IA générative et personnalités mobilisés lors du festival",
+    stat4: "Films soumis à la sélection",
+  },
+
+  // Regulations
+  regulations: {
+    pageLabel: "Mars AI Film Festival",
+    pageTitle: "Règles et Conditions",
+    section1Title: "Admissibilité générale",
+    section1Item1: "Les candidatures sont ouvertes aux cinéastes et photographes de tous les pays.",
+    section1Item2: "Tous les projets doivent avoir été achevés après le 1er janvier 2024.",
+    section1Item3: "Les candidats doivent être âgés de 18 ans ou plus.",
+    section1Item4: "Tous les films non anglophones doivent être sous-titrés en anglais.",
+    section2Title: "Éligibilité au projet et à l'IA",
+    section2p1: "Mars AI accepte des projets dans deux axes principaux :",
+    section2sub1Label: "Courts métrages :",
+    section2sub1Text:
+      "tous genres (fiction, expérimental, documentaire, animation, clip musical). Durée maximale : 20 minutes (générique compris).",
+    section2sub2Label: "Photographie :",
+    section2sub2Text: "Images uniques ou série cohérente (jusqu'à 10 images).",
+    section2p2Label: "EXIGENCE OBLIGATOIRE EN MATIÈRE D'IA :",
+    section2p2Text:
+      "Tous les projets soumis doivent utiliser l'intelligence artificielle générative comme une partie importante de leur processus de création ou de production.",
+    section2p3Label: "MÉTHODES ACCEPTÉES :",
+    section2p3Intro:
+      "Mars AI accueille toutes les formes de collaboration humain-IA, y compris, mais sans s'y limiter :",
+    section2sub3Label: "Entièrement génératif :",
+    section2sub3Text:
+      "Œuvres créées principalement à partir de commandes texte-vidéo ou texte-image (par exemple, à l'aide d'outils comme Sora 2, Veo3, Runway, Pika, Midjourney, Stable Diffusion, etc.).",
+    section2sub4Label: "Amélioration par l'IA (hybride) :",
+    section2sub4Text:
+      "Œuvres créées par l'homme (prises de vue réelles, photographies traditionnelles, rendus 3D) considérablement modifiées, améliorées ou finalisées à l'aide d'outils d'IA (par exemple, remplissage génératif, effets visuels pilotés par l'IA, transfert de style, montage assisté par l'IA, étalonnage des couleurs ou mise à l'échelle par l'IA).",
+    section2p4Label: "DÉCLARATION OBLIGATOIRE SUR L'IA :",
+    section2p4Intro:
+      "Tous les candidats doivent inclure une brève déclaration sur l'IA (100 à 300 mots) dans leur candidature. Cette déclaration doit figurer dans la section « Lettre de motivation » ou dans un champ personnalisé.",
+    section2sub5:
+      "Elle doit décrire clairement et de manière transparente les outils, modèles et processus d'IA utilisés.",
+    section2sub6:
+      "Exemples : « Images réelles améliorées avec Generative Fill et rotoscopie par IA », « Créé entièrement avec Midjourney v6 et animé avec Runway Gen-2 », « Scénario par GPT-4, visuels par Stable Diffusion, son par un générateur texte-son par IA. »",
+    section2sub7:
+      "L'absence d'une déclaration claire relative à l'IA entraînera la disqualification.",
+    section3Title: "Propriété intellectuelle et concession de droits",
+    section3p1:
+      "À titre d'incitation matérielle et de condition non négociable d'entrée, et en contrepartie de l'examen et de l'éventuelle exposition du Projet, le Candidat accorde par la présente à Mars AI, à ses entités mères, filiales, sociétés affiliées, successeurs, ayants droit et titulaires de licence désignés (collectivement, les « Parties ») une licence perpétuelle, irrévocable, non exclusive, exempte de redevances, mondiale, sous-licenciable et transférable.",
+    section3p2:
+      "La présente licence inclut expressément le droit d'utiliser, de numériser, de reproduire, de copier, d'encoder, de stocker, d'analyser, d'extraire des données, de modifier, d'adapter, de créer des œuvres dérivées et d'exploiter de toute autre manière tous les éléments constitutifs du Projet soumis. Ceci inclut, sans toutefois s'y limiter, toutes les données visuelles (images individuelles, données de pixels), les données audio, les informations spatio-temporelles et les métadonnées associées.",
+    section3p3: "Les droits accordés en vertu du présent article 3 sont destinés aux fins suivantes :",
+    section3subALabel: "a) Augmentation des ensembles de données :",
+    section3subAText:
+      "intégration du Projet et de ses éléments dans des bases de données et référentiels de données nouveaux ou existants.",
+    section3subBLabel: "b) Développement de modèles :",
+    section3subBText:
+      "utilisation du Projet pour le développement, l'entraînement, la validation et le perfectionnement d'algorithmes d'apprentissage automatique, de réseaux de neurones, de grands modèles de langage, de modèles de diffusion, de modèles génératifs et de tout autre système d'intelligence artificielle.",
+    section3subCLabel: "c) Acquisition et analyse de données :",
+    section3subCText:
+      "toutes les formes de recherche informatique, d'analyse heuristique, de reconnaissance de formes et d'extraction de données entreprises par les Parties ou leurs représentants.",
+    section3p4:
+      "Le Candidat reconnaît et accepte que cet octroi de droits facilite la mission technologique et de recherche du Festival Mars AI.",
+    section3p5:
+      "Le Candidat déclare et garantit qu'il possède l'autorité pleine et entière pour accorder de tels droits et que l'utilisation du Projet par les Parties aux fins décrites aux présentes ne portera pas atteinte aux droits d'un tiers, y compris les droits d'auteur, les marques de commerce, les droits moraux ou les droits à la vie privée et à la publicité.",
+    section3p6:
+      "La présente licence restera valable à perpétuité, que le Projet soit accepté, disqualifié, retiré ou sélectionné pour une exposition publique au Festival.",
+    footerNote:
+      "En soumettant votre projet au Mars AI Film Festival, vous reconnaissez avoir lu, compris et accepté l'intégralité des présentes Règles et Conditions.",
+  },
+
+  // Partners
+  partners: {
+    title: "Nos Partenaires",
+    joinUs: "Rejoignez-nous",
+    description:
+      "Ils nous font confiance et contribuent à la réussite de notre festival. Découvrez les entreprises et organisations qui nous soutiennent.",
+    emptyTitle: "Aucun partenaire pour le moment",
+    emptyDesc: "Nous recherchons activement des partenaires pour enrichir notre festival.",
+    becomePartner: "Devenir partenaire",
+  },
+
+  // PracticalInfo
+  practicalInfo: {
+    back: "← Retour accueil",
+    badge: "📍 Infos pratiques",
+    venueSectionTitle: "La Plateforme",
+    venueText:
+      "L'événement se tiendra dans un espace créatif et numérique au cœur de Marseille. Retrouvez toutes les informations pratiques sur le lieu du festival :",
+    venueLinkLabel: "La Plateforme",
+    programmeSectionTitle: "Programme des conférences",
+    prog1Title: "Accueil & Café Networking",
+    prog1Pill: "Ouverture",
+    prog2Title: "Conférence d'ouverture",
+    prog2Sub: "L'IA au service du cinéma",
+    prog3Title: "Déjeuner Libre",
+    prog4Title: "Projection & Débat Officielle",
+    prog5Title: "Table Ronde : Futurs souhaitables",
+    prog5Sub: "Conférence",
+    prog6Title: "Grand Prix & Cérémonie de Clôture",
+    prog7Title: "MARS A.I Night - DJ Set immersif",
+    prog7Sub: "On fête ça ensemble !",
+    prog7Pill: "Soirée",
+    accessSectionTitle: "Accès",
+    access1Title: "Transports en commun",
+    access1Desc: "Métro ligne 1 – station Vieux-Port\nBus lignes 82, 83 – arrêt Joliette",
+    access2Title: "Voiture",
+    access2Desc: "Parking Euroméditerranée à 200m\nStationnement payant en surface disponible",
+    access3Title: "Avion",
+    access3Desc: "Aéroport Marseille-Provence\nNavette directe vers le centre-ville (30 min)",
+    access4Title: "Train",
+    access4Desc: "Gare Saint-Charles – TGV\n15 min à pied ou métro ligne 1",
+    mapTitle: "Carte Marseille",
+  },
+
+  // AdminModeration
+  adminModeration: {
+    pageTitle: "🎬 Modération des Films",
+    pageSubtitle: "Validez ou refusez les films soumis au festival",
+    backBtn: "← Retour",
+    loadingText: "Chargement des films...",
+    errorTitle: "Erreur",
+    retryBtn: "Réessayer",
+    pendingFilms: "Films en attente",
+    refreshBtn: "Actualiser",
+    emptyTitle: "Aucun film en attente",
+    emptyDesc: "Tous les films ont été modérés ! Revenez plus tard.",
+    backToDashboard: "Retour au tableau de bord",
+    approveModalTitle: "Valider ce film ?",
+    approveModalMessage:
+      "Êtes-vous sûr de vouloir valider \"{title}\" ? Le film sera ajouté au catalogue public et le réalisateur sera notifié.",
+    approveConfirmText: "Valider",
+    rejectModalTitle: "Refuser ce film ?",
+    rejectModalMessage: "Êtes-vous sûr de vouloir refuser \"{title}\" ? Le réalisateur sera notifié.",
+    rejectReasonLabel: "Raison du refus (optionnel)",
+    rejectReasonPlaceholder: "Expliquez pourquoi le film est refusé...",
+    rejectConfirmText: "Refuser",
+    cancelText: "Annuler",
+    approvedToast: "✓ \"{title}\" a été validé avec succès !",
+    rejectedToast: "\"{title}\" a été refusé",
+    errorValidation: "Erreur lors de la validation",
+    errorRefus: "Erreur lors du refus",
+    loadError: "Erreur lors du chargement des films",
+  },
+
+  // SearchBar
+  searchBar: {
+    placeholder: "Rechercher un réalisateur, un film…",
+    loadingPlaceholder: "Chargement des films…",
+  },
+
+  // FilmFilters
+  filmFilters: {
+    ratedFilms: "Films notés",
+    categories: "Catégories",
+    countries: "Pays",
+    aiTools: "Outils IA",
+  },
+
+  // FilmModerationCard
+  filmModerationCard: {
+    director: "Réalisateur",
+    description: "Description",
+    aiToolsUsed: "🤖 Outils IA utilisés",
+    submittedOn: "Soumis le {date}",
+    seeLess: "Voir moins",
+    seeMore: "Voir plus",
+    processing: "Traitement...",
+    reject: "❌ Refuser",
+    approve: "✓ Valider",
+    watchFilm: "Voir le film",
   },
 };

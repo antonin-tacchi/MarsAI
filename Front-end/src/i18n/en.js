@@ -21,6 +21,11 @@ export default {
     regulation: "Regulations",
     communication: "CONTACT US",
     contact: "Contact",
+    jurySpace: "Jury Space",
+    adminSpace: "Admin Space",
+    superJurySpace: "Super Jury Space",
+    directorSpace: "Director Space",
+    partners: "Our partners",
   },
 
   login: {
@@ -332,6 +337,7 @@ export default {
 
   movieForm: {
     generalInfo: "General Information",
+    selectCountry: "Country",
     title: "Title",
     country: "Country",
     description: "Description",
@@ -528,5 +534,189 @@ export default {
     save: "Save",
     delete: "Delete",
     confirm: "Confirm",
+  },
+
+  // Home
+  home: {
+    heroDescription:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam.",
+    discoverBtn: "Discover →",
+    countdownDays: "DAYS",
+    countdownHours: "HOURS",
+    countdownMinutes: "MINUTES",
+    countdownSeconds: "SECONDS",
+    participateBtn: "I PARTICIPATE",
+    followBtn: "FOLLOW US",
+    statsTitle: "The festival\nin numbers",
+    statsDescription:
+      "Numbers that reflect the scale and impact of the Mars AI Festival on the international cinema and creativity scene.",
+    stat1: "Minimum visitors expected at the Festival",
+    stat2: "Countries represented in the selection",
+    stat3: "generative AI professionals and personalities mobilized at the festival",
+    stat4: "Films submitted to the selection",
+  },
+
+  // Regulations
+  regulations: {
+    pageLabel: "Mars AI Film Festival",
+    pageTitle: "Rules and Conditions",
+    section1Title: "General Eligibility",
+    section1Item1: "Applications are open to filmmakers and photographers from all countries.",
+    section1Item2: "All projects must have been completed after January 1, 2024.",
+    section1Item3: "Applicants must be 18 years of age or older.",
+    section1Item4: "All non-English films must have English subtitles.",
+    section2Title: "Project and AI Eligibility",
+    section2p1: "Mars AI accepts projects in two main categories:",
+    section2sub1Label: "Short films:",
+    section2sub1Text:
+      "all genres (fiction, experimental, documentary, animation, music video). Maximum duration: 20 minutes (including credits).",
+    section2sub2Label: "Photography:",
+    section2sub2Text: "Individual images or a coherent series (up to 10 images).",
+    section2p2Label: "MANDATORY AI REQUIREMENT:",
+    section2p2Text:
+      "All submitted projects must use generative artificial intelligence as an important part of their creative or production process.",
+    section2p3Label: "ACCEPTED METHODS:",
+    section2p3Intro:
+      "Mars AI welcomes all forms of human-AI collaboration, including but not limited to:",
+    section2sub3Label: "Fully generative:",
+    section2sub3Text:
+      "Works created primarily from text-to-video or text-to-image prompts (e.g., using tools like Sora 2, Veo3, Runway, Pika, Midjourney, Stable Diffusion, etc.).",
+    section2sub4Label: "AI Enhancement (hybrid):",
+    section2sub4Text:
+      "Human-created works (real footage, traditional photographs, 3D renders) significantly modified, enhanced, or finalized using AI tools (e.g., generative fill, AI-driven visual effects, style transfer, AI-assisted editing, AI color grading or upscaling).",
+    section2p4Label: "MANDATORY AI STATEMENT:",
+    section2p4Intro:
+      "All applicants must include a brief AI statement (100 to 300 words) in their application. This statement must appear in the 'Cover Letter' section or in a custom field.",
+    section2sub5:
+      "It must clearly and transparently describe the AI tools, models, and processes used.",
+    section2sub6:
+      "Examples: 'Real footage enhanced with Generative Fill and AI rotoscoping', 'Created entirely with Midjourney v6 and animated with Runway Gen-2', 'Script by GPT-4, visuals by Stable Diffusion, sound by an AI text-to-sound generator.'",
+    section2sub7:
+      "Failure to include a clear AI statement will result in disqualification.",
+    section3Title: "Intellectual Property and Rights Grant",
+    section3p1:
+      "As material consideration and a non-negotiable condition of entry, and in exchange for the review and possible exhibition of the Project, the Applicant hereby grants to Mars AI, its parent entities, subsidiaries, affiliated companies, successors, assigns, and designated licensees (collectively, the 'Parties') a perpetual, irrevocable, non-exclusive, royalty-free, worldwide, sublicensable, and transferable license.",
+    section3p2:
+      "This license expressly includes the right to use, digitize, reproduce, copy, encode, store, analyze, data-mine, modify, adapt, create derivative works from, and otherwise exploit all constituent elements of the submitted Project. This includes, without limitation, all visual data (individual frames, pixel data), audio data, spatiotemporal information, and associated metadata.",
+    section3p3: "The rights granted under this Section 3 are intended for the following purposes:",
+    section3subALabel: "a) Dataset augmentation:",
+    section3subAText:
+      "integration of the Project and its elements into new or existing databases and data repositories.",
+    section3subBLabel: "b) Model development:",
+    section3subBText:
+      "use of the Project for the development, training, validation, and refinement of machine learning algorithms, neural networks, large language models, diffusion models, generative models, and any other artificial intelligence systems.",
+    section3subCLabel: "c) Data acquisition and analysis:",
+    section3subCText:
+      "all forms of computational research, heuristic analysis, pattern recognition, and data extraction undertaken by the Parties or their representatives.",
+    section3p4:
+      "The Applicant acknowledges and agrees that this grant of rights facilitates the technological and research mission of the Mars AI Festival.",
+    section3p5:
+      "The Applicant represents and warrants that they have full authority to grant such rights and that the use of the Project by the Parties for the purposes described herein will not infringe the rights of any third party, including copyrights, trademarks, moral rights, or rights of privacy and publicity.",
+    section3p6:
+      "This license shall remain valid in perpetuity, whether the Project is accepted, disqualified, withdrawn, or selected for public exhibition at the Festival.",
+    footerNote:
+      "By submitting your project to the Mars AI Film Festival, you acknowledge that you have read, understood, and agreed to these Rules and Conditions in their entirety.",
+  },
+
+  // Partners
+  partners: {
+    title: "Our Partners",
+    joinUs: "Join us",
+    description:
+      "They trust us and contribute to the success of our festival. Discover the companies and organizations that support us.",
+    emptyTitle: "No partners yet",
+    emptyDesc: "We are actively looking for partners to enrich our festival.",
+    becomePartner: "Become a partner",
+  },
+
+  // PracticalInfo
+  practicalInfo: {
+    back: "← Back to home",
+    badge: "📍 Practical info",
+    venueSectionTitle: "The Venue",
+    venueText:
+      "The event will be held in a creative and digital space in the heart of Marseille. Find all practical information about the festival venue:",
+    venueLinkLabel: "La Plateforme",
+    programmeSectionTitle: "Conference Programme",
+    prog1Title: "Welcome & Networking Coffee",
+    prog1Pill: "Opening",
+    prog2Title: "Opening Conference",
+    prog2Sub: "AI in the service of cinema",
+    prog3Title: "Free Lunch",
+    prog4Title: "Official Screening & Debate",
+    prog5Title: "Round Table: Desirable Futures",
+    prog5Sub: "Conference",
+    prog6Title: "Grand Prix & Closing Ceremony",
+    prog7Title: "MARS A.I Night - Immersive DJ Set",
+    prog7Sub: "Let's celebrate together!",
+    prog7Pill: "Evening",
+    accessSectionTitle: "Access",
+    access1Title: "Public Transport",
+    access1Desc: "Metro line 1 – Vieux-Port station\nBus lines 82, 83 – Joliette stop",
+    access2Title: "Car",
+    access2Desc: "Euroméditerranée car park 200m away\nPaid street parking available",
+    access3Title: "Plane",
+    access3Desc: "Marseille-Provence Airport\nDirect shuttle to city center (30 min)",
+    access4Title: "Train",
+    access4Desc: "Saint-Charles station – TGV\n15 min on foot or metro line 1",
+    mapTitle: "Marseille Map",
+  },
+
+  // AdminModeration
+  adminModeration: {
+    pageTitle: "🎬 Film Moderation",
+    pageSubtitle: "Approve or reject films submitted to the festival",
+    backBtn: "← Back",
+    loadingText: "Loading films...",
+    errorTitle: "Error",
+    retryBtn: "Retry",
+    pendingFilms: "Pending films",
+    refreshBtn: "Refresh",
+    emptyTitle: "No pending films",
+    emptyDesc: "All films have been moderated! Check back later.",
+    backToDashboard: "Back to dashboard",
+    approveModalTitle: "Approve this film?",
+    approveModalMessage:
+      "Are you sure you want to approve \"{title}\"? The film will be added to the public catalog and the director will be notified.",
+    approveConfirmText: "Approve",
+    rejectModalTitle: "Reject this film?",
+    rejectModalMessage: "Are you sure you want to reject \"{title}\"? The director will be notified.",
+    rejectReasonLabel: "Rejection reason (optional)",
+    rejectReasonPlaceholder: "Explain why the film is rejected...",
+    rejectConfirmText: "Reject",
+    cancelText: "Cancel",
+    approvedToast: "✓ \"{title}\" has been approved successfully!",
+    rejectedToast: "\"{title}\" has been rejected",
+    errorValidation: "Error during approval",
+    errorRefus: "Error during rejection",
+    loadError: "Error loading films",
+  },
+
+  // SearchBar
+  searchBar: {
+    placeholder: "Search for a director, a film…",
+    loadingPlaceholder: "Loading films…",
+  },
+
+  // FilmFilters
+  filmFilters: {
+    ratedFilms: "Rated films",
+    categories: "Categories",
+    countries: "Countries",
+    aiTools: "AI Tools",
+  },
+
+  // FilmModerationCard
+  filmModerationCard: {
+    director: "Director",
+    description: "Description",
+    aiToolsUsed: "🤖 AI Tools Used",
+    submittedOn: "Submitted on {date}",
+    seeLess: "See less",
+    seeMore: "See more",
+    processing: "Processing...",
+    reject: "❌ Reject",
+    approve: "✓ Approve",
+    watchFilm: "Watch the film",
   },
 };
