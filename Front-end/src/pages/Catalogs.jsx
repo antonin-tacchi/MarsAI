@@ -127,7 +127,8 @@ export default function Catalogs() {
         if (!r || r.average_rating === null) return false;
       }
 
-      if (filters.country && film.country !== filters.country) return false;
+      if (filters.country && film.country?.trim() !== filters.country.trim())
+        return false;
 
       if (
         filters.ai &&
@@ -136,10 +137,10 @@ export default function Catalogs() {
         return false;
 
       // Filtre par catégorie
-      if (filters.category && film.categories) {
+      if (filters.category) {
         if (
           !film.categories
-            .toLowerCase()
+            ?.toLowerCase()
             .includes(filters.category.toLowerCase())
         )
           return false;
