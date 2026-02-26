@@ -244,6 +244,7 @@ export default {
   // MovieForm (Submissions)
   movieForm: {
     generalInfo: "General Information",
+    selectCountry: "Country",
     title: "Title",
     country: "Country",
     description: "Description",
