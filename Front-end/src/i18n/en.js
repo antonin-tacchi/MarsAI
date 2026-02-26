@@ -187,7 +187,6 @@ export default {
     resultStats: "Min: {min} | Max: {max} | Avg: {avg} films/jury",
   },
 
-  // Super Jury Lists
   superJuryLists: {
     tabTitle: "Lists",
     title: "Lists management",
@@ -220,7 +219,6 @@ export default {
     assignSelected: "Assign selection",
   },
 
-  // PrizeList (Palmares)
   prizeList: {
     title: "Awards",
     loading: "Loading ranking...",
@@ -477,7 +475,6 @@ export default {
     regulation: "Regulations",
   },
 
-  // Contact Page
   contact: {
     subtitle: "A question? A bug? An AI that decided to go on vacation? We’re reachable.",
     infoTitle: "Information",
