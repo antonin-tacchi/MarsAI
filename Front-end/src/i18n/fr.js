@@ -350,34 +350,6 @@ export default {
     serverError: "Erreur serveur",
     retry: "Réessayer",
     empty: "Aucun membre du jury pour le moment",
-  // About
-  about: {
-    submitFilm: "Soumettre un film",
-    newsletter: "Newsletter",
-    regulation: "Règlement",
-  },
-
-  //Contact Page
-  contact: {
-    subtitle:
-      "Une question ? Un bug ? Une IA qui a décidé de prendre des vacances ? On est joignables.",
-    infoTitle: "Informations",
-    email: "Email",
-    phone: "Téléphone",
-    fax: "Fax",
-    accessTitle: "Accès",
-    publicTransportTitle: "Transports en commun",
-    publicTransportText:
-      "Tram T2 / T3 — Arrêt Arenc Le Silo. Métro M2 — Station Désirée Clary.",
-    carTitle: "Voiture",
-    carText: "Autoroute A55 — Sortie 2. Parking Indigo Quai du Lazaret à 200m.",
-    addressTitle: "Adresse",
-    addressText: "12 Rue D’Uzes, 13002 Marseille (Entrée principale)",
-    mapTitle: "Carte",
-    mapHint: "Zoomez, dézoomez, et perdez-vous (mais avec style).",
-    openInNewTab: "Ouvrir",
-    popupTitle: "MarsAI",
-    mapAttribution: "&copy; contributeurs OpenStreetMap",
   },
 
   // About
@@ -387,7 +359,7 @@ export default {
     regulation: "Règlement",
   },
 
-  //Contact Page
+  // Contact Page
   contact: {
     subtitle:
       "Une question ? Un bug ? Une IA qui a décidé de prendre des vacances ? On est joignables.",
