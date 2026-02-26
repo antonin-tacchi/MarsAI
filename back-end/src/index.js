@@ -9,7 +9,7 @@ import testRoutes from "./routes/test.routes.js";
 import filmRoutes from "./routes/film.routes.js";
 import juryRoutes from "./routes/jury.routes.js";
 import ratingRoutes from "./routes/rating.routes.js";
-import festivalConfigRoutes from "./festivalConfig.routes.js";
+import festivalConfigRoutes from "./routes/festivalConfig.routes.js";
 import juryMembersRoutes from "./routes/juryMembers.routes.js";
 import { getPageContent } from "./controllers/sitepage.controller.js";
 import { testConnection } from "./config/database.js";
