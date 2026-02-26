@@ -1,21 +1,9 @@
 import * as JuryMember from '../models/JuryMember.js';
 
-// ============================================================
-// CONTROLLER: JuryMember
-// Description: Gestion des profils des jurys (pas de création/suppression)
-// Note: Les users sont créés via le système d'invitation
-// ============================================================
-
-/**
- * GET /api/jury-members
- * Récupérer tous les membres du jury (PUBLIC)
- * Utilisé par la page /membres-du-jury
- */
+/* Récupérer tous les membres du jury (PUBLIC) */
 export const getAllJuryMembers = async (req, res) => {
   try {
     const members = await JuryMember.findAll();
-
-    // Formater les données pour le frontend
     const formattedMembers = members.map(member => ({
       id: member.id,
       name: member.name,
@@ -37,10 +25,6 @@ export const getAllJuryMembers = async (req, res) => {
   }
 };
 
-/**
- * GET /api/jury-members/:id
- * Récupérer un membre spécifique (PUBLIC ou ADMIN)
- */
 export const getJuryMemberById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -53,7 +37,6 @@ export const getJuryMemberById = async (req, res) => {
       });
     }
 
-    // Formater les données
     const formattedMember = {
       id: member.id,
       name: member.name,
@@ -77,17 +60,11 @@ export const getJuryMemberById = async (req, res) => {
   }
 };
 
-/**
- * PUT /api/jury-members/:id/profile
- * Mettre à jour le profil d'un jury (ADMIN ONLY)
- * Permet de modifier: photo, role_title, bio
- */
+/* Mettre à jour le profil d'un jury (ADMIN ONLY) */
 export const updateJuryProfile = async (req, res) => {
   try {
     const { id } = req.params;
     const { role_title, bio } = req.body;
-
-    // Vérifier que le membre existe et est un jury
     const isJury = await JuryMember.isJuryMember(id);
     if (!isJury) {
       return res.status(404).json({
@@ -96,7 +73,6 @@ export const updateJuryProfile = async (req, res) => {
       });
     }
 
-    // Préparer les updates
     const updates = {};
 
     // Validation et ajout des champs
@@ -120,13 +96,10 @@ export const updateJuryProfile = async (req, res) => {
       updates.bio = bio;
     }
 
-    // Nouvelle photo uploadée (optionnelle)
     if (req.file) {
       updates.profile_picture = '/uploads/jury/' + req.file.filename;
-      // TODO: Supprimer l'ancienne photo du serveur
     }
 
-    // Vérifier qu'il y a au moins un champ à mettre à jour
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
         success: false,
@@ -134,7 +107,6 @@ export const updateJuryProfile = async (req, res) => {
       });
     }
 
-    // Mettre à jour
     await JuryMember.updateProfile(id, updates);
 
     res.json({
@@ -150,10 +122,7 @@ export const updateJuryProfile = async (req, res) => {
   }
 };
 
-/**
- * GET /api/jury-members-stats
- * Statistiques sur les membres du jury (ADMIN ONLY)
- */
+/* (ADMIN ONLY) */
 export const getJuryStats = async (req, res) => {
   try {
     const total = await JuryMember.count();
