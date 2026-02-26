@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import imgHero from "../images/Hero.jpg";
-import imgCountdown from "../images/homepage.png";
-import "../styles/Home.css";
+import imgHero from "../images/imglogin.jpg";
+import imgCountdown from "../images/fondsoumissionfilm.jpg";
 import { useLanguage } from "../context/LanguageContext";
 
 const FESTIVAL_DATE = new Date("2026-09-15T00:00:00");

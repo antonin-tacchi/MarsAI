@@ -35,7 +35,6 @@ export default function Footer() {
                     { label: t("footer.catalog"), href: "/catalogs" },
                     { label: t("footer.participate"), href: "/submissions" },
                     { label: espaceLink.label, href: espaceLink.href },
-                    { label: t("footer.juryMembers"), href: "/membres-du-jury" },
                     { label: t("footer.partners"), href: "/nos-partenaires" },
                     { label: t("footer.prizes"), href: "/prize-list" },
                     ].map((l) => (
