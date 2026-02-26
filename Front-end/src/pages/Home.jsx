@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import imgHero from "../images/imglogin.jpg";
-import imgCountdown from "../images/fondsoumissionfilm.jpg";
+import imgHero from "../images/Hero.jpg";
+import imgCountdown from "../images/homepage.png";
+import "../styles/Home.css";
 
 const FESTIVAL_DATE = new Date("2026-09-15T00:00:00");
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
@@ -87,7 +88,7 @@ export default function Home() {
 
       {/* ═══════ HERO ═══════ */}
       <section
-        className="relative flex flex-col items-center justify-center text-center px-6 py-40 md:py-56"
+        className="relative flex flex-col items-center justify-center min-h-screen text-center px-6 py-40 md:py-56"
         style={{
           backgroundImage: `url(${imgHero})`,
           backgroundSize: "cover",
@@ -108,7 +109,7 @@ export default function Home() {
       </section>
 
       {/* ═══════ GALERIE ═══════ */}
-      <section className="bg-[#FBF5F0] py-16 px-6">
+      <section className="background-galery py-16 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
             {featuredFilms.length > 0
@@ -221,7 +222,7 @@ export default function Home() {
       </section>
 
       {/* ═══════ STATS ═══════ */}
-      <section className="bg-[#FBF5F0] py-20 px-6">
+      <section className="background-stats py-20 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 md:gap-20 items-start">
           {/* Titre gauche */}
           <div className="md:w-1/2">
