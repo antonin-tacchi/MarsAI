@@ -1,40 +1,42 @@
 import { Link } from "react-router-dom";
-import Header from "../components/Header";
-
-const programme = [
-  { time: "09:30", title: "Accueil & Café Networking", pill: "Ouverture" },
-  { time: "10:30", title: "Conférence d'ouverture", sub: "L'IA au service du cinéma" },
-  { time: "13:00", title: "Déjeuner Libre" },
-  { time: "14:30", title: "Projection & Débat Officielle" },
-  { time: "16:30", title: "Table Ronde : Futurs souhaitables", sub: "Conférence" },
-  { time: "19:00", title: "Grand Prix & Cérémonie de Clôture" },
-  { time: "21:00", title: "MARS A.I Night - DJ Set immersif", sub: "On fête ça ensemble !", pill: "Soirée" },
-];
-
-const acces = [
-  {
-    icon: "🚇",
-    title: "Transports en commun",
-    desc: "Métro ligne 1 – station Vieux-Port\nBus lignes 82, 83 – arrêt Joliette",
-  },
-  {
-    icon: "🚗",
-    title: "Voiture",
-    desc: "Parking Euroméditerranée à 200m\nStationnement payant en surface disponible",
-  },
-  {
-    icon: "✈️",
-    title: "Avion",
-    desc: "Aéroport Marseille-Provence\nNavette directe vers le centre-ville (30 min)",
-  },
-  {
-    icon: "🚆",
-    title: "Train",
-    desc: "Gare Saint-Charles – TGV\n15 min à pied ou métro ligne 1",
-  },
-];
+import { useLanguage } from "../context/LanguageContext";
 
 export default function InfosPratiques() {
+  const { t } = useLanguage();
+
+  const programme = [
+    { time: "09:30", title: t("practicalInfo.prog1Title"), pill: t("practicalInfo.prog1Pill") },
+    { time: "10:30", title: t("practicalInfo.prog2Title"), sub: t("practicalInfo.prog2Sub") },
+    { time: "13:00", title: t("practicalInfo.prog3Title") },
+    { time: "14:30", title: t("practicalInfo.prog4Title") },
+    { time: "16:30", title: t("practicalInfo.prog5Title"), sub: t("practicalInfo.prog5Sub") },
+    { time: "19:00", title: t("practicalInfo.prog6Title") },
+    { time: "21:00", title: t("practicalInfo.prog7Title"), sub: t("practicalInfo.prog7Sub"), pill: t("practicalInfo.prog7Pill") },
+  ];
+
+  const acces = [
+    {
+      icon: "🚇",
+      title: t("practicalInfo.access1Title"),
+      desc: t("practicalInfo.access1Desc"),
+    },
+    {
+      icon: "🚗",
+      title: t("practicalInfo.access2Title"),
+      desc: t("practicalInfo.access2Desc"),
+    },
+    {
+      icon: "✈️",
+      title: t("practicalInfo.access3Title"),
+      desc: t("practicalInfo.access3Desc"),
+    },
+    {
+      icon: "🚆",
+      title: t("practicalInfo.access4Title"),
+      desc: t("practicalInfo.access4Desc"),
+    },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FBF5F0]">
 
@@ -44,7 +46,7 @@ export default function InfosPratiques() {
           to="/"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-[#6B6578] hover:text-[#463699] transition-colors"
         >
-          ← Retour accueil
+          {t("practicalInfo.back")}
         </Link>
       </nav>
 
@@ -55,7 +57,7 @@ export default function InfosPratiques() {
 
         <div className="max-w-4xl mx-auto relative z-10">
           <span className="inline-flex items-center gap-1.5 bg-white/10 border border-white/15 text-[#8A83DA] text-sm font-medium px-3 py-1 rounded-full mb-4">
-            📍 Infos pratiques
+            {t("practicalInfo.badge")}
           </span>
           <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
             13 Juin 2026
@@ -71,14 +73,13 @@ export default function InfosPratiques() {
         {/* La Plateforme */}
         <section>
           <h2 className="text-3xl md:text-4xl font-bold text-[#262335] mb-5">
-            La Plateforme
+            {t("practicalInfo.venueSectionTitle")}
           </h2>
           <div className="bg-white border border-[#C7C2CE] rounded-md p-6">
             <p className="text-base text-[#6B6578] leading-relaxed">
-              L'événement se tiendra dans un espace créatif et numérique au cœur de Marseille.
-              Retrouvez toutes les informations pratiques sur le lieu du festival :{" "}
+              {t("practicalInfo.venueText")}{" "}
               <a href="#" className="text-[#463699] font-semibold hover:underline">
-                La Plateforme
+                {t("practicalInfo.venueLinkLabel")}
               </a>
               .
             </p>
@@ -88,7 +89,7 @@ export default function InfosPratiques() {
         {/* Programme */}
         <section>
           <h2 className="text-3xl md:text-4xl font-bold text-[#262335] mb-5">
-            Programme des conférences
+            {t("practicalInfo.programmeSectionTitle")}
           </h2>
           <div className="bg-white border border-[#C7C2CE] rounded-md overflow-hidden">
             {programme.map((item, i) => (
@@ -114,7 +115,7 @@ export default function InfosPratiques() {
         {/* Accès */}
         <section>
           <h2 className="text-3xl md:text-4xl font-bold text-[#262335] mb-5">
-            Accès
+            {t("practicalInfo.accessSectionTitle")}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -146,7 +147,7 @@ export default function InfosPratiques() {
               style={{ border: 0 }}
               allowFullScreen
               loading="lazy"
-              title="Carte Marseille"
+              title={t("practicalInfo.mapTitle")}
             />
           </div>
         </section>
