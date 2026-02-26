@@ -17,7 +17,7 @@ export default function Footer() {
 
   const profile = getProfileRoute();
   const espaceLink = profile
-    ? { label: profile.label, href: profile.path }
+    ? { label: t(profile.labelKey), href: profile.path }
     : { label: t("footer.login"), href: "/login" };
 
   return (
@@ -31,16 +31,15 @@ export default function Footer() {
 
                 <nav className="flex flex-col items-center space-y-2 text-lg leading-7">
                     {[
-                    { label: "Le festival", href: "/about" },
-                    { label: "Catalogue", href: "/catalogs" },
-                    { label: "Participer", href: "/submissions" },
-                    { label: "Espace Jury", href: "/profile-jury" },
-                    { label: "Les jury", href: "/jury" },
-                    { label: "Nos partenaires", href: "/nos-partenaires" },
-                    { label: "Palmares", href: "/prize-list" },
+                    { label: t("footer.festival"), href: "/about" },
+                    { label: t("footer.catalog"), href: "/catalogs" },
+                    { label: t("footer.participate"), href: "/submissions" },
+                    { label: espaceLink.label, href: espaceLink.href },
+                    { label: t("footer.partners"), href: "/nos-partenaires" },
+                    { label: t("footer.prizes"), href: "/prize-list" },
                     ].map((l) => (
                     <a
-                        key={l.label}
+                        key={l.href}
                         href={l.href}
                         className="text-center text-white/90 transition hover:text-white"
                     >
