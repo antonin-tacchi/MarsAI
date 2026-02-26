@@ -23,6 +23,11 @@ export default {
     regulation: "Règlement",
     communication: "COMMUNICATION",
     contact: "Contact",
+    jurySpace: "Espace Jury",
+    adminSpace: "Espace Admin",
+    superJurySpace: "Espace Super Jury",
+    directorSpace: "Espace Réalisateur",
+    partners: "Nos partenaires",
   },
 
   // Login
@@ -241,6 +246,7 @@ export default {
     generalInfo: "Informations Générales",
     title: "Titre",
     country: "Pays",
+    selectCountry: "Pays",
     description: "Description",
     film: "Film",
     poster: "Poster",
