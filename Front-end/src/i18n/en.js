@@ -1,5 +1,4 @@
 export default {
-  // Header
   header: {
     festival: "The Festival",
     catalog: "Catalog",
@@ -7,7 +6,6 @@ export default {
     prizes: "Awards",
   },
 
-  // Footer
   footer: {
     theFestival: "THE FESTIVAL",
     festival: "The Festival",
@@ -25,7 +23,6 @@ export default {
     contact: "Contact",
   },
 
-  // Login
   login: {
     title: "Log in",
     register: "Sign up",
@@ -40,7 +37,6 @@ export default {
     error: "Login failed. Please try again.",
   },
 
-  // Register
   register: {
     login: "Log in",
     title: "Sign up",
@@ -65,7 +61,6 @@ export default {
     error: "Registration failed. Please try again.",
   },
 
-  // Catalogs
   catalogs: {
     title: "Catalog",
     serverError: "Server Error",
@@ -81,7 +76,6 @@ export default {
     lastPage: "Last page",
   },
 
-  // DetailsFilm
   detailsFilm: {
     backToCatalog: "← Back to catalog",
     loading: "Loading…",
@@ -101,7 +95,6 @@ export default {
     yourRating: "Your rating: {rating}/10",
     loadingReviews: "Loading reviews…",
     noReviews: "No reviews yet.",
-    // Approval panel
     filmManagement: "Film Management",
     statusPending: "Pending",
     statusApproved: "Approved",
@@ -119,7 +112,6 @@ export default {
     mustBeConnected: "You must be logged in.",
   },
 
-  // ProfileJury
   profileJury: {
     loading: "Loading...",
     greeting: "Hello {name}",
@@ -155,7 +147,6 @@ export default {
     completed: "completed",
   },
 
-  // ProfileSuperJury
   profileSuperJury: {
     loading: "Loading...",
     title: "Super Jury - {name}",
@@ -187,7 +178,6 @@ export default {
     resultStats: "Min: {min} | Max: {max} | Avg: {avg} films/jury",
   },
 
-  // Super Jury Lists
   superJuryLists: {
     tabTitle: "Lists",
     title: "Lists management",
@@ -220,7 +210,6 @@ export default {
     assignSelected: "Assign selection",
   },
 
-  // PrizeList (Palmares)
   prizeList: {
     title: "Awards",
     loading: "Loading ranking...",
@@ -236,7 +225,6 @@ export default {
     noRating: "Not rated",
   },
 
-  // MovieForm (Submissions)
   movieForm: {
     generalInfo: "General Information",
     title: "Title",
@@ -279,7 +267,6 @@ export default {
     submitError: "Error submitting the film.",
   },
 
-  // FilmCard
   filmCard: {
     unknownTitle: "Unknown title",
     defaultFirstName: "First name",
@@ -289,18 +276,15 @@ export default {
     votes: "votes",
   },
 
-  // CountrySelect
   countrySelect: {
     search: "Search a country...",
     noResults: "No country found",
   },
 
-  // FilmPlayer
   filmPlayer: {
     videoNotSupported: "Your browser does not support video playback.",
   },
 
-  // Placeholder pages
   pages: {
     home: "HOME PAGE",
     about: "ABOUT PAGE",
@@ -312,7 +296,6 @@ export default {
     profileDirector: "DIRECTOR PROFILE PAGE",
   },
 
-  // ProfileAdmin CMS
   profileAdmin: {
     pageEditor: "Home Page",
     french: "FR",
@@ -340,7 +323,6 @@ export default {
     pagesTab: "Pages",
   },
 
-  // Jury
   jury: {
     title: "JURY",
     titleHighlight: "MEMBERS",
@@ -350,14 +332,14 @@ export default {
     serverError: "Server error",
     retry: "Retry",
     empty: "No jury members at the moment",
-  // About
+  },
+
   about: {
     submitFilm: "Submit a film",
     newsletter: "Newsletter",
     regulation: "Regulations",
   },
 
-  // Contact Page
   contact: {
     subtitle: "A question? A bug? An AI that decided to go on vacation? We’re reachable.",
     infoTitle: "Information",
@@ -378,7 +360,6 @@ export default {
     mapAttribution: "&copy; OpenStreetMap contributors",
   },
 
-  // Common
   common: {
     loading: "Loading...",
     error: "Error",
