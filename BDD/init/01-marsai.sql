@@ -44,8 +44,12 @@ CREATE TABLE `users` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `profile_picture` varchar(500) DEFAULT NULL COMMENT 'URL photo de profil (obligatoire pour jury)',
+  `role_title` varchar(255) DEFAULT NULL COMMENT 'Fonction du jury (ex: CHERCHEUSE IA / OPENAI)',
+  `bio` text DEFAULT NULL COMMENT 'Description du membre du jury (optionnel)',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
+  UNIQUE KEY `email` (`email`),
+  KEY `idx_users_jury` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -439,6 +443,24 @@ INSERT INTO `films` (`title`, `country`, `description`, `youtube_url`, `ai_tools
 ('The Frost', 'France', 'An experimental animated short exploring themes of climate change through AI-generated imagery. Each frame was created using Midjourney and assembled into a haunting visual narrative about our frozen future.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Midjourney, Runway ML, Stable Diffusion', 1, 'Marie', 'Dubois', 'marie.dubois@example.com', 'Les Gobelins', 'approved', NOW()),
 ('Digital Dreams', 'Japan', 'A short documentary about the intersection of traditional Japanese art and artificial intelligence, featuring interviews with artists who use AI as a creative partner.', 'https://www.youtube.com/watch?v=LY7x2Ihqjmc', 'DALL-E, ChatGPT, Suno AI', 1, 'Yuki', 'Tanaka', 'yuki.tanaka@example.com', 'Tokyo University of the Arts', 'approved', NOW()),
 ('Mars Colony 2084', 'Germany', 'A speculative fiction piece imagining life on Mars, where AI systems manage the colony ecosystem. Created using a combination of AI video generation and traditional filmmaking techniques.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Sora, ElevenLabs, Midjourney', 1, 'Hans', 'Mueller', 'hans.mueller@example.com', 'Filmakademie Baden-Wuerttemberg', 'approved', NOW());
+
+-- --------------------------------------------------------
+-- View: view_jury_members (for jury profile queries)
+-- --------------------------------------------------------
+
+CREATE OR REPLACE VIEW `view_jury_members` AS
+SELECT 
+    u.id,
+    u.name,
+    u.email,
+    u.profile_picture,
+    u.role_title,
+    u.bio,
+    u.created_at
+FROM users u
+INNER JOIN user_roles ur ON u.id = ur.user_id
+WHERE ur.role_id = 1
+ORDER BY u.name ASC;
 
 COMMIT;
 
