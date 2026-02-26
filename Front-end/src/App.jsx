@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound.jsx";
 import AdminModeration from "./pages/AdminModeration.jsx";
 import Partners from "./pages/Partners.jsx";
 import InfosPratiques from "./pages/PracticalInfo.jsx";
+import Newslatter from "./pages/Newslatter.jsx";
 
 
 function ScrollToTop() {
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />
           <Route path="practicalinfos" element={<InfosPratiques />} />
+          <Route path="newslatter" element={<Newslatter />} />
           <Route
             path="profile-admin"
             element={
