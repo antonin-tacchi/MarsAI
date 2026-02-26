@@ -48,8 +48,8 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
             onClick={() => toggleDropdown("categories")}
             className={`${baseBtn} ${filters.category ? active : inactive} flex items-center gap-2`}
           >
-            {filters.category 
-              ? `${filters.category} (${stats?.byCategory.find(c => c.category_name === filters.category)?.count || 0})`
+            {filters.category
+              ? `${filters.category} (${stats?.byCategory?.find(c => c.category_name === filters.category)?.count || 0})`
               : t("filmFilters.categories")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "categories" ? "rotate-180" : ""}`}
@@ -85,7 +85,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
             className={`${baseBtn} ${filters.country ? active : inactive} flex items-center gap-2`}
           >
             {filters.country
-              ? `${filters.country} (${stats?.byCountry.find(c => c.country === filters.country)?.count || 0})`
+              ? `${filters.country} (${stats?.byCountry?.find(c => c.country === filters.country)?.count || 0})`
               : t("filmFilters.countries")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "pays" ? "rotate-180" : ""}`}
@@ -100,7 +100,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
           {openDropdown === "pays" && (
             <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10 max-h-[300px] overflow-y-auto">
               {countries.map((country) => {
-                const countryData = stats?.byCountry.find(c => c.country === country);
+                const countryData = stats?.byCountry?.find(c => c.country === country);
                 return (
                   <button
                     key={country}
@@ -124,7 +124,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
             className={`${baseBtn} ${filters.ai ? active : inactive} flex items-center gap-2`}
           >
             {filters.ai
-              ? `${filters.ai} (${stats?.byAITool.find(tool => tool.tool === filters.ai)?.count || 0})`
+              ? `${filters.ai} (${stats?.byAITool?.find(tool => tool.tool === filters.ai)?.count || 0})`
               : t("filmFilters.aiTools")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "outils" ? "rotate-180" : ""}`}
@@ -139,7 +139,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
           {openDropdown === "outils" && (
             <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10 max-h-[300px] overflow-y-auto">
               {aiTools.map((tool) => {
-                const toolData = stats?.byAITool.find(item => item.tool === tool);
+                const toolData = stats?.byAITool?.find(item => item.tool === tool);
                 return (
                   <button
                     key={tool}
