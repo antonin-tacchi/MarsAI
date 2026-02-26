@@ -88,10 +88,20 @@ export default function Catalogs() {
     return stats?.byCountry?.map((c) => c.country) || [];
   }, [stats]);
 
-  // --- OUTILS IA DEPUIS STATS ---
+  // --- OUTILS IA DEPUIS LES FILMS (champ libre, pas normalisé en BDD) ---
   const aiTools = useMemo(() => {
-    return stats?.byAITool?.map((t) => t.tool) || [];
-  }, [stats]);
+    const toolSet = new Set();
+    films.forEach((film) => {
+      if (film.ai_tools_used) {
+        film.ai_tools_used
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+          .forEach((t) => toolSet.add(t));
+      }
+    });
+    return [...toolSet].sort();
+  }, [films]);
 
   // --- CATÉGORIES DEPUIS STATS ---
   const categories = useMemo(() => {
