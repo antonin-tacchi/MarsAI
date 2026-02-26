@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
 
-export default function FilmFilters({ filters, onChange, countries, aiTools, categories, stats, ratedCount }) {
+export default function FilmFilters({ filters, onChange, countries, aiTools, aiToolCounts = {}, categories, stats, ratedCount }) {
   const { t } = useLanguage();
   const [openDropdown, setOpenDropdown] = useState(null);
 
@@ -45,11 +45,11 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
         {/* Dropdown Catégories */}
         <div className="relative">
           <button
-            onClick={() => toggleDropdown("categories")}
+            onClick={() => filters.category ? toggle("category", filters.category) : toggleDropdown("categories")}
             className={`${baseBtn} ${filters.category ? active : inactive} flex items-center gap-2`}
           >
-            {filters.category 
-              ? `${filters.category} (${stats?.byCategory.find(c => c.category_name === filters.category)?.count || 0})`
+            {filters.category
+              ? `${filters.category} (${stats?.byCategory?.find(c => c.category_name === filters.category)?.count || 0})`
               : t("filmFilters.categories")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "categories" ? "rotate-180" : ""}`}
@@ -81,11 +81,11 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
         {/* Dropdown Pays */}
         <div className="relative">
           <button
-            onClick={() => toggleDropdown("pays")}
+            onClick={() => filters.country ? toggle("country", filters.country) : toggleDropdown("pays")}
             className={`${baseBtn} ${filters.country ? active : inactive} flex items-center gap-2`}
           >
             {filters.country
-              ? `${filters.country} (${stats?.byCountry.find(c => c.country === filters.country)?.count || 0})`
+              ? `${filters.country} (${stats?.byCountry?.find(c => c.country === filters.country)?.count || 0})`
               : t("filmFilters.countries")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "pays" ? "rotate-180" : ""}`}
@@ -100,7 +100,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
           {openDropdown === "pays" && (
             <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10 max-h-[300px] overflow-y-auto">
               {countries.map((country) => {
-                const countryData = stats?.byCountry.find(c => c.country === country);
+                const countryData = stats?.byCountry?.find(c => c.country === country);
                 return (
                   <button
                     key={country}
@@ -120,11 +120,11 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
         {/* Dropdown Outils IA */}
         <div className="relative">
           <button
-            onClick={() => toggleDropdown("outils")}
+            onClick={() => filters.ai ? toggle("ai", filters.ai) : toggleDropdown("outils")}
             className={`${baseBtn} ${filters.ai ? active : inactive} flex items-center gap-2`}
           >
             {filters.ai
-              ? `${filters.ai} (${stats?.byAITool.find(tool => tool.tool === filters.ai)?.count || 0})`
+              ? `${filters.ai} (${aiToolCounts[filters.ai] || 0})`
               : t("filmFilters.aiTools")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "outils" ? "rotate-180" : ""}`}
@@ -138,18 +138,15 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
 
           {openDropdown === "outils" && (
             <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10 max-h-[300px] overflow-y-auto">
-              {aiTools.map((tool) => {
-                const toolData = stats?.byAITool.find(item => item.tool === tool);
-                return (
-                  <button
-                    key={tool}
-                    onClick={() => toggle("ai", tool)}
-                    className="w-full text-left px-4 py-2 text-sm text-[#262335] font-[Saira] hover:bg-[#463699]/10 transition-colors"
-                  >
-                    {tool} ({toolData?.count || 0})
-                  </button>
-                );
-              })}
+              {aiTools.map((tool) => (
+                <button
+                  key={tool}
+                  onClick={() => toggle("ai", tool)}
+                  className="w-full text-left px-4 py-2 text-sm text-[#262335] font-[Saira] hover:bg-[#463699]/10 transition-colors"
+                >
+                  {tool} ({aiToolCounts[tool] || 0})
+                </button>
+              ))}
             </div>
           )}
         </div>

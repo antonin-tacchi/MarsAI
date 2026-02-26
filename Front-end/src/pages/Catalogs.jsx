@@ -88,10 +88,20 @@ export default function Catalogs() {
     return stats?.byCountry?.map((c) => c.country) || [];
   }, [stats]);
 
-  // --- OUTILS IA DEPUIS STATS ---
-  const aiTools = useMemo(() => {
-    return stats?.byAITool?.map((t) => t.tool) || [];
-  }, [stats]);
+  // --- OUTILS IA DEPUIS LES FILMS (champ libre, pas normalisé en BDD) ---
+  const { aiTools, aiToolCounts } = useMemo(() => {
+    const counts = {};
+    films.forEach((film) => {
+      if (film.ai_tools_used) {
+        film.ai_tools_used
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+          .forEach((t) => { counts[t] = (counts[t] || 0) + 1; });
+      }
+    });
+    return { aiTools: Object.keys(counts).sort(), aiToolCounts: counts };
+  }, [films]);
 
   // --- CATÉGORIES DEPUIS STATS ---
   const categories = useMemo(() => {
@@ -127,7 +137,8 @@ export default function Catalogs() {
         if (!r || r.average_rating === null) return false;
       }
 
-      if (filters.country && film.country !== filters.country) return false;
+      if (filters.country && film.country?.trim() !== filters.country.trim())
+        return false;
 
       if (
         filters.ai &&
@@ -136,10 +147,10 @@ export default function Catalogs() {
         return false;
 
       // Filtre par catégorie
-      if (filters.category && film.categories) {
+      if (filters.category) {
         if (
           !film.categories
-            .toLowerCase()
+            ?.toLowerCase()
             .includes(filters.category.toLowerCase())
         )
           return false;
@@ -196,6 +207,7 @@ export default function Catalogs() {
             }}
             countries={countries}
             aiTools={aiTools}
+            aiToolCounts={aiToolCounts}
             categories={categories}
             stats={stats}
             ratedCount={ratedCount}
