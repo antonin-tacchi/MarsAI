@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import imgHero from "../images/Hero.jpg";
 import imgCountdown from "../images/homepage.png";
@@ -7,39 +7,26 @@ import "../styles/Home.css";
 const FESTIVAL_DATE = new Date("2026-09-15T00:00:00");
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-function youtubeThumb(url) {
-  if (!url) return null;
-  try {
-    if (url.includes("youtu.be/")) {
-      const id = url.split("youtu.be/")[1].split(/[?&#]/)[0];
-      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
-    }
-    if (url.includes("watch?v=")) {
-      const id = new URL(url).searchParams.get("v");
-      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
-    }
-    if (url.includes("/embed/")) {
-      const id = url.split("/embed/")[1].split(/[?&#]/)[0];
-      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
-    }
-  } catch { /* ignore */ }
-  return null;
+// Fallback si API indisponible (évite un compte à rebours mort-né)
+const FALLBACK_FESTIVAL_DATE = new Date("2026-06-15T18:00:00");
+
+function pickRandom(items, count) {
+  const arr = Array.isArray(items) ? [...items] : [];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.slice(0, Math.min(count, arr.length));
 }
 
-function getFilmThumbnail(film) {
-  return (
-    film?.thumbnail_stream_url ||
-    film?.thumbnail_url ||
-    film?.poster_stream_url ||
-    film?.poster_url ||
-    youtubeThumb(film?.youtube_url) ||
-    null
-  );
-}
+function getTimeLeft(targetDate) {
+  if (!targetDate || Number.isNaN(targetDate.getTime())) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  }
 
-function getTimeLeft(target) {
-  const diff = target - Date.now();
+  const diff = targetDate.getTime() - Date.now();
   if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+
   return {
     days: Math.floor(diff / (1000 * 60 * 60 * 24)),
     hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
@@ -60,32 +47,67 @@ const STATS = [
 ];
 
 export default function Home() {
-  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(FESTIVAL_DATE));
+  const [festivalDate, setFestivalDate] = useState(FALLBACK_FESTIVAL_DATE);
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(FALLBACK_FESTIVAL_DATE));
   const [featuredFilms, setFeaturedFilms] = useState([]);
 
+  // ✅ Fetch festival_config (event_date) from backend
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(getTimeLeft(FESTIVAL_DATE));
-    }, 1000);
-    return () => clearInterval(interval);
+    let alive = true;
+
+    (async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/festival-config/active`);
+        const json = await res.json();
+
+        if (!res.ok || !json?.success) throw new Error(json?.message || "Error");
+
+        const raw = json?.data?.event_date;
+        const d = raw ? new Date(raw) : null;
+
+        if (!d || Number.isNaN(d.getTime())) {
+          throw new Error("Invalid event_date format");
+        }
+
+        if (alive) setFestivalDate(d);
+      } catch (err) {
+        console.error("Festival config fetch error:", err);
+        // On garde le fallback sans casser la page
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
+  // ✅ Countdown interval based on festivalDate
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTimeLeft(getTimeLeft(festivalDate));
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [festivalDate]);
+
+  // ✅ Randomize 3 films on each page load
   useEffect(() => {
     fetch(`${API_URL}/api/films?all=1`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.success && Array.isArray(data.data)) {
-          setFeaturedFilms(data.data.slice(0, 3));
+          setFeaturedFilms(pickRandom(data.data, 3));
+        } else {
+          setFeaturedFilms([]);
         }
       })
-      .catch(() => {});
+      .catch(() => setFeaturedFilms([]));
   }, []);
 
   const pad = (n) => String(n).padStart(2, "0");
 
   return (
     <div className="bg-[#FBF5F0] min-h-screen">
-
       {/* ═══════ HERO ═══════ */}
       <section
         className="relative flex flex-col items-center justify-center min-h-screen text-center px-6 py-40 md:py-56"
@@ -111,42 +133,24 @@ export default function Home() {
       {/* ═══════ GALERIE ═══════ */}
       <section className="background-galery py-16 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 place-items-center">
             {featuredFilms.length > 0
-              ? featuredFilms.map((film) => {
-                  const thumb = getFilmThumbnail(film);
-                  return (
-                    <Link
-                      key={film.id}
-                      to={`/details-film/${film.id}`}
-                      className="group aspect-video overflow-hidden rounded-lg bg-[#262335]/10 relative block"
-                    >
-                      {thumb ? (
-                        <img
-                          src={thumb}
-                          alt={film.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-[#262335]/10">
-                          <span className="text-[#262335]/30 text-4xl">🎬</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-end p-4">
-                        <p className="text-white font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow">
-                          {film.title}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })
+              ? featuredFilms.map((film) => (
+                  <FilmCard
+                    key={film.id}
+                    film={film}
+                    apiUrl={API_URL}
+                    imageVariant="auto"
+                  />
+                ))
               : [0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="aspect-video rounded-lg bg-[#262335]/10 animate-pulse"
+                    className="w-[260px] aspect-video rounded-lg bg-[#262335]/10 animate-pulse"
                   />
                 ))}
           </div>
+
           <div className="text-center">
             <Link
               to="/catalogs"
@@ -224,7 +228,6 @@ export default function Home() {
       {/* ═══════ STATS ═══════ */}
       <section className="background-stats py-20 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 md:gap-20 items-start">
-          {/* Titre gauche */}
           <div className="md:w-1/2">
             <h2 className="text-4xl md:text-5xl font-black text-[#262335] leading-tight mb-4">
               Le festival
@@ -237,16 +240,13 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Grille stats droite */}
           <div className="md:w-1/2 grid grid-cols-2 gap-10">
             {STATS.map(({ value, label }, i) => (
               <div key={i}>
                 <div className="text-4xl md:text-5xl font-black text-[#463699] mb-2">
                   {value}
                 </div>
-                <p className="text-sm text-[#262335]/70 leading-snug">
-                  {label}
-                </p>
+                <p className="text-sm text-[#262335]/70 leading-snug">{label}</p>
               </div>
             ))}
           </div>
