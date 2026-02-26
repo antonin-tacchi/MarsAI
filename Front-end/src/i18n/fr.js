@@ -246,6 +246,7 @@ export default {
     generalInfo: "Informations Générales",
     title: "Titre",
     country: "Pays",
+    selectCountry: "Pays",
     description: "Description",
     film: "Film",
     poster: "Poster",
