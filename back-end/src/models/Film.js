@@ -184,7 +184,7 @@ export default class Film {
     const [categoryRows] = await db.query(
       `SELECT c.id as category_id, c.name as category_name, COUNT(fc.film_id) as count
        FROM categories c
-       INNER JOIN film_categories fc ON c.id = fc.film_id
+       INNER JOIN film_categories fc ON fc.category_id = c.id
        INNER JOIN films f ON fc.film_id = f.id AND f.status = 'approved'
        GROUP BY c.id, c.name
        ORDER BY c.name ASC`,
