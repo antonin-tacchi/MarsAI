@@ -4,8 +4,10 @@ export async function submitFilm(payload) {
   const formData = new FormData();
 
   formData.append("title", payload.title || "");
+  formData.append("title_english", payload.title_english || "");
   formData.append("country", payload.country || "");
   formData.append("description", payload.description || "");
+  formData.append("description_english", payload.description_english || "");
 
   if (payload.ai_tools_used) formData.append("ai_tools_used", payload.ai_tools_used);
   if (typeof payload.ai_certification !== "undefined") {
@@ -37,7 +39,6 @@ export async function submitFilm(payload) {
       body: formData,
     });
   } catch (e) {
-    // ✅ Ici c’est: serveur off / mauvaise URL / CORS / HTTPS mix / réseau
     const isMixedContent =
       typeof window !== "undefined" &&
       window.location?.protocol === "https:" &&
