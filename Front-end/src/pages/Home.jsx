@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import imgHero from "../images/Hero.jpg";
 import imgCountdown from "../images/homepage.png";
 import "../styles/Home.css";
+import { useLanguage } from "../context/LanguageContext";
 
 const FESTIVAL_DATE = new Date("2026-09-15T00:00:00");
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
@@ -48,18 +49,10 @@ function getTimeLeft(target) {
   };
 }
 
-const STATS = [
-  { value: "3000", label: "Visiteurs minimum à attendre lors du Festival" },
-  { value: "+120", label: "Pays représentés en sélection" },
-  {
-    value: "+60",
-    label:
-      "professionnels de l'IA générative et personnalités mobilisés lors du festival",
-  },
-  { value: "+600", label: "Films soumis à la sélection" },
-];
+const STAT_VALUES = ["3000", "+120", "+60", "+600"];
 
 export default function Home() {
+  const { t } = useLanguage();
   const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(FESTIVAL_DATE));
   const [featuredFilms, setFeaturedFilms] = useState([]);
 
@@ -101,9 +94,7 @@ export default function Home() {
             Festival MarsAi
           </h1>
           <p className="text-base md:text-lg text-white/70 leading-relaxed max-w-xl mx-auto">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim
-            ad minim veniam.
+            {t("home.heroDescription")}
           </p>
         </div>
       </section>
@@ -152,7 +143,7 @@ export default function Home() {
               to="/catalogs"
               className="inline-flex items-center gap-2 px-8 py-3 bg-[#262335] text-white font-bold rounded-full hover:bg-[#463699] transition-colors"
             >
-              Découvrir →
+              {t("home.discoverBtn")}
             </Link>
           </div>
         </div>
@@ -181,10 +172,10 @@ export default function Home() {
           <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-8 mb-10 inline-block w-full">
             <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 text-white">
               {[
-                { value: pad(timeLeft.days), label: "JOURS" },
-                { value: pad(timeLeft.hours), label: "HEURES" },
-                { value: pad(timeLeft.minutes), label: "MINUTES" },
-                { value: pad(timeLeft.seconds), label: "SECONDES" },
+                { value: pad(timeLeft.days), label: t("home.countdownDays") },
+                { value: pad(timeLeft.hours), label: t("home.countdownHours") },
+                { value: pad(timeLeft.minutes), label: t("home.countdownMinutes") },
+                { value: pad(timeLeft.seconds), label: t("home.countdownSeconds") },
               ].map(({ value, label }, i) => (
                 <div key={i} className="flex items-center gap-4 md:gap-6">
                   <div className="text-center">
@@ -209,13 +200,13 @@ export default function Home() {
               to="/submissions"
               className="px-10 py-3 bg-white text-[#262335] font-black rounded-full uppercase tracking-wider hover:bg-[#FBF5F0] transition-colors text-sm"
             >
-              JE PARTICIPE
+              {t("home.participateBtn")}
             </Link>
             <a
               href="#"
               className="px-10 py-3 border-2 border-white text-white font-black rounded-full uppercase tracking-wider hover:bg-white/10 transition-colors text-sm"
             >
-              NOUS SUIVRE
+              {t("home.followBtn")}
             </a>
           </div>
         </div>
@@ -227,25 +218,24 @@ export default function Home() {
           {/* Titre gauche */}
           <div className="md:w-1/2">
             <h2 className="text-4xl md:text-5xl font-black text-[#262335] leading-tight mb-4">
-              Le festival
-              <br />
-              en chiffre
+              {t("home.statsTitle").split("\n").map((line, i) => (
+                <span key={i}>{line}{i === 0 && <br />}</span>
+              ))}
             </h2>
             <p className="text-[#262335]/60 text-base leading-relaxed max-w-sm">
-              Des chiffres qui reflètent l'ampleur et l'impact du Festival Mars
-              AI sur la scène internationale du cinéma et de la créativité.
+              {t("home.statsDescription")}
             </p>
           </div>
 
           {/* Grille stats droite */}
           <div className="md:w-1/2 grid grid-cols-2 gap-10">
-            {STATS.map(({ value, label }, i) => (
+            {STAT_VALUES.map((value, i) => (
               <div key={i}>
                 <div className="text-4xl md:text-5xl font-black text-[#463699] mb-2">
                   {value}
                 </div>
                 <p className="text-sm text-[#262335]/70 leading-snug">
-                  {label}
+                  {t(`home.stat${i + 1}`)}
                 </p>
               </div>
             ))}
