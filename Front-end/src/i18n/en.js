@@ -83,8 +83,8 @@ export default {
 
   // DetailsFilm
   detailsFilm: {
-    backToCatalog: "\u2190 Back to catalog",
-    loading: "Loading\u2026",
+    backToCatalog: "← Back to catalog",
+    loading: "Loading…",
     error: "Error",
     publishedOn: "Published on {date}",
     publicationDate: "Publication date",
@@ -93,13 +93,13 @@ export default {
     commentPlaceholder: "Your comment...",
     save: "Save",
     saving: "Saving...",
-    saved: "\u2713 Saved",
+    saved: "✓ Saved",
     ratingRequired: "Please select a rating",
     loginRequired: "You must be logged in to rate.",
     juryOpinions: "Jury reviews",
     reviewCount: "{count} reviews",
     yourRating: "Your rating: {rating}/10",
-    loadingReviews: "Loading reviews\u2026",
+    loadingReviews: "Loading reviews…",
     noReviews: "No reviews yet.",
     // Approval panel
     filmManagement: "Film Management",
@@ -144,6 +144,15 @@ export default {
     prevPage: "Previous page",
     nextPage: "Next page",
     lastPage: "Last page",
+    myLists: "My lists",
+    backToLists: "Back to lists",
+    gridView: "Grid",
+    listView: "List",
+    noLists: "No lists",
+    noListsDesc: "No lists have been assigned to you yet.",
+    ratedLabel: "rated",
+    unratedLabel: "unrated",
+    completed: "completed",
   },
 
   // ProfileSuperJury
@@ -178,6 +187,55 @@ export default {
     resultStats: "Min: {min} | Max: {max} | Avg: {avg} films/jury",
   },
 
+  // Super Jury Lists
+  superJuryLists: {
+    tabTitle: "Lists",
+    title: "Lists management",
+    createList: "Create a list",
+    noLists: "No lists yet.",
+    juriesLabel: "juries",
+    createdBy: "Created by",
+    backToLists: "Back to lists",
+    deleteList: "Delete list",
+    confirmDelete: "Are you sure you want to delete this list?",
+    addFilms: "Add films",
+    noFilmsInList: "No films in this list.",
+    filmTitle: "Title",
+    director: "Director",
+    country: "Country",
+    actions: "Actions",
+    assignedJuries: "Assigned juries",
+    assignJury: "Assign a jury",
+    noJuriesAssigned: "No jury assigned.",
+    listName: "List name",
+    listNamePlaceholder: "E.g.: Official selection...",
+    listDescription: "Description",
+    listDescPlaceholder: "Optional description...",
+    create: "Create",
+    noAvailableFilms: "No films available to add.",
+    selectedCount: "{count} film(s) selected",
+    addSelected: "Add selection",
+    noAvailableJuries: "No juries available to assign.",
+    selectedJuryCount: "{count} jury(ies) selected",
+    assignSelected: "Assign selection",
+  },
+
+  // PrizeList (Palmares)
+  prizeList: {
+    title: "Awards",
+    loading: "Loading ranking...",
+    error: "Error loading ranking.",
+    noResults: "No ranking available",
+    noResultsDesc: "Films have not been rated by the jury yet.",
+    rank: "Rank",
+    film: "Film",
+    director: "Director",
+    country: "Country",
+    averageRating: "Average rating",
+    votes: "Votes",
+    noRating: "Not rated",
+  },
+
   // MovieForm (Submissions)
   movieForm: {
     generalInfo: "General Information",
@@ -189,7 +247,7 @@ export default {
     thumbnail: "Thumbnail",
     aiTools: "AI tools used:",
     certification: "I certify that this film complies with the festival rules.",
-    next: "Next \u2192",
+    next: "Next →",
     director: "Director",
     firstName: "First name",
     lastName: "Last name",
@@ -246,7 +304,7 @@ export default {
   pages: {
     home: "HOME PAGE",
     about: "ABOUT PAGE",
-    contact: "CONTACT PAGE",
+    contact: "Contact",
     prizeList: "PRIZE LIST PAGE",
     regulations: "REGULATIONS PAGE",
     notFound: "PAGE NOT FOUND",
@@ -292,6 +350,32 @@ export default {
     serverError: "Server error",
     retry: "Retry",
     empty: "No jury members at the moment",
+  // About
+  about: {
+    submitFilm: "Submit a film",
+    newsletter: "Newsletter",
+    regulation: "Regulations",
+  },
+
+  // Contact Page
+  contact: {
+    subtitle: "A question? A bug? An AI that decided to go on vacation? We’re reachable.",
+    infoTitle: "Information",
+    email: "Email",
+    phone: "Phone",
+    fax: "Fax",
+    accessTitle: "Access",
+    publicTransportTitle: "Public transport",
+    publicTransportText: "Tram T2 / T3 — Stop Arenc Le Silo. Metro M2 — Station Désirée Clary.",
+    carTitle: "Car",
+    carText: "Motorway A55 — Exit 2. Indigo Parking Quai du Lazaret, 200m away.",
+    addressTitle: "Address",
+    addressText: "12 Rue D’Uzes, 13002 Marseille (Main entrance)",
+    mapTitle: "Map",
+    mapHint: "Zoom in, zoom out, and get lost (but with style).",
+    openInNewTab: "Open",
+    popupTitle: "MarsAI",
+    mapAttribution: "&copy; OpenStreetMap contributors",
   },
 
   // Common

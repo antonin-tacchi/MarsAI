@@ -6,10 +6,16 @@ export default class JuryAssignment {
     limit = 20,
     offset = 0,
     sortOrder = "DESC",
+    listId = null,
   }) {
     const safeLimit = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
     const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const safeOrder = String(sortOrder).toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const listFilter = listId ? "AND ja.list_id = ?" : "";
+    const params = listId
+      ? [juryId, juryId, listId, safeLimit, safeOffset]
+      : [juryId, juryId, safeLimit, safeOffset];
 
     const sql = `
       SELECT
@@ -54,6 +60,7 @@ export default class JuryAssignment {
         ON jr_all.film_id = f.id
       WHERE ja.jury_id = ?
         AND ja.status = 'active'
+        ${listFilter}
       GROUP BY
         f.id,
         ja.assigned_at,
@@ -65,7 +72,7 @@ export default class JuryAssignment {
       LIMIT ? OFFSET ?
     `;
 
-    const [rows] = await db.query(sql, [juryId, juryId, safeLimit, safeOffset]);
+    const [rows] = await db.query(sql, params);
 
     const count = rows?.length ? rows[0].total : 0;
     const cleanRows = rows.map(({ total, ...rest }) => rest);
@@ -73,7 +80,10 @@ export default class JuryAssignment {
     return { rows: cleanRows, count };
   }
 
-  static async getJuryStats(juryId) {
+  static async getJuryStats(juryId, listId = null) {
+    const listFilter = listId ? "AND ja.list_id = ?" : "";
+    const params = listId ? [juryId, juryId, listId] : [juryId, juryId];
+
     const sql = `
       SELECT
         COUNT(*) AS total_assigned,
@@ -84,9 +94,10 @@ export default class JuryAssignment {
       LEFT JOIN jury_ratings jr
         ON jr.film_id = ja.film_id AND jr.user_id = ?
       WHERE ja.jury_id = ?
+        ${listFilter}
     `;
 
-    const [rows] = await db.query(sql, [juryId, juryId]);
+    const [rows] = await db.query(sql, params);
     return rows?.[0] || { total_assigned: 0, total_refused: 0, total_unrated: 0, total_rated: 0 };
   }
 

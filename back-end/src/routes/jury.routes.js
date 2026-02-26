@@ -11,6 +11,7 @@ import {
   getResults,
   refuseFilm,
 } from "../controllers/jury.controller.js";
+import { getMyLists } from "../controllers/jurylist.controller.js";
 
 const router = Router();
 
@@ -35,6 +36,7 @@ router.post("/films/:id/rate", submitRating);
 // Get current user's rating history
 router.get("/my-ratings", getMyRatings);
 
+router.get("/lists", getMyLists);
 router.get("/assigned-films", getAssignedFilmsForJury);
 
 // Get film ranking / results

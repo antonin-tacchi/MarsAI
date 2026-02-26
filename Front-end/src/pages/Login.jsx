@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { login } from "../services/authService";
 import { getProfileRoute } from "../utils/roles";
 import Header from "../components/Header";
+import Footer from "../components/Footer";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function Login() {
@@ -16,6 +18,7 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -131,14 +134,23 @@ export default function Login() {
                 <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
                   {t("login.password")}
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  autoComplete="current-password"
-                  className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    autoComplete="current-password"
+                    className="w-full px-4 py-3 pr-12 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#262335]/50 hover:text-[#463699] transition-colors"
+                  >
+                    {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="text-red-500 text-sm mt-1">{errors.password}</p>
                 )}
@@ -171,6 +183,8 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
