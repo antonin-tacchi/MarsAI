@@ -1,4 +1,5 @@
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function SearchBar({
   value,
@@ -6,6 +7,8 @@ export default function SearchBar({
   loading = false,
   error = "",
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="w-full">
       <div className="relative w-full max-w-[600px]">
@@ -21,8 +24,8 @@ export default function SearchBar({
           type="text"
           placeholder={
             loading
-              ? "Chargement des films…"
-              : "Rechercher un réalisateur, un film…"
+              ? t("searchBar.loadingPlaceholder")
+              : t("searchBar.placeholder")
           }
           value={value}
           onChange={(e) => onChange(e.target.value)}
