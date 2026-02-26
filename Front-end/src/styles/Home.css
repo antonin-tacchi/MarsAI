@@ -1,9 +1,9 @@
-.background-stats{
+.background-galery {
     background: #FBD5BD;
-    background: radial-gradient(circle,rgba(251, 213, 189, 1) 0%, rgba(199, 194, 206, 1) 50%);
+    background: radial-gradient(circle, rgba(251, 213, 189, 1) 0%, rgba(70, 54, 153, 1) 100%);
 }
 
-.background-galery{
+.background-stats {
     background: #FBD5BD;
-    background: radial-gradient(circle,rgba(251, 213, 189, 1) 0%, rgba(70, 54, 153, 1) 71%);
+    background: radial-gradient(circle, rgba(251, 213, 189, 1) 0%, rgba(199, 194, 206, 1) 50%);
 }
