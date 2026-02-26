@@ -8,10 +8,6 @@ import * as juryController from '../controllers/juryMember.controller.js';
 
 const router = express.Router();
 
-// ============================================================
-// Configuration Multer pour l'upload des photos
-// ============================================================
-
 const juryStorage = multer.diskStorage({
   destination: async (req, file, cb) => {
     const uploadDir = './uploads/jury';
@@ -51,43 +47,24 @@ const uploadJuryPhoto = multer({
 // Routes PUBLIQUES
 // ============================================================
 
-/**
- * GET /api/jury-members
- * Liste de tous les membres du jury (PUBLIC)
- */
 router.get('/jury-members', juryController.getAllJuryMembers);
-
-/**
- * GET /api/jury-members/:id
- * Détails d'un membre du jury (PUBLIC)
- */
 router.get('/jury-members/:id', juryController.getJuryMemberById);
 
 // ============================================================
 // Routes ADMIN (role_id = 2)
 // ============================================================
-
-/**
- * PUT /api/jury-members/:id/profile
- * Mettre à jour le profil d'un jury (ADMIN ONLY)
- * Peut modifier: photo, role_title, bio
- */
 router.put(
   '/jury-members/:id/profile',
-  authenticateToken,           // Vérifie le token JWT
-  authorize([2]),              // Autorise uniquement Admin (role_id = 2)
+  authenticateToken,           
+  authorize([2]),  //Admin only
   uploadJuryPhoto.single('profile_picture'),
   juryController.updateJuryProfile
 );
 
-/**
- * GET /api/jury-members-stats
- * Statistiques sur les membres du jury (ADMIN ONLY)
- */
 router.get(
   '/jury-members-stats',
   authenticateToken,
-  authorize([2]),              // Admin uniquement
+  authorize([2]),
   juryController.getJuryStats
 );
 
