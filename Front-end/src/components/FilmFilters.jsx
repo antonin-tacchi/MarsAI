@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
 
-export default function FilmFilters({ filters, onChange, countries, aiTools, categories, stats, ratedCount }) {
+export default function FilmFilters({ filters, onChange, countries, aiTools, aiToolCounts = {}, categories, stats, ratedCount }) {
   const { t } = useLanguage();
   const [openDropdown, setOpenDropdown] = useState(null);
 
@@ -124,7 +124,7 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
             className={`${baseBtn} ${filters.ai ? active : inactive} flex items-center gap-2`}
           >
             {filters.ai
-              ? `${filters.ai} (${stats?.byAITool?.find(tool => tool.tool === filters.ai)?.count || 0})`
+              ? `${filters.ai} (${aiToolCounts[filters.ai] || 0})`
               : t("filmFilters.aiTools")}
             <svg
               className={`w-4 h-4 transition-transform ${openDropdown === "outils" ? "rotate-180" : ""}`}
@@ -138,18 +138,15 @@ export default function FilmFilters({ filters, onChange, countries, aiTools, cat
 
           {openDropdown === "outils" && (
             <div className="absolute top-full mt-2 bg-white border border-[#463699] rounded-lg shadow-lg min-w-[200px] z-10 max-h-[300px] overflow-y-auto">
-              {aiTools.map((tool) => {
-                const toolData = stats?.byAITool?.find(item => item.tool === tool);
-                return (
-                  <button
-                    key={tool}
-                    onClick={() => toggle("ai", tool)}
-                    className="w-full text-left px-4 py-2 text-sm text-[#262335] font-[Saira] hover:bg-[#463699]/10 transition-colors"
-                  >
-                    {tool} ({toolData?.count || 0})
-                  </button>
-                );
-              })}
+              {aiTools.map((tool) => (
+                <button
+                  key={tool}
+                  onClick={() => toggle("ai", tool)}
+                  className="w-full text-left px-4 py-2 text-sm text-[#262335] font-[Saira] hover:bg-[#463699]/10 transition-colors"
+                >
+                  {tool} ({aiToolCounts[tool] || 0})
+                </button>
+              ))}
             </div>
           )}
         </div>
