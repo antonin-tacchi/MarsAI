@@ -3,13 +3,13 @@ import { useLanguage } from "../context/LanguageContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-// --- SKELETON CARD (état de chargement) ---
+// --- SKELETON CARD ---
 const SkeletonJuryCard = () => (
   <div className="w-full rounded-2xl overflow-hidden bg-white shadow-lg">
-    <div className="w-full h-[320px] md:h-[380px] lg:h-[400px] animate-shimmer" />
-    <div className="p-6 bg-[#262335]">
-      <div className="h-3 animate-shimmer rounded w-1/3 mb-3" />
-      <div className="h-6 animate-shimmer rounded w-3/4 mb-3" />
+    <div className="w-full h-[240px] md:h-[280px] lg:h-[300px] animate-shimmer" />
+    <div className="p-5 bg-[#262335]">
+      <div className="h-3 animate-shimmer rounded w-1/3 mb-2" />
+      <div className="h-5 animate-shimmer rounded w-3/4 mb-2" />
       <div className="h-4 animate-shimmer rounded w-full mb-2" />
       <div className="h-4 animate-shimmer rounded w-2/3" />
     </div>
@@ -22,7 +22,6 @@ export default function Jury() {
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
 
-  // --- FETCH JURY MEMBERS ---
   useEffect(() => {
     const fetchJuryMembers = async () => {
       setStatus("loading");
@@ -48,28 +47,27 @@ export default function Jury() {
     fetchJuryMembers();
   }, [t]);
 
-  // --- COULEURS PAR DÉFAUT ---
   const defaultColors = ["#8B7EC8", "#7A9B8E", "#2C2C2C", "#D4A373", "#5C6BC0", "#8D6E63"];
 
   return (
     <main className="min-h-screen bg-[#FBF5F0] px-6 py-12">
       <div className="max-w-7xl mx-auto">
         {/* --- HEADER --- */}
-        <header className="mb-12 md:mb-20">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-[#262335] uppercase tracking-tighter leading-tight mb-6 p-6 italic">
+        <header className="mb-12 md:mb-16">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#262335] uppercase tracking-tighter leading-tight mb-4 px-4 italic">
             {t("jury.title") || "LES MEMBRES"}
             <br />
             <span className="text-[#2563EB]">
               {t("jury.titleHighlight") || "DU JURY"}
             </span>
           </h1>
-          <p className="text-base md:text-lg lg:text-xl text-[#262335]/70 leading-relaxed max-w-3xl px-6">
+          <p className="text-base md:text-lg text-[#262335]/70 leading-relaxed max-w-3xl px-4">
             {t("jury.subtitle") || 
               "Experts IA, cinéastes et visionnaires réunis pour délibérer sur la sélection officielle."}
           </p>
         </header>
 
-        {/* --- ERREUR API --- */}
+        {/* --- ERREUR --- */}
         {error && (
           <div className="flex flex-col items-center justify-center p-10 bg-red-50 border-2 border-red-100 rounded-[2.5rem] text-center max-w-2xl mx-auto mb-12">
             <div className="text-5xl mb-4 text-red-400">⚠️</div>
@@ -86,16 +84,16 @@ export default function Jury() {
           </div>
         )}
 
-        {/* --- CHARGEMENT --- */}
+        {/* --- LOADING --- */}
         {status === "loading" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[...Array(6)].map((_, i) => (
               <SkeletonJuryCard key={i} />
             ))}
           </div>
         )}
 
-        {/* --- ÉTAT VIDE --- */}
+        {/* --- EMPTY --- */}
         {status === "idle" && !error && juryMembers.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center border-2 border-dashed border-[#262335]/10 rounded-[2.5rem] bg-[#FBF5F0]/50">
             <div className="text-6xl mb-6 opacity-30">👥</div>
@@ -105,23 +103,23 @@ export default function Jury() {
           </div>
         )}
 
-        {/* --- GRILLE DES MEMBRES DU JURY --- */}
+        {/* --- GRID --- */}
         {status === "idle" && juryMembers.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {juryMembers.map((member, index) => {
               const bgColor = member.color || defaultColors[index % defaultColors.length];
               
               return (
                 <article
                   key={member.id}
-                  className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+                  className="group flex flex-col rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-[0_20px_60px_rgba(0,0,0,0.25)] transition-all duration-300 hover:-translate-y-3"
                   style={{
                     animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
                   }}
                 >
-                  {/* --- IMAGE --- */}
+                  {/* IMAGE */}
                   <div
-                    className="relative w-full h-[320px] md:h-[380px] lg:h-[400px] overflow-hidden"
+                    className="relative w-full h-[240px] md:h-[280px] lg:h-[300px] flex-shrink-0"
                     style={{ backgroundColor: bgColor }}
                   >
                     {member.image_url ? (
@@ -130,13 +128,11 @@ export default function Jury() {
                         alt={member.name}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         onError={(e) => {
-                          // Fallback SVG si l'image ne charge pas
                           const fallback = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='${encodeURIComponent(bgColor)}' width='400' height='400'/%3E%3Ctext fill='%23fff' font-family='Arial, sans-serif' font-size='72' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E${member.name.charAt(0)}%3C/text%3E%3C/svg%3E`;
                           e.target.src = fallback;
                         }}
                       />
                     ) : (
-                      // Si pas d'image, afficher l'initiale
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="text-white text-7xl font-black">
                           {member.name.charAt(0)}
@@ -145,17 +141,19 @@ export default function Jury() {
                     )}
                   </div>
 
-                  {/* --- INFO --- */}
-                  <div className="p-6 md:p-7 bg-[#262335] text-white">
+                  {/* INFO */}
+                  <div className="p-5 bg-[#262335] text-white flex-grow flex flex-col">
                     <span className="text-xs font-bold tracking-wider uppercase text-[#FF6B35] mb-2 block">
-                      {member.role}
+                      {member.role || 'Non défini'}
                     </span>
-                    <h2 className="text-2xl md:text-[1.6rem] font-black uppercase tracking-tight mb-3 leading-tight">
+                    <h2 className="text-xl md:text-[1.4rem] font-black uppercase tracking-tight mb-2 leading-tight">
                       {member.name}
                     </h2>
-                    <p className="text-sm md:text-base leading-relaxed text-white/85">
-                      {member.description}
-                    </p>
+                    {member.description && (
+                      <p className="text-sm md:text-base leading-relaxed text-white/85">
+                        {member.description}
+                      </p>
+                    )}
                   </div>
                 </article>
               );
@@ -164,7 +162,6 @@ export default function Jury() {
         )}
       </div>
 
-      {/* --- ANIMATIONS CSS --- */}
       <style>{`
         @keyframes fadeInUp {
           from {
