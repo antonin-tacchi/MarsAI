@@ -88,18 +88,18 @@ export default function Catalogs() {
   }, [stats]);
 
   // --- OUTILS IA DEPUIS LES FILMS (champ libre, pas normalisé en BDD) ---
-  const aiTools = useMemo(() => {
-    const toolSet = new Set();
+  const { aiTools, aiToolCounts } = useMemo(() => {
+    const counts = {};
     films.forEach((film) => {
       if (film.ai_tools_used) {
         film.ai_tools_used
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean)
-          .forEach((t) => toolSet.add(t));
+          .forEach((t) => { counts[t] = (counts[t] || 0) + 1; });
       }
     });
-    return [...toolSet].sort();
+    return { aiTools: Object.keys(counts).sort(), aiToolCounts: counts };
   }, [films]);
 
   // --- CATÉGORIES DEPUIS STATS ---
@@ -203,6 +203,7 @@ export default function Catalogs() {
             }}
             countries={countries}
             aiTools={aiTools}
+            aiToolCounts={aiToolCounts}
             categories={categories}
             stats={stats}
             ratedCount={ratedCount}
