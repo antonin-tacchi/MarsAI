@@ -41,7 +41,8 @@ export default {
     login: "Log in",
     title: "Sign up",
     register: "Sign up",
-    juryNote: "If you are a jury member or director, please use the password received by email",
+    juryNote:
+      "If you are a jury member or director, please use the password received by email",
     visitorNote: "If you are a visitor, you can create an account freely.",
     firstName: "First name",
     lastName: "Last name",
@@ -57,7 +58,8 @@ export default {
     emailInvalid: "Invalid email format",
     passwordRequired: "Password is required",
     passwordMinLength: "Password must be at least 8 characters",
-    passwordPattern: "Password must contain at least one uppercase, one lowercase and one digit",
+    passwordPattern:
+      "Password must contain at least one uppercase, one lowercase and one digit",
     error: "Registration failed. Please try again.",
   },
 
@@ -145,15 +147,6 @@ export default {
     ratedLabel: "rated",
     unratedLabel: "unrated",
     completed: "completed",
-    myLists: "My lists",
-    backToLists: "Back to lists",
-    gridView: "Grid",
-    listView: "List",
-    noLists: "No lists",
-    noListsDesc: "No lists have been assigned to you yet.",
-    ratedLabel: "rated",
-    unratedLabel: "unrated",
-    completed: "completed",
   },
 
   profileSuperJury: {
@@ -183,104 +176,9 @@ export default {
     confirmGenerate: "Confirm and generate",
     cancel: "Cancel",
     success: "Distribution generated successfully",
-    resultMessage: "{total} assignments created for {juryCount} juries (R={R}, Lmax={Lmax}).",
+    resultMessage:
+      "{total} assignments created for {juryCount} juries (R={R}, Lmax={Lmax}).",
     resultStats: "Min: {min} | Max: {max} | Avg: {avg} films/jury",
-  },
-
-  superJuryLists: {
-    tabTitle: "Lists",
-    title: "Lists management",
-    createList: "Create a list",
-    noLists: "No lists yet.",
-    juriesLabel: "juries",
-    createdBy: "Created by",
-    backToLists: "Back to lists",
-    deleteList: "Delete list",
-    confirmDelete: "Are you sure you want to delete this list?",
-    addFilms: "Add films",
-    noFilmsInList: "No films in this list.",
-    filmTitle: "Title",
-    director: "Director",
-    country: "Country",
-    actions: "Actions",
-    assignedJuries: "Assigned juries",
-    assignJury: "Assign a jury",
-    noJuriesAssigned: "No jury assigned.",
-    listName: "List name",
-    listNamePlaceholder: "E.g.: Official selection...",
-    listDescription: "Description",
-    listDescPlaceholder: "Optional description...",
-    create: "Create",
-    noAvailableFilms: "No films available to add.",
-    selectedCount: "{count} film(s) selected",
-    addSelected: "Add selection",
-    noAvailableJuries: "No juries available to assign.",
-    selectedJuryCount: "{count} jury(ies) selected",
-    assignSelected: "Assign selection",
-  },
-
-  prizeList: {
-    title: "Awards",
-    loading: "Loading ranking...",
-    error: "Error loading ranking.",
-    noResults: "No ranking available",
-    noResultsDesc: "Films have not been rated by the jury yet.",
-    rank: "Rank",
-    film: "Film",
-    director: "Director",
-    country: "Country",
-    averageRating: "Average rating",
-    votes: "Votes",
-    noRating: "Not rated",
-  },
-
-  // Super Jury Lists
-  superJuryLists: {
-    tabTitle: "Lists",
-    title: "Lists management",
-    createList: "Create a list",
-    noLists: "No lists yet.",
-    juriesLabel: "juries",
-    createdBy: "Created by",
-    backToLists: "Back to lists",
-    deleteList: "Delete list",
-    confirmDelete: "Are you sure you want to delete this list?",
-    addFilms: "Add films",
-    noFilmsInList: "No films in this list.",
-    filmTitle: "Title",
-    director: "Director",
-    country: "Country",
-    actions: "Actions",
-    assignedJuries: "Assigned juries",
-    assignJury: "Assign a jury",
-    noJuriesAssigned: "No jury assigned.",
-    listName: "List name",
-    listNamePlaceholder: "E.g.: Official selection...",
-    listDescription: "Description",
-    listDescPlaceholder: "Optional description...",
-    create: "Create",
-    noAvailableFilms: "No films available to add.",
-    selectedCount: "{count} film(s) selected",
-    addSelected: "Add selection",
-    noAvailableJuries: "No juries available to assign.",
-    selectedJuryCount: "{count} jury(ies) selected",
-    assignSelected: "Assign selection",
-  },
-
-  // PrizeList (Palmares)
-  prizeList: {
-    title: "Awards",
-    loading: "Loading ranking...",
-    error: "Error loading ranking.",
-    noResults: "No ranking available",
-    noResultsDesc: "Films have not been rated by the jury yet.",
-    rank: "Rank",
-    film: "Film",
-    director: "Director",
-    country: "Country",
-    averageRating: "Average rating",
-    votes: "Votes",
-    noRating: "Not rated",
   },
 
   superJuryLists: {
@@ -340,7 +238,6 @@ export default {
     thumbnail: "Thumbnail",
     aiTools: "AI tools used:",
     certification: "I certify that this film complies with the festival rules.",
-    next: "Next →",
     next: "Next →",
     director: "Director",
     firstName: "First name",
@@ -432,7 +329,8 @@ export default {
   jury: {
     title: "JURY",
     titleHighlight: "MEMBERS",
-    subtitle: "AI experts, filmmakers, and visionaries united to deliberate on the official selection.",
+    subtitle:
+      "AI experts, filmmakers, and visionaries united to deliberate on the official selection.",
     loadError: "Error loading jury members",
     connectionError: "Server connection error",
     serverError: "Server error",
@@ -440,35 +338,6 @@ export default {
     empty: "No jury members at the moment",
   },
 
-  // About
-  about: {
-    submitFilm: "Submit a film",
-    newsletter: "Newsletter",
-    regulation: "Regulations",
-  },
-
-  // Contact Page
-  contact: {
-    subtitle: "A question? A bug? An AI that decided to go on vacation? We’re reachable.",
-    infoTitle: "Information",
-    email: "Email",
-    phone: "Phone",
-    fax: "Fax",
-    accessTitle: "Access",
-    publicTransportTitle: "Public transport",
-    publicTransportText: "Tram T2 / T3 — Stop Arenc Le Silo. Metro M2 — Station Désirée Clary.",
-    carTitle: "Car",
-    carText: "Motorway A55 — Exit 2. Indigo Parking Quai du Lazaret, 200m away.",
-    addressTitle: "Address",
-    addressText: "12 Rue D’Uzes, 13002 Marseille (Main entrance)",
-    mapTitle: "Map",
-    mapHint: "Zoom in, zoom out, and get lost (but with style).",
-    openInNewTab: "Open",
-    popupTitle: "MarsAI",
-    mapAttribution: "&copy; OpenStreetMap contributors",
-  },
-
-  // About
   about: {
     submitFilm: "Submit a film",
     newsletter: "Newsletter",
@@ -476,40 +345,16 @@ export default {
   },
 
   contact: {
-    subtitle: "A question? A bug? An AI that decided to go on vacation? We’re reachable.",
+    subtitle:
+      "A question? A bug? An AI that decided to go on vacation? We’re reachable.",
     infoTitle: "Information",
     email: "Email",
     phone: "Phone",
     fax: "Fax",
     accessTitle: "Access",
     publicTransportTitle: "Public transport",
-    publicTransportText: "Tram T2 / T3 — Stop Arenc Le Silo. Metro M2 — Station Désirée Clary.",
-    carTitle: "Car",
-    carText: "Motorway A55 — Exit 2. Indigo Parking Quai du Lazaret, 200m away.",
-    addressTitle: "Address",
-    addressText: "12 Rue D’Uzes, 13002 Marseille (Main entrance)",
-    mapTitle: "Map",
-    mapHint: "Zoom in, zoom out, and get lost (but with style).",
-    openInNewTab: "Open",
-    popupTitle: "MarsAI",
-    mapAttribution: "&copy; OpenStreetMap contributors",
-  },
-
-  about: {
-    submitFilm: "Submit a film",
-    newsletter: "Newsletter",
-    regulation: "Regulations",
-  },
-
-  contact: {
-    subtitle: "A question? A bug? An AI that decided to go on vacation? We’re reachable.",
-    infoTitle: "Information",
-    email: "Email",
-    phone: "Phone",
-    fax: "Fax",
-    accessTitle: "Access",
-    publicTransportTitle: "Public transport",
-    publicTransportText: "Tram T2 / T3 — Stop Arenc Le Silo. Metro M2 — Station Désirée Clary.",
+    publicTransportText:
+      "Tram T2 / T3 — Stop Arenc Le Silo. Metro M2 — Station Désirée Clary.",
     carTitle: "Car",
     carText: "Motorway A55 — Exit 2. Indigo Parking Quai du Lazaret, 200m away.",
     addressTitle: "Address",
@@ -528,5 +373,103 @@ export default {
     save: "Save",
     delete: "Delete",
     confirm: "Confirm",
+  },
+
+  privacy: {
+    title: "Your Personal Data",
+    intro:
+      "This page explains what information may be collected when you use MarsAI, why we use it, and how you can exercise your rights.",
+    s1: {
+      title: "1) Data we may collect",
+      p: "Depending on how you use the service, we may collect:",
+      li1: "Account information (email, username, role).",
+      li2: "Content you submit (films, links, descriptions, media).",
+      li3: "Technical data (browser, logs, IP partially masked depending on setup).",
+      li4: "Preferences (language, cookie consent).",
+    },
+    s2: {
+      title: "2) Purposes",
+      p: "This data is used to operate the service, keep it secure, support moderation, and improve the user experience.",
+    },
+    s3: {
+      title: "3) Sharing",
+      p: "We do not sell your data. It may only be shared with:",
+      li1: "Service providers required for hosting and storage.",
+      li2: "Authorized staff (e.g., admins/moderators) when relevant.",
+      li3: "Authorities, if required by law.",
+      li4: "Technical tools (logs/monitoring) to maintain the service.",
+    },
+    s4: {
+      title: "4) Retention",
+      p: "We keep data only as long as needed for its purpose, then delete or anonymize it.",
+    },
+    s5: {
+      title: "5) Your rights",
+      p: "You may request access, correction, deletion, restriction, or object to processing, depending on applicable law.",
+    },
+    note:
+      "Note: this text is informational and should be adapted to your legal obligations (GDPR, mandatory legal notices, etc.).",
+    cta: {
+      contact: "Contact us",
+      cookies: "Cookie settings",
+    },
+  },
+
+  cookies: {
+    title: "Cookie Settings",
+    intro:
+      "Cookies are small files used to run the website, measure traffic, and improve your browsing experience.",
+    s1: {
+      title: "1) Why cookies?",
+      p: "We use cookies to remember your preferences (language), secure certain sessions, and analyze performance.",
+    },
+    s2: {
+      title: "2) Cookie types",
+      p: "Possible categories include:",
+      li1: "Essential: required for the website to function.",
+      li2: "Preferences: e.g., language, display settings.",
+      li3: "Analytics: anonymized statistics (depending on setup).",
+      li4: "Functional: improving user experience.",
+    },
+    s3: {
+      title: "3) How to manage them",
+      p: "You can configure your browser to block/delete cookies. Some features may not work properly.",
+    },
+    tip:
+      "Tip: if your language switch works, it’s often thanks to a cookie… or localStorage. Using both is fancy.",
+    cta: {
+      privacy: "Your Personal Data",
+      contact: "Contact us",
+    },
+  },
+
+  legal: {
+    title: "Legal Notice",
+    intro:
+      "The information below must be completed with your real details (publisher, hosting, contact, etc.).",
+    s1: {
+      title: "1) Website publisher",
+      p: "Name / Company: …\nAddress: …\nEmail: …", // need to be modified with real data
+    },
+    s2: {
+      title: "2) Hosting",
+      p: "Host: …\nAddress: …\nPhone: …",  // need to be modified with real data
+    },
+    s3: {
+      title: "3) Intellectual property",
+      p: "Content (texts, images, videos) is protected. Any unauthorized reproduction is prohibited.",
+    },
+    s4: {
+      title: "4) Liability",
+      p: "The publisher cannot be held liable for damages resulting from the use of the website, within legal limits.",
+    },
+    s5: {
+      title: "5) Contact",
+      p: "If you have any questions, you can contact us via the dedicated page.",
+    },
+    cta: {
+      privacy: "Your Personal Data",
+      cookies: "Cookie Settings",
+    },
   },
 };
