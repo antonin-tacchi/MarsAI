@@ -21,6 +21,9 @@ import AdminModeration from "./pages/AdminModeration.jsx";
 import Partners from "./pages/Partners.jsx";
 import InfosPratiques from "./pages/PracticalInfo.jsx";
 import Newslatter from "./pages/Newslatter.jsx";
+import Privacy from "./pages/Privacy.jsx";
+import Cookies from "./pages/Cookies.jsx";
+import Legal from "./pages/Legal.jsx";
 
 
 function ScrollToTop() {
@@ -62,6 +65,9 @@ export default function App() {
           <Route path="submissions" element={<Submissions />} />
           <Route path="practicalinfos" element={<InfosPratiques />} />
           <Route path="newslatter" element={<Newslatter />} />
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="cookies" element={<Cookies />} />
+          <Route path="legal" element={<Legal />} />
           <Route
             path="profile-admin"
             element={
