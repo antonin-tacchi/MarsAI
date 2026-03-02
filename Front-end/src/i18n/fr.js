@@ -1,5 +1,4 @@
 export default {
-  // Header
   header: {
     festival: "Le festival",
     catalog: "Catalogue",
@@ -7,7 +6,6 @@ export default {
     prizes: "Palmarès",
   },
 
-  // Footer
   footer: {
     theFestival: "LE FESTIVAL",
     festival: "Le festival",
@@ -25,7 +23,6 @@ export default {
     contact: "Contact",
   },
 
-  // Login
   login: {
     title: "Se connecter",
     register: "S'inscrire",
@@ -40,12 +37,12 @@ export default {
     error: "La connexion a échoué. Veuillez réessayer.",
   },
 
-  // Register
   register: {
     login: "Se connecter",
     title: "S'inscrire",
     register: "S'inscrire",
-    juryNote: "Si vous êtes jury ou réalisateur, veuillez utiliser le mot de passe reçu par email",
+    juryNote:
+      "Si vous êtes jury ou réalisateur, veuillez utiliser le mot de passe reçu par email",
     visitorNote: "Si vous êtes visiteur, vous pouvez créer un compte librement.",
     firstName: "Prénom",
     lastName: "Nom",
@@ -61,11 +58,11 @@ export default {
     emailInvalid: "Format d'email invalide",
     passwordRequired: "Le mot de passe est requis",
     passwordMinLength: "Le mot de passe doit contenir au moins 8 caractères",
-    passwordPattern: "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
+    passwordPattern:
+      "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
     error: "L'inscription a échoué. Veuillez réessayer.",
   },
 
-  // Catalogs
   catalogs: {
     title: "Catalogue",
     serverError: "Erreur Serveur",
@@ -81,7 +78,6 @@ export default {
     lastPage: "Dernière page",
   },
 
-  // DetailsFilm
   detailsFilm: {
     backToCatalog: "← Retour aux catalogues",
     loading: "Chargement…",
@@ -101,7 +97,6 @@ export default {
     yourRating: "Votre note : {rating}/10",
     loadingReviews: "Chargement des avis…",
     noReviews: "Aucun avis pour le moment.",
-    // Approval panel
     filmManagement: "Gestion du film",
     statusPending: "En attente",
     statusApproved: "Approuvé",
@@ -119,7 +114,6 @@ export default {
     mustBeConnected: "Vous devez être connecté.",
   },
 
-  // ProfileJury
   profileJury: {
     loading: "Chargement...",
     greeting: "Bonjour {name}",
@@ -137,7 +131,8 @@ export default {
     refuseButton: "Refuser ce film",
     refuseTitle: "Refuser le film",
     refuseReasonLabel: "Raison du refus :",
-    refuseReasonPlaceholder: "Expliquez pourquoi ce contenu ne vous convient pas...",
+    refuseReasonPlaceholder:
+      "Expliquez pourquoi ce contenu ne vous convient pas...",
     confirmRefuse: "Confirmer le refus",
     refusing: "Envoi...",
     firstPage: "Première page",
@@ -155,7 +150,6 @@ export default {
     completed: "terminé",
   },
 
-  // ProfileSuperJury
   profileSuperJury: {
     loading: "Chargement...",
     title: "Super Jury - {name}",
@@ -183,11 +177,11 @@ export default {
     confirmGenerate: "Confirmer et generer",
     cancel: "Annuler",
     success: "Repartition generee avec succes",
-    resultMessage: "{total} assignations creees pour {juryCount} jurys (R={R}, Lmax={Lmax}).",
+    resultMessage:
+      "{total} assignations creees pour {juryCount} jurys (R={R}, Lmax={Lmax}).",
     resultStats: "Min: {min} | Max: {max} | Moy: {avg} films/jury",
   },
 
-  // Super Jury Lists
   superJuryLists: {
     tabTitle: "Listes",
     title: "Gestion des listes",
@@ -220,7 +214,6 @@ export default {
     assignSelected: "Assigner la selection",
   },
 
-  // PrizeList (Palmares)
   prizeList: {
     title: "Palmares",
     loading: "Chargement du classement...",
@@ -236,7 +229,6 @@ export default {
     noRating: "Non note",
   },
 
-  // MovieForm (Submissions)
   movieForm: {
     generalInfo: "Informations Générales",
     title: "Titre",
@@ -279,7 +271,6 @@ export default {
     submitError: "Erreur lors de l'envoi du film.",
   },
 
-  // FilmCard
   filmCard: {
     unknownTitle: "Titre inconnu",
     defaultFirstName: "Prénom",
@@ -289,18 +280,15 @@ export default {
     votes: "votes",
   },
 
-  // CountrySelect
   countrySelect: {
     search: "Rechercher un pays...",
     noResults: "Aucun pays trouvé",
   },
 
-  // FilmPlayer
   filmPlayer: {
     videoNotSupported: "Votre navigateur ne supporte pas la lecture vidéo.",
   },
 
-  // Placeholder pages
   pages: {
     home: "HOME PAGE",
     about: "ABOUT PAGE",
@@ -312,7 +300,6 @@ export default {
     profileDirector: "PROFIL DIRECTOR PAGE",
   },
 
-  // ProfileAdmin CMS
   profileAdmin: {
     pageEditor: "Page d'accueil",
     french: "FR",
@@ -340,11 +327,11 @@ export default {
     pagesTab: "Pages",
   },
 
-  // Jury
   jury: {
     title: "LES MEMBRES",
     titleHighlight: "DU JURY",
-    subtitle: "Experts IA, cinéastes et visionnaires réunis pour délibérer sur la sélection officielle.",
+    subtitle:
+      "Experts IA, cinéastes et visionnaires réunis pour délibérer sur la sélection officielle.",
     loadError: "Erreur lors du chargement des membres du jury",
     connectionError: "Erreur de connexion au serveur",
     serverError: "Erreur serveur",
@@ -352,14 +339,12 @@ export default {
     empty: "Aucun membre du jury pour le moment",
   },
 
-  // About
   about: {
     submitFilm: "Soumettre un film",
     newsletter: "Newsletter",
     regulation: "Règlement",
   },
 
-  // Contact Page
   contact: {
     subtitle:
       "Une question ? Un bug ? Une IA qui a décidé de prendre des vacances ? On est joignables.",
@@ -382,7 +367,6 @@ export default {
     mapAttribution: "&copy; contributeurs OpenStreetMap",
   },
 
-  // Common
   common: {
     loading: "Chargement...",
     error: "Erreur",
@@ -390,5 +374,103 @@ export default {
     save: "Enregistrer",
     delete: "Supprimer",
     confirm: "Confirmer",
+  },
+
+  privacy: {
+    title: "Vos données personnelles",
+    intro:
+      "Cette page explique quelles informations peuvent être collectées lorsque vous utilisez MarsAI, pourquoi nous les utilisons, et comment vous pouvez exercer vos droits.",
+    s1: {
+      title: "1) Données collectées",
+      p: "Selon votre usage, nous pouvons collecter :",
+      li1: "Informations de compte (email, identifiant, rôle).",
+      li2: "Contenus que vous soumettez (films, liens, descriptions, médias).",
+      li3: "Données techniques (navigateur, logs, adresse IP tronquée selon configuration).",
+      li4: "Préférences (langue, consentement cookies).",
+    },
+    s2: {
+      title: "2) Finalités",
+      p: "Ces données servent à assurer le fonctionnement du service, la sécurité, la modération et l’amélioration de l’expérience.",
+    },
+    s3: {
+      title: "3) Partage",
+      p: "Nous ne vendons pas vos données. Elles peuvent être partagées uniquement avec :",
+      li1: "Les prestataires nécessaires à l’hébergement et au stockage.",
+      li2: "Les membres habilités (ex: admin/modération) selon votre usage.",
+      li3: "Les autorités, si la loi l’exige.",
+      li4: "Des outils techniques (logs/monitoring) pour maintenir le service.",
+    },
+    s4: {
+      title: "4) Durée de conservation",
+      p: "Nous conservons les données le temps nécessaire à la finalité, puis les supprimons ou les anonymisons.",
+    },
+    s5: {
+      title: "5) Vos droits",
+      p: "Vous pouvez demander l’accès, la rectification, la suppression, la limitation ou l’opposition, selon le cadre applicable.",
+    },
+    note:
+      "Note : ce texte est informatif et doit être adapté à vos obligations légales (RGPD, mentions obligatoires, etc.).",
+    cta: {
+      contact: "Nous contacter",
+      cookies: "Gestion des cookies",
+    },
+  },
+
+  cookies: {
+    title: "Gestion des cookies",
+    intro:
+      "Les cookies sont de petits fichiers utilisés pour faire fonctionner le site, mesurer l’audience et améliorer votre navigation.",
+    s1: {
+      title: "1) Pourquoi des cookies ?",
+      p: "Nous utilisons des cookies pour mémoriser vos préférences (langue), sécuriser certaines sessions, et analyser la performance.",
+    },
+    s2: {
+      title: "2) Types de cookies",
+      p: "Voici les catégories possibles :",
+      li1: "Essentiels : nécessaires au fonctionnement du site.",
+      li2: "Préférences : ex. langue, affichage.",
+      li3: "Mesure d’audience : statistiques anonymisées (selon configuration).",
+      li4: "Fonctionnels : amélioration de l’expérience utilisateur.",
+    },
+    s3: {
+      title: "3) Comment gérer ?",
+      p: "Vous pouvez paramétrer votre navigateur pour bloquer/supprimer les cookies. Certaines fonctionnalités peuvent alors être dégradées.",
+    },
+    tip:
+      "Astuce : si ton bouton de langue marche, c’est souvent grâce à un cookie… ou à localStorage. Les deux, c’est du luxe.",
+    cta: {
+      privacy: "Vos données personnelles",
+      contact: "Nous contacter",
+    },
+  },
+
+  legal: {
+    title: "Mentions légales",
+    intro:
+      "Les informations ci-dessous doivent être complétées avec vos données réelles (éditeur, hébergeur, contact, etc.).",
+    s1: {
+      title: "1) Éditeur du site",
+      p: "Nom / Société : …\nAdresse : …\nEmail : …",
+    },
+    s2: {
+      title: "2) Hébergement",
+      p: "Hébergeur : …\nAdresse : …\nTéléphone : …",
+    },
+    s3: {
+      title: "3) Propriété intellectuelle",
+      p: "Le contenu (textes, images, vidéos) est protégé. Toute reproduction non autorisée est interdite.",
+    },
+    s4: {
+      title: "4) Responsabilité",
+      p: "L’éditeur ne peut être tenu responsable des dommages résultant de l’utilisation du site, dans les limites prévues par la loi.",
+    },
+    s5: {
+      title: "5) Contact",
+      p: "Pour toute question, vous pouvez nous contacter via la page dédiée.",
+    },
+    cta: {
+      privacy: "Vos données personnelles",
+      cookies: "Gestion des cookies",
+    },
   },
 };
