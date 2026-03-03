@@ -104,7 +104,7 @@ function FilmRow({ film, apiUrl, onRefuse, onSelect, t }) {
       <div className="flex items-center gap-3 shrink-0">
         {film?.assignment_status === "refusal_pending" ? (
           <span className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full">
-            ⏳ En attente de validation
+            {t("profileJury.refusalPending")}
           </span>
         ) : (
           <>
@@ -117,7 +117,7 @@ function FilmRow({ film, apiUrl, onRefuse, onSelect, t }) {
                     : "border-[#463699] text-[#463699] hover:bg-[#463699]/10"
                 }`}
               >
-                {film.status === "selected" ? "✓ Sélectionné" : "Sélectionner"}
+                {film.status === "selected" ? t("profileJury.selectedFilm") : t("profileJury.selectFilm")}
               </button>
             )}
             {film?.user_rating !== null && film?.user_rating !== undefined ? (
@@ -216,7 +216,7 @@ export default function ProfileJury() {
       setUiState(items.length === 0 ? "empty" : "success");
     } catch (err) {
       console.error(err);
-      setError("Impossible de se connecter au serveur.");
+      setError(t("profileJury.connectionError"));
       setFilms([]);
       setFilmCount(0);
       setStats({ totalAssigned: 0, totalRefused: 0, totalRefusalPending: 0, totalUnrated: 0, totalRated: 0 });
@@ -362,7 +362,7 @@ export default function ProfileJury() {
                 <div className="bg-[#262335] rounded-lg p-2">{t("profileJury.rated", { count: stats.totalRated })}</div>
                 {stats.totalRefusalPending > 0 && (
                   <div className="bg-orange-600/80 rounded-lg p-2">
-                    ⏳ {stats.totalRefusalPending} refus en attente
+                    {t("profileJury.refusalPendingCount", { count: stats.totalRefusalPending })}
                   </div>
                 )}
                 {stats.totalRefused > 0 && <div className="bg-red-900/80 rounded-lg p-2">{t("profileJury.refused", { count: stats.totalRefused })}</div>}
@@ -411,7 +411,7 @@ export default function ProfileJury() {
                       <div className="flex gap-2 mt-2 flex-wrap justify-center">
                         {film.assignment_status === "refusal_pending" ? (
                           <span className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full">
-                            ⏳ En attente de validation
+                            {t("profileJury.refusalPending")}
                           </span>
                         ) : (
                           <>
@@ -425,7 +425,7 @@ export default function ProfileJury() {
                                     : "border-[#463699] text-[#463699] hover:bg-[#463699]/10"
                                 }`}
                               >
-                                {film.status === "selected" ? "✓ Sélectionné" : "Sélectionner"}
+                                {film.status === "selected" ? t("profileJury.selectedFilm") : t("profileJury.selectFilm")}
                               </button>
                             )}
                             {!film.user_rating && (

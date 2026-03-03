@@ -317,7 +317,7 @@ export default function ProfileSuperJury() {
             { key: "films", label: "Films" },
             { key: "lists", label: t("superJuryLists.tabTitle") },
             { key: "repartition", label: t("profileSuperJury.currentState") },
-            { key: "refusals", label: `Refus en attente${refusals.length > 0 ? ` (${refusals.length})` : ""}` },
+            { key: "refusals", label: `${t("profileSuperJury.refusalsTab")}${refusals.length > 0 ? ` (${refusals.length})` : ""}` },
           ].map(({ key, label }) => (
             <button key={key} type="button" onClick={() => setActiveTab(key)}
               className={`px-6 py-2 rounded-lg font-bold text-sm transition-colors ${activeTab === key ? "bg-[#262335] text-white" : "bg-[#262335]/10 text-[#262335] hover:bg-[#262335]/20"}`}>
@@ -329,26 +329,26 @@ export default function ProfileSuperJury() {
         {/* ═══ TAB: Films ═══ */}
         {activeTab === "films" && (
         <section className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-[#262335] mb-4">Gestion des films</h2>
+          <h2 className="text-xl font-bold text-[#262335] mb-4">{t("profileSuperJury.filmsTitle")}</h2>
           <div className="flex gap-2 mb-4">
             {["pending", "approved", "rejected"].map((s) => (
               <button key={s} type="button" onClick={() => { setFilmFilter(s); setFilmPage(1); }}
                 className={`px-4 py-2 rounded-lg text-sm font-bold capitalize transition-colors ${filmFilter === s ? "bg-[#262335] text-white" : "bg-[#262335]/10 text-[#262335] hover:bg-[#262335]/20"}`}>
-                {s === "pending" ? "En attente" : s === "approved" ? "Approuves" : "Refuses"}
+                {s === "pending" ? t("profileSuperJury.filterPending") : s === "approved" ? t("profileSuperJury.filterApproved") : t("profileSuperJury.filterRejected")}
               </button>
             ))}
           </div>
-          {filmsLoading ? (<p className="text-[#262335]/50">Chargement...</p>
-          ) : films.length === 0 ? (<p className="text-[#262335]/50 italic">Aucun film avec ce statut.</p>
+          {filmsLoading ? (<p className="text-[#262335]/50">{t("common.loading")}</p>
+          ) : films.length === 0 ? (<p className="text-[#262335]/50 italic">{t("profileSuperJury.noFilmsStatus")}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead><tr className="border-b-2 border-[#262335]/10">
-                  <th className="py-3 px-3 font-bold text-[#262335]">Titre</th>
-                  <th className="py-3 px-3 font-bold text-[#262335]">Realisateur</th>
-                  <th className="py-3 px-3 font-bold text-[#262335]">Pays</th>
-                  <th className="py-3 px-3 font-bold text-[#262335] text-center">Statut</th>
-                  <th className="py-3 px-3 font-bold text-[#262335] text-center">Actions</th>
+                  <th className="py-3 px-3 font-bold text-[#262335]">{t("profileSuperJury.colTitle")}</th>
+                  <th className="py-3 px-3 font-bold text-[#262335]">{t("profileSuperJury.colDirector")}</th>
+                  <th className="py-3 px-3 font-bold text-[#262335]">{t("profileSuperJury.colCountry")}</th>
+                  <th className="py-3 px-3 font-bold text-[#262335] text-center">{t("profileSuperJury.colStatus")}</th>
+                  <th className="py-3 px-3 font-bold text-[#262335] text-center">{t("profileSuperJury.colActions")}</th>
                 </tr></thead>
                 <tbody>
                   {films.map((film) => (
@@ -359,8 +359,8 @@ export default function ProfileSuperJury() {
                       <td className="py-3 px-3 text-center"><span className={`px-2 py-1 rounded-full text-xs font-bold ${STATUS_COLORS[film.status] || ""}`}>{film.status}</span></td>
                       <td className="py-3 px-3 text-center">
                         <div className="flex gap-2 justify-center">
-                          {film.status !== "approved" && (<button type="button" disabled={actionLoading === film.id} onClick={() => handleStatusChange(film.id, "approved")} className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 disabled:opacity-50">Approuver</button>)}
-                          {film.status !== "rejected" && (<button type="button" disabled={actionLoading === film.id} onClick={() => setRejectModal(film)} className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 disabled:opacity-50">Refuser</button>)}
+                          {film.status !== "approved" && (<button type="button" disabled={actionLoading === film.id} onClick={() => handleStatusChange(film.id, "approved")} className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 disabled:opacity-50">{t("profileSuperJury.approveBtn")}</button>)}
+                          {film.status !== "rejected" && (<button type="button" disabled={actionLoading === film.id} onClick={() => setRejectModal(film)} className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 disabled:opacity-50">{t("profileSuperJury.rejectBtn")}</button>)}
                         </div>
                       </td>
                     </tr>
@@ -566,22 +566,22 @@ export default function ProfileSuperJury() {
         {/* ═══ TAB: Refus en attente ═══ */}
         {activeTab === "refusals" && (
           <section className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-[#262335] mb-4">Refus en attente de validation</h2>
+            <h2 className="text-xl font-bold text-[#262335] mb-4">{t("profileSuperJury.refusalsPendingTitle")}</h2>
             {refusalsLoading ? (
-              <p className="text-[#262335]/50">Chargement...</p>
+              <p className="text-[#262335]/50">{t("common.loading")}</p>
             ) : refusals.length === 0 ? (
-              <p className="text-[#262335]/50 italic">Aucun refus en attente de validation.</p>
+              <p className="text-[#262335]/50 italic">{t("profileSuperJury.noRefusals")}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b-2 border-[#262335]/10">
-                      <th className="py-3 px-3 font-bold text-[#262335]">Jury</th>
-                      <th className="py-3 px-3 font-bold text-[#262335]">Film</th>
-                      <th className="py-3 px-3 font-bold text-[#262335]">Réalisateur</th>
-                      <th className="py-3 px-3 font-bold text-[#262335]">Motif du refus</th>
-                      <th className="py-3 px-3 font-bold text-[#262335]">Date</th>
-                      <th className="py-3 px-3 font-bold text-[#262335] text-center">Actions</th>
+                      <th className="py-3 px-3 font-bold text-[#262335]">{t("profileSuperJury.colJury")}</th>
+                      <th className="py-3 px-3 font-bold text-[#262335]">{t("profileSuperJury.colFilm")}</th>
+                      <th className="py-3 px-3 font-bold text-[#262335]">{t("profileSuperJury.colDirector")}</th>
+                      <th className="py-3 px-3 font-bold text-[#262335]">{t("profileSuperJury.colRefusalReason")}</th>
+                      <th className="py-3 px-3 font-bold text-[#262335]">{t("profileSuperJury.colDate")}</th>
+                      <th className="py-3 px-3 font-bold text-[#262335] text-center">{t("profileSuperJury.colActions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -607,7 +607,7 @@ export default function ProfileSuperJury() {
                               onClick={() => handleValidateRefusal(r.assignment_id, true)}
                               className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 disabled:opacity-50"
                             >
-                              Valider
+                              {t("profileSuperJury.validateBtn")}
                             </button>
                             <button
                               type="button"
@@ -615,7 +615,7 @@ export default function ProfileSuperJury() {
                               onClick={() => handleValidateRefusal(r.assignment_id, false)}
                               className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 disabled:opacity-50"
                             >
-                              Rejeter
+                              {t("profileSuperJury.rejectRefusalBtn")}
                             </button>
                           </div>
                         </td>
@@ -634,12 +634,12 @@ export default function ProfileSuperJury() {
       {rejectModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl">
-            <h3 className="text-lg font-bold text-[#262335] mb-2">Refuser : {rejectModal.title}</h3>
-            <p className="text-sm text-[#262335]/60 mb-4">Un email sera envoye au realisateur avec le motif.</p>
-            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Motif du refus (obligatoire)..." rows={4} className="w-full px-4 py-3 border-2 border-[#262335]/10 rounded-xl focus:outline-none focus:border-[#463699] text-sm" />
+            <h3 className="text-lg font-bold text-[#262335] mb-2">{t("profileSuperJury.rejectModalTitle", { title: rejectModal.title })}</h3>
+            <p className="text-sm text-[#262335]/60 mb-4">{t("profileSuperJury.rejectModalDesc")}</p>
+            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder={t("profileSuperJury.rejectReasonPlaceholder")} rows={4} className="w-full px-4 py-3 border-2 border-[#262335]/10 rounded-xl focus:outline-none focus:border-[#463699] text-sm" />
             <div className="flex gap-3 mt-4">
-              <button type="button" disabled={!rejectReason.trim() || actionLoading === rejectModal.id} onClick={() => handleStatusChange(rejectModal.id, "rejected", rejectReason.trim())} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 disabled:opacity-50">{actionLoading === rejectModal.id ? "..." : "Confirmer le refus"}</button>
-              <button type="button" onClick={() => { setRejectModal(null); setRejectReason(""); }} className="text-[#262335] underline font-bold text-sm">Annuler</button>
+              <button type="button" disabled={!rejectReason.trim() || actionLoading === rejectModal.id} onClick={() => handleStatusChange(rejectModal.id, "rejected", rejectReason.trim())} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 disabled:opacity-50">{actionLoading === rejectModal.id ? "..." : t("profileSuperJury.confirmRejectBtn")}</button>
+              <button type="button" onClick={() => { setRejectModal(null); setRejectReason(""); }} className="text-[#262335] underline font-bold text-sm">{t("common.cancel")}</button>
             </div>
           </div>
         </div>
