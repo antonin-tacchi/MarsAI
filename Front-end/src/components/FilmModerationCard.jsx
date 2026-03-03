@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 /**
  * FilmModerationCard Component
  * Display film information with approve/reject actions
  */
 const FilmModerationCard = ({ film, onApprove, onReject, isProcessing }) => {
+  const { t, lang } = useLanguage();
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   const truncateText = (text, maxLength = 150) => {
@@ -14,7 +16,7 @@ const FilmModerationCard = ({ film, onApprove, onReject, isProcessing }) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat("fr-FR", {
+    return new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "en-GB", {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -77,7 +79,7 @@ const FilmModerationCard = ({ film, onApprove, onReject, isProcessing }) => {
 
           {/* Director Information */}
           <div className="mb-4 p-4 bg-beige/50 rounded-lg border border-lavender/30">
-            <p className="text-sm font-semibold text-purple mb-2">Réalisateur</p>
+            <p className="text-sm font-semibold text-purple mb-2">{t("filmModerationCard.director")}</p>
             <p className="text-dark-purple font-bold">
               {film.director_firstname} {film.director_lastname}
             </p>
@@ -91,7 +93,7 @@ const FilmModerationCard = ({ film, onApprove, onReject, isProcessing }) => {
 
           {/* Description */}
           <div className="mb-4">
-            <p className="text-sm font-semibold text-purple mb-2">Description</p>
+            <p className="text-sm font-semibold text-purple mb-2">{t("filmModerationCard.description")}</p>
             <p className="text-gray-700 leading-relaxed">
               {showFullDescription
                 ? film.description
@@ -102,7 +104,7 @@ const FilmModerationCard = ({ film, onApprove, onReject, isProcessing }) => {
                 onClick={() => setShowFullDescription(!showFullDescription)}
                 className="text-purple hover:text-dark-purple font-semibold text-sm mt-2 transition-colors"
               >
-                {showFullDescription ? "Voir moins" : "Voir plus"}
+                {showFullDescription ? t("filmModerationCard.seeLess") : t("filmModerationCard.seeMore")}
               </button>
             )}
           </div>
@@ -111,7 +113,7 @@ const FilmModerationCard = ({ film, onApprove, onReject, isProcessing }) => {
           {film.ai_tools_used && (
             <div className="mb-4">
               <p className="text-sm font-semibold text-purple mb-2">
-                🤖 Outils IA utilisés
+                {t("filmModerationCard.aiToolsUsed")}
               </p>
               <p className="text-gray-700 text-sm">{film.ai_tools_used}</p>
             </div>
@@ -120,7 +122,7 @@ const FilmModerationCard = ({ film, onApprove, onReject, isProcessing }) => {
           {/* Submission Date */}
           <div className="mb-6">
             <p className="text-xs text-gray-500">
-              Soumis le {formatDate(film.created_at)}
+              {t("filmModerationCard.submittedOn", { date: formatDate(film.created_at) })}
             </p>
           </div>
 
@@ -131,14 +133,14 @@ const FilmModerationCard = ({ film, onApprove, onReject, isProcessing }) => {
               disabled={isProcessing}
               className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-bold rounded-xl transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed font-saira"
             >
-              {isProcessing ? "Traitement..." : "❌ Refuser"}
+              {isProcessing ? t("filmModerationCard.processing") : t("filmModerationCard.reject")}
             </button>
             <button
               onClick={() => onApprove(film)}
               disabled={isProcessing}
               className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold rounded-xl transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed font-saira"
             >
-              {isProcessing ? "Traitement..." : "✓ Valider"}
+              {isProcessing ? t("filmModerationCard.processing") : t("filmModerationCard.approve")}
             </button>
           </div>
 
@@ -152,7 +154,7 @@ const FilmModerationCard = ({ film, onApprove, onReject, isProcessing }) => {
                 className="text-purple hover:text-dark-purple font-semibold text-sm flex items-center gap-2 transition-colors"
               >
                 <span>🎬</span>
-                Voir le film
+                {t("filmModerationCard.watchFilm")}
                 <svg
                   className="w-4 h-4"
                   fill="none"
