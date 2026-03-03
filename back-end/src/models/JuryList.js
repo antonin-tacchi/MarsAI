@@ -101,15 +101,10 @@ export default class JuryList {
    * Delete a list (cascades to jury_list_films and jury_list_assignments)
    */
   static async delete(listId) {
-    // Also clear list_id on jury_assignments that referenced this list
-    await db.query(
-      "UPDATE jury_assignments SET list_id = NULL WHERE list_id = ?",
-      [listId]
-    );
-    const [result] = await db.query(
-      "DELETE FROM jury_lists WHERE id = ?",
-      [listId]
-    );
+    // DELETE propre — UPDATE SET NULL laissait des lignes (jury_id, film_id) orphelines
+    // qui bloquaient silencieusement les INSERT IGNORE à la régénération
+    await db.query("DELETE FROM jury_assignments WHERE list_id = ?", [listId]);
+    const [result] = await db.query("DELETE FROM jury_lists WHERE id = ?", [listId]);
     return result.affectedRows > 0;
   }
 

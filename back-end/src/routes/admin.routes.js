@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/authorize.middleware.js";
+
 import {
   getAllUsers,
   createUser,
@@ -10,11 +11,15 @@ import {
   updateFilmStatusAdmin,
   deleteFilm,
 } from "../controllers/admin.controller.js";
+
 import {
   getDistributionStats,
   previewDistribution,
   generateDistribution,
+  previewRotationLists,
+  generateRotationLists,
 } from "../controllers/superjury.controller.js";
+
 import {
   getAllLists,
   getListById,
@@ -26,9 +31,8 @@ import {
   assignListToJuries,
   removeJuriesFromList,
 } from "../controllers/jurylist.controller.js";
-import {
-  updatePageContent,
-} from "../controllers/sitepage.controller.js";
+
+import { updatePageContent } from "../controllers/sitepage.controller.js";
 
 const router = Router();
 
@@ -37,33 +41,47 @@ router.use(authenticateToken);
 router.use(authorize([2, 3]));
 
 // ─── USERS CRUD ─────────────────────────────────────────────
-router.get("/users", getAllUsers);
-router.post("/users", createUser);
-router.put("/users/:id", updateUser);
+router.get("/users",       getAllUsers);
+router.post("/users",      createUser);
+router.put("/users/:id",   updateUser);
 router.delete("/users/:id", deleteUser);
 
 // ─── FILMS MANAGEMENT ───────────────────────────────────────
-router.get("/films", getAdminFilms);
+router.get("/films",              getAdminFilms);
 router.patch("/films/:id/status", updateFilmStatusAdmin);
-router.delete("/films/:id", deleteFilm);
+router.delete("/films/:id",       deleteFilm);
 
 // ─── DISTRIBUTION (Super Jury) ──────────────────────────────
-router.get("/distribution/stats", getDistributionStats);
-router.post("/distribution/preview", previewDistribution);
+// Step 1: preview → returns previewToken + summary
+// Step 2: super-jury reviews then calls generate with the token to confirm
+router.get("/distribution/stats",     getDistributionStats);
+router.post("/distribution/preview",  previewDistribution);
 router.post("/distribution/generate", generateDistribution);
 
-// ─── JURY LISTS (Super Jury) ─────────────────────────────
-router.get("/lists", getAllLists);
-router.get("/lists/:id", getListById);
-router.post("/lists", createList);
-router.put("/lists/:id", updateList);
-router.delete("/lists/:id", deleteList);
-router.post("/lists/:id/films", addFilmsToList);
+// ─── JURY LISTS (Super Jury) ─────────────────────────────────────────────────
+// ⚠️  Static routes MUST come before /:id to avoid Express treating
+//     "rotation" as a list id.
+
+// Rotation (static sub-paths — declared FIRST)
+router.post("/lists/rotation/preview",  previewRotationLists);
+router.post("/lists/rotation/generate", generateRotationLists);
+
+// CRUD on lists
+router.get("/lists",          getAllLists);
+router.post("/lists",         createList);
+router.get("/lists/:id",      getListById);
+router.put("/lists/:id",      updateList);
+router.delete("/lists/:id",   deleteList);
+
+// Films inside a list
+router.post("/lists/:id/films",   addFilmsToList);
 router.delete("/lists/:id/films", removeFilmsFromList);
-router.post("/lists/:id/assign", assignListToJuries);
+
+// Jury assignments for a list
+router.post("/lists/:id/assign",   assignListToJuries);
 router.delete("/lists/:id/assign", removeJuriesFromList);
 
-// ─── CMS / SITE CONTENT (Admin) ─────────────────────────
+// ─── CMS / SITE CONTENT (Admin) ─────────────────────────────
 router.put("/pages/:slug", updatePageContent);
 
 export default router;
