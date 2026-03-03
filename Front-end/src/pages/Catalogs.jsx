@@ -133,12 +133,8 @@ export default function Catalogs() {
       )
         return false;
 
-      if (filters.category && film.categories) {
-        if (
-          !film.categories
-            .toLowerCase()
-            .includes(filters.category.toLowerCase())
-        )
+      if (filters.category) {
+        if (!film.categories?.toLowerCase().includes(filters.category.toLowerCase()))
           return false;
       }
 
