@@ -102,26 +102,34 @@ function FilmRow({ film, apiUrl, onRefuse, onSelect, t }) {
         </p>
       </a>
       <div className="flex items-center gap-3 shrink-0">
-        {(film?.status === "approved" || film?.status === "selected") && (
-          <button
-            onClick={() => onSelect(film)}
-            className={`text-sm font-medium transition-colors px-3 py-1 rounded-full border ${
-              film.status === "selected"
-                ? "bg-[#463699] text-white border-[#463699] hover:bg-[#362a80]"
-                : "border-[#463699] text-[#463699] hover:bg-[#463699]/10"
-            }`}
-          >
-            {film.status === "selected" ? "✓ Sélectionné" : "Sélectionner"}
-          </button>
-        )}
-        {film?.user_rating !== null && film?.user_rating !== undefined ? (
-          <span className="bg-gradient-to-r from-[#9a92c9] to-[#2f2a73] text-white text-sm font-bold px-3 py-1 rounded-full">
-            {film.user_rating}/10
+        {film?.assignment_status === "refusal_pending" ? (
+          <span className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full">
+            ⏳ En attente de validation
           </span>
         ) : (
-          <button onClick={() => onRefuse(film)} className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors">
-            {t("profileJury.refuseButton")}
-          </button>
+          <>
+            {(film?.status === "approved" || film?.status === "selected") && (
+              <button
+                onClick={() => onSelect(film)}
+                className={`text-sm font-medium transition-colors px-3 py-1 rounded-full border ${
+                  film.status === "selected"
+                    ? "bg-[#463699] text-white border-[#463699] hover:bg-[#362a80]"
+                    : "border-[#463699] text-[#463699] hover:bg-[#463699]/10"
+                }`}
+              >
+                {film.status === "selected" ? "✓ Sélectionné" : "Sélectionner"}
+              </button>
+            )}
+            {film?.user_rating !== null && film?.user_rating !== undefined ? (
+              <span className="bg-gradient-to-r from-[#9a92c9] to-[#2f2a73] text-white text-sm font-bold px-3 py-1 rounded-full">
+                {film.user_rating}/10
+              </span>
+            ) : (
+              <button onClick={() => onRefuse(film)} className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors">
+                {t("profileJury.refuseButton")}
+              </button>
+            )}
+          </>
         )}
         {film?.average_rating != null && (
           <span className="text-sm font-bold text-[#463699]">{film.average_rating}/10</span>
@@ -149,7 +157,7 @@ export default function ProfileJury() {
   const [filmCount, setFilmCount] = useState(0);
   const [page, setPage] = useState(1);
   const [refuseTarget, setRefuseTarget] = useState(null);
-  const [stats, setStats] = useState({ totalAssigned: 0, totalRefused: 0, totalUnrated: 0, totalRated: 0 });
+  const [stats, setStats] = useState({ totalAssigned: 0, totalRefused: 0, totalRefusalPending: 0, totalUnrated: 0, totalRated: 0 });
   const [selectingFilmId, setSelectingFilmId] = useState(null);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil((filmCount || 0) / PER_PAGE)), [filmCount]);
@@ -199,6 +207,7 @@ export default function ProfileJury() {
       setStats({
         totalAssigned: json?.stats?.totalAssigned ?? 0,
         totalRefused: json?.stats?.totalRefused ?? 0,
+        totalRefusalPending: json?.stats?.totalRefusalPending ?? 0,
         totalUnrated: json?.stats?.totalUnrated ?? 0,
         totalRated: json?.stats?.totalRated ?? 0,
       });
@@ -210,7 +219,7 @@ export default function ProfileJury() {
       setError("Impossible de se connecter au serveur.");
       setFilms([]);
       setFilmCount(0);
-      setStats({ totalAssigned: 0, totalRefused: 0, totalUnrated: 0, totalRated: 0 });
+      setStats({ totalAssigned: 0, totalRefused: 0, totalRefusalPending: 0, totalUnrated: 0, totalRated: 0 });
       setUiState("error");
     }
   }, [token]);
@@ -351,6 +360,11 @@ export default function ProfileJury() {
               <div className="flex flex-wrap gap-4">
                 <div className="bg-[#262335] rounded-lg p-2">{t("profileJury.unrated", { count: stats.totalUnrated })}</div>
                 <div className="bg-[#262335] rounded-lg p-2">{t("profileJury.rated", { count: stats.totalRated })}</div>
+                {stats.totalRefusalPending > 0 && (
+                  <div className="bg-orange-600/80 rounded-lg p-2">
+                    ⏳ {stats.totalRefusalPending} refus en attente
+                  </div>
+                )}
                 {stats.totalRefused > 0 && <div className="bg-red-900/80 rounded-lg p-2">{t("profileJury.refused", { count: stats.totalRefused })}</div>}
               </div>
             </div>
@@ -394,25 +408,33 @@ export default function ProfileJury() {
                   {films.map((film) => (
                     <div key={film.id} className="flex flex-col items-center w-[260px]">
                       <FilmCard film={film} apiUrl={API_URL} />
-                      <div className="flex gap-2 mt-2">
-                        {(film.status === "approved" || film.status === "selected") && (
-                          <button
-                            onClick={() => handleSelect(film)}
-                            disabled={selectingFilmId === film.id}
-                            className={`text-sm font-medium transition-colors px-3 py-1 rounded-full border disabled:opacity-50 ${
-                              film.status === "selected"
-                                ? "bg-[#463699] text-white border-[#463699] hover:bg-[#362a80]"
-                                : "border-[#463699] text-[#463699] hover:bg-[#463699]/10"
-                            }`}
-                          >
-                            {film.status === "selected" ? "✓ Sélectionné" : "Sélectionner"}
-                          </button>
-                        )}
-                        {!film.user_rating && (
-                          <button onClick={(e) => { e.preventDefault(); setRefuseTarget(film); }}
-                            className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors">
-                            {t("profileJury.refuseButton")}
-                          </button>
+                      <div className="flex gap-2 mt-2 flex-wrap justify-center">
+                        {film.assignment_status === "refusal_pending" ? (
+                          <span className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1 rounded-full">
+                            ⏳ En attente de validation
+                          </span>
+                        ) : (
+                          <>
+                            {(film.status === "approved" || film.status === "selected") && (
+                              <button
+                                onClick={() => handleSelect(film)}
+                                disabled={selectingFilmId === film.id}
+                                className={`text-sm font-medium transition-colors px-3 py-1 rounded-full border disabled:opacity-50 ${
+                                  film.status === "selected"
+                                    ? "bg-[#463699] text-white border-[#463699] hover:bg-[#362a80]"
+                                    : "border-[#463699] text-[#463699] hover:bg-[#463699]/10"
+                                }`}
+                              >
+                                {film.status === "selected" ? "✓ Sélectionné" : "Sélectionner"}
+                              </button>
+                            )}
+                            {!film.user_rating && (
+                              <button onClick={(e) => { e.preventDefault(); setRefuseTarget(film); }}
+                                className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors">
+                                {t("profileJury.refuseButton")}
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

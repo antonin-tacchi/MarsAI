@@ -9,6 +9,8 @@ import {
   getAdminFilms,
   updateFilmStatusAdmin,
   deleteFilm,
+  getPendingRefusals,
+  validateRefusal,
 } from "../controllers/admin.controller.js";
 import {
   getDistributionStats,
@@ -62,6 +64,10 @@ router.post("/lists/:id/films", addFilmsToList);
 router.delete("/lists/:id/films", removeFilmsFromList);
 router.post("/lists/:id/assign", assignListToJuries);
 router.delete("/lists/:id/assign", removeJuriesFromList);
+
+// ─── JURY REFUSALS ──────────────────────────────────────────
+router.get("/refusals", getPendingRefusals);
+router.patch("/refusals/:id/validate", validateRefusal);
 
 // ─── CMS / SITE CONTENT (Admin) ─────────────────────────
 router.put("/pages/:slug", updatePageContent);

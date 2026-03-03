@@ -28,6 +28,10 @@ export default function ProfileSuperJury() {
 
   const [activeTab, setActiveTab] = useState("films");
 
+  const [refusals, setRefusals] = useState([]);
+  const [refusalsLoading, setRefusalsLoading] = useState(false);
+  const [refusalActionLoading, setRefusalActionLoading] = useState(null);
+
   const [films, setFilms] = useState([]);
   const [filmsLoading, setFilmsLoading] = useState(true);
   const [filmFilter, setFilmFilter] = useState("pending");
@@ -115,10 +119,37 @@ export default function ProfileSuperJury() {
     finally { setSelectedListLoading(false); }
   }, [token]);
 
+  const fetchRefusals = useCallback(async () => {
+    setRefusalsLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/refusals`, { headers: { Authorization: `Bearer ${token}` } });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.message || "Error");
+      setRefusals(json.data || []);
+    } catch (err) { console.error("Refusals error:", err); setRefusals([]); }
+    finally { setRefusalsLoading(false); }
+  }, [token]);
+
+  const handleValidateRefusal = async (assignmentId, validate) => {
+    setRefusalActionLoading(assignmentId);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/refusals/${assignmentId}/validate`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ validate }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.message || "Error");
+      setRefusals((prev) => prev.filter((r) => r.assignment_id !== assignmentId));
+    } catch (err) { console.error("Validate refusal error:", err); alert(err.message); }
+    finally { setRefusalActionLoading(null); }
+  };
+
   useEffect(() => { fetchProfile(); }, [fetchProfile]);
   useEffect(() => { if (activeTab === "films") fetchFilms(filmPage, filmFilter); }, [activeTab, filmPage, filmFilter, fetchFilms]);
   useEffect(() => { if (activeTab === "repartition") fetchStats(); }, [activeTab, fetchStats]);
   useEffect(() => { if (activeTab === "lists") { fetchLists(); setSelectedList(null); } }, [activeTab, fetchLists]);
+  useEffect(() => { if (activeTab === "refusals") fetchRefusals(); }, [activeTab, fetchRefusals]);
 
   const handleStatusChange = async (filmId, status, reason) => {
     setActionLoading(filmId);
@@ -286,6 +317,7 @@ export default function ProfileSuperJury() {
             { key: "films", label: "Films" },
             { key: "lists", label: t("superJuryLists.tabTitle") },
             { key: "repartition", label: t("profileSuperJury.currentState") },
+            { key: "refusals", label: `Refus en attente${refusals.length > 0 ? ` (${refusals.length})` : ""}` },
           ].map(({ key, label }) => (
             <button key={key} type="button" onClick={() => setActiveTab(key)}
               className={`px-6 py-2 rounded-lg font-bold text-sm transition-colors ${activeTab === key ? "bg-[#262335] text-white" : "bg-[#262335]/10 text-[#262335] hover:bg-[#262335]/20"}`}>
@@ -530,6 +562,70 @@ export default function ProfileSuperJury() {
             )}
           </section>
         </>
+        )}
+        {/* ═══ TAB: Refus en attente ═══ */}
+        {activeTab === "refusals" && (
+          <section className="bg-white rounded-2xl p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-[#262335] mb-4">Refus en attente de validation</h2>
+            {refusalsLoading ? (
+              <p className="text-[#262335]/50">Chargement...</p>
+            ) : refusals.length === 0 ? (
+              <p className="text-[#262335]/50 italic">Aucun refus en attente de validation.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-[#262335]/10">
+                      <th className="py-3 px-3 font-bold text-[#262335]">Jury</th>
+                      <th className="py-3 px-3 font-bold text-[#262335]">Film</th>
+                      <th className="py-3 px-3 font-bold text-[#262335]">Réalisateur</th>
+                      <th className="py-3 px-3 font-bold text-[#262335]">Motif du refus</th>
+                      <th className="py-3 px-3 font-bold text-[#262335]">Date</th>
+                      <th className="py-3 px-3 font-bold text-[#262335] text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {refusals.map((r) => (
+                      <tr key={r.assignment_id} className="border-b border-[#262335]/5 hover:bg-[#463699]/5">
+                        <td className="py-3 px-3">
+                          <p className="font-medium text-[#262335]">{r.jury_name}</p>
+                          <p className="text-xs text-[#262335]/50">{r.jury_email}</p>
+                        </td>
+                        <td className="py-3 px-3 text-[#262335] font-medium">{r.film_title}</td>
+                        <td className="py-3 px-3 text-[#262335]">{r.director_firstname} {r.director_lastname}</td>
+                        <td className="py-3 px-3 text-[#262335]/70 max-w-[200px]">
+                          <p className="line-clamp-2">{r.refusal_reason}</p>
+                        </td>
+                        <td className="py-3 px-3 text-[#262335]/50 text-xs whitespace-nowrap">
+                          {r.refused_at ? new Date(r.refused_at).toLocaleDateString("fr-FR") : "—"}
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              type="button"
+                              disabled={refusalActionLoading === r.assignment_id}
+                              onClick={() => handleValidateRefusal(r.assignment_id, true)}
+                              className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 disabled:opacity-50"
+                            >
+                              Valider
+                            </button>
+                            <button
+                              type="button"
+                              disabled={refusalActionLoading === r.assignment_id}
+                              onClick={() => handleValidateRefusal(r.assignment_id, false)}
+                              className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 disabled:opacity-50"
+                            >
+                              Rejeter
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         )}
       </div>
 

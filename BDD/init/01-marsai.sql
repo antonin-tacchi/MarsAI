@@ -303,7 +303,7 @@ CREATE TABLE `jury_assignments` (
   `list_id` int DEFAULT NULL COMMENT 'Jury list this assignment belongs to',
   `assigned_by` int NOT NULL COMMENT 'Super Jury who made the assignment',
   `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `status` enum('active','refused') NOT NULL DEFAULT 'active' COMMENT 'Assignment status',
+  `status` enum('active','refused','refusal_pending') NOT NULL DEFAULT 'active' COMMENT 'Assignment status',
   `refusal_reason` text DEFAULT NULL COMMENT 'Reason if jury refused the film',
   `refused_at` datetime DEFAULT NULL COMMENT 'Timestamp of refusal',
   PRIMARY KEY (`id`),

@@ -156,6 +156,7 @@ export const getAssignedFilmsForJury = async (req, res) => {
       stats: {
         totalAssigned: Number(stats.total_assigned || 0),
         totalRefused: Number(stats.total_refused || 0),
+        totalRefusalPending: Number(stats.total_refusal_pending || 0),
         totalUnrated: Number(stats.total_unrated || 0),
         totalRated: Number(stats.total_rated || 0),
       },

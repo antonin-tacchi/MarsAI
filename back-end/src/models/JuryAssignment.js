@@ -41,6 +41,7 @@ export default class JuryAssignment {
         f.status,
         f.created_at,
 
+        ja.id AS assignment_id,
         ja.assigned_at,
         ja.status AS assignment_status,
         ja.refusal_reason,
@@ -59,10 +60,11 @@ export default class JuryAssignment {
       LEFT JOIN jury_ratings jr_all
         ON jr_all.film_id = f.id
       WHERE ja.jury_id = ?
-        AND ja.status = 'active'
+        AND ja.status IN ('active', 'refusal_pending')
         ${listFilter}
       GROUP BY
         f.id,
+        ja.id,
         ja.assigned_at,
         ja.status,
         ja.refusal_reason,
@@ -88,6 +90,7 @@ export default class JuryAssignment {
       SELECT
         COUNT(*) AS total_assigned,
         SUM(CASE WHEN ja.status = 'refused' THEN 1 ELSE 0 END) AS total_refused,
+        SUM(CASE WHEN ja.status = 'refusal_pending' THEN 1 ELSE 0 END) AS total_refusal_pending,
         SUM(CASE WHEN ja.status = 'active' AND jr.id IS NULL THEN 1 ELSE 0 END) AS total_unrated,
         SUM(CASE WHEN ja.status = 'active' AND jr.id IS NOT NULL THEN 1 ELSE 0 END) AS total_rated
       FROM jury_assignments ja
@@ -101,9 +104,8 @@ export default class JuryAssignment {
     return rows?.[0] || { total_assigned: 0, total_refused: 0, total_unrated: 0, total_rated: 0 };
   }
 
-  // Refuse a film assignment
+  // Refuse a film assignment (sends to refusal_pending for admin validation)
   static async refuse(juryId, filmId, reason) {
-    // Check assignment exists and is active
     const [existing] = await db.query(
       "SELECT id, status FROM jury_assignments WHERE jury_id = ? AND film_id = ?",
       [juryId, filmId]
@@ -111,15 +113,62 @@ export default class JuryAssignment {
 
     if (!existing.length) return null;
     if (existing[0].status === "refused") return { alreadyRefused: true };
+    if (existing[0].status === "refusal_pending") return { alreadyRefused: true };
 
     await db.query(
       `UPDATE jury_assignments
-       SET status = 'refused', refusal_reason = ?, refused_at = NOW()
+       SET status = 'refusal_pending', refusal_reason = ?, refused_at = NOW()
        WHERE jury_id = ? AND film_id = ?`,
       [reason, juryId, filmId]
     );
 
     return { success: true };
+  }
+
+  // Admin/Super Jury validates or rejects a jury refusal
+  // validate=true → status='refused' (accept the refusal)
+  // validate=false → status='active' (reject the refusal, jury keeps the film)
+  static async validateRefusal(assignmentId, validate) {
+    const [existing] = await db.query(
+      "SELECT id, status FROM jury_assignments WHERE id = ?",
+      [assignmentId]
+    );
+
+    if (!existing.length) return null;
+    if (existing[0].status !== "refusal_pending") return { notPending: true };
+
+    const newStatus = validate ? "refused" : "active";
+    await db.query(
+      `UPDATE jury_assignments SET status = ? WHERE id = ?`,
+      [newStatus, assignmentId]
+    );
+
+    return { success: true, status: newStatus };
+  }
+
+  // Get all refusal_pending assignments for admin/super jury
+  static async getPendingRefusals() {
+    const sql = `
+      SELECT
+        ja.id AS assignment_id,
+        ja.jury_id,
+        ja.film_id,
+        ja.refusal_reason,
+        ja.refused_at,
+        u.name AS jury_name,
+        u.email AS jury_email,
+        f.title AS film_title,
+        f.director_firstname,
+        f.director_lastname,
+        f.country
+      FROM jury_assignments ja
+      INNER JOIN users u ON u.id = ja.jury_id
+      INNER JOIN films f ON f.id = ja.film_id
+      WHERE ja.status = 'refusal_pending'
+      ORDER BY ja.refused_at ASC
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
   }
 
   // Check if a jury member is assigned to a film

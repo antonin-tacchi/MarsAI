@@ -1,6 +1,7 @@
 import pool from "../config/database.js";
 import bcrypt from "bcryptjs";
 import Film from "../models/Film.js";
+import JuryAssignment from "../models/JuryAssignment.js";
 import { canChangeFilmStatus } from "../services/filmStatus.service.js";
 import { sendRejectionEmail } from "../services/email.service.js";
 
@@ -263,5 +264,49 @@ export const deleteFilm = async (req, res) => {
   } catch (error) {
     console.error("deleteFilm error:", error);
     return res.status(500).json({ success: false, message: error.message || "Erreur lors de la suppression du film" });
+  }
+};
+
+// ─── JURY REFUSALS ───────────────────────────────────────────
+
+export const getPendingRefusals = async (req, res) => {
+  try {
+    const refusals = await JuryAssignment.getPendingRefusals();
+    return res.json({ success: true, data: refusals });
+  } catch (error) {
+    console.error("getPendingRefusals error:", error);
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la récupération des refus" });
+  }
+};
+
+export const validateRefusal = async (req, res) => {
+  try {
+    const assignmentId = parseInt(req.params.id, 10);
+    if (!assignmentId) {
+      return res.status(400).json({ success: false, message: "Invalid assignment ID" });
+    }
+
+    const { validate } = req.body;
+    if (typeof validate !== "boolean") {
+      return res.status(400).json({ success: false, message: "'validate' (boolean) est requis" });
+    }
+
+    const result = await JuryAssignment.validateRefusal(assignmentId, validate);
+
+    if (!result) {
+      return res.status(404).json({ success: false, message: "Assignment non trouvé" });
+    }
+    if (result.notPending) {
+      return res.status(409).json({ success: false, message: "Ce refus n'est pas en attente de validation" });
+    }
+
+    return res.json({
+      success: true,
+      message: validate ? "Refus validé : le jury est libéré du film" : "Refus rejeté : le film reste assigné au jury",
+      data: { assignmentId, status: result.status },
+    });
+  } catch (error) {
+    console.error("validateRefusal error:", error);
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la validation du refus" });
   }
 };
