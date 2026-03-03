@@ -162,18 +162,19 @@ export default function ProfileAdmin() {
     }
   }, [token]);
 
+  // ── Distribution handlers ──
   const handlePreview = async () => {
     setPreviewLoading(true);
     setPreview(null);
     setDistResult(null);
+    setStatsError("");
     try {
       const json = await api(`${API_URL}/api/admin/distribution/preview`, token, {
         method: "POST",
         body: JSON.stringify({ R, Lmax }),
       });
-      setPreview(json.data);
+      setPreview({ ...json.data, previewToken: json.previewToken });
     } catch (err) {
-      console.error("Preview error:", err);
       setStatsError(err.message);
     } finally {
       setPreviewLoading(false);
@@ -181,18 +182,18 @@ export default function ProfileAdmin() {
   };
 
   const handleGenerate = async () => {
+    if (!preview?.previewToken) return;
     setGenerating(true);
     setDistResult(null);
     try {
       const json = await api(`${API_URL}/api/admin/distribution/generate`, token, {
         method: "POST",
-        body: JSON.stringify({ R, Lmax }),
+        body: JSON.stringify({ previewToken: preview.previewToken }),
       });
       setDistResult(json.data);
       setPreview(null);
       fetchStats();
     } catch (err) {
-      console.error("Generate error:", err);
       setStatsError(err.message);
     } finally {
       setGenerating(false);
@@ -683,17 +684,15 @@ export default function ProfileAdmin() {
                 Generer une repartition
               </h2>
 
-              <div className="flex flex-wrap gap-4 items-end mb-6">
+              {/* Params — grisés une fois le preview affiché */}
+              <div className={`flex flex-wrap gap-4 items-end mb-6 transition-opacity ${preview ? "opacity-50 pointer-events-none" : ""}`}>
                 <div>
                   <label className="block text-sm font-bold text-[#262335] mb-1">
                     R (votes min / film)
                   </label>
                   <input
-                    type="number"
-                    min={1}
-                    max={20}
-                    value={R}
-                    onChange={(e) => setR(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    type="number" min={1} max={20} value={R}
+                    onChange={(e) => { setPreview(null); setDistResult(null); setR(Math.max(1, parseInt(e.target.value, 10) || 1)); }}
                     className="w-24 px-3 py-2 border-2 border-[#262335]/10 rounded-lg text-center font-mono focus:outline-none focus:border-[#463699]"
                   />
                 </div>
@@ -702,49 +701,76 @@ export default function ProfileAdmin() {
                     Lmax (films max / jury)
                   </label>
                   <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={Lmax}
-                    onChange={(e) => setLmax(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    type="number" min={1} max={500} value={Lmax}
+                    onChange={(e) => { setPreview(null); setDistResult(null); setLmax(Math.max(1, parseInt(e.target.value, 10) || 1)); }}
                     className="w-24 px-3 py-2 border-2 border-[#262335]/10 rounded-lg text-center font-mono focus:outline-none focus:border-[#463699]"
                   />
                 </div>
-                <Button onClick={handlePreview} disabled={previewLoading}>
-                  {previewLoading ? "Calcul..." : "Apercu"}
-                </Button>
+                {!preview && !distResult && (
+                  <Button onClick={handlePreview} disabled={previewLoading}>
+                    {previewLoading ? "Calcul..." : "Apercu"}
+                  </Button>
+                )}
               </div>
 
-              {preview && (
-                <div className="bg-[#FBF5F0] rounded-xl p-5 mb-4">
-                  <h3 className="font-bold text-[#262335] mb-3">
-                    Apercu (R={R}, Lmax={Lmax})
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4">
-                    <div className="bg-white rounded-lg p-3 text-center">
-                      <p className="text-[#262335]/60">Films</p>
-                      <p className="font-black text-lg">{preview.filmCount}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 text-center">
-                      <p className="text-[#262335]/60">Assignations</p>
-                      <p className="font-black text-lg">{preview.total}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 text-center">
-                      <p className="text-[#262335]/60">Min / jury</p>
-                      <p className="font-black text-lg">{preview.min}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 text-center">
-                      <p className="text-[#262335]/60">Max / jury</p>
-                      <p className="font-black text-lg">{preview.max}</p>
-                    </div>
+              {/* Preview result + confirmation */}
+              {preview && !distResult && (
+                <div className="border-2 border-[#463699]/30 rounded-xl p-5 bg-[#463699]/5 mb-4 space-y-4">
+                  <div>
+                    <h3 className="font-bold text-[#262335] mb-1">
+                      Proposition (R={R}, Lmax={Lmax})
+                    </h3>
+                    <p className="text-sm text-[#262335]/60">
+                      Verifiez les chiffres puis confirmez pour generer.
+                    </p>
                   </div>
-                  <div className="flex gap-3">
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    {[
+                      { label: "Films",        value: preview.filmCount },
+                      { label: "Assignations", value: preview.total, accent: true },
+                      { label: "Min / jury",   value: preview.min },
+                      { label: "Max / jury",   value: preview.max },
+                    ].map(({ label, value, accent }) => (
+                      <div key={label} className={`rounded-lg p-3 text-center ${accent ? "bg-[#463699]/10 border border-[#463699]/30" : "bg-white border border-[#262335]/10"}`}>
+                        <p className="text-[#262335]/60 text-xs">{label}</p>
+                        <p className={`font-black text-lg ${accent ? "text-[#463699]" : "text-[#262335]"}`}>{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Per-jury breakdown */}
+                  {preview.juryBreakdown && (
+                    <div>
+                      <p className="text-sm font-bold text-[#262335] mb-2">Detail par jury</p>
+                      <div className="max-h-48 overflow-y-auto rounded-lg border border-[#262335]/10 bg-white">
+                        <table className="w-full text-sm">
+                          <thead className="bg-[#FBF5F0] sticky top-0">
+                            <tr>
+                              <th className="text-left px-4 py-2 font-bold text-[#262335]">Jury</th>
+                              <th className="text-right px-4 py-2 font-bold text-[#262335]">Films assignes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {preview.juryBreakdown.map((j) => (
+                              <tr key={j.id} className="border-t border-[#262335]/5 hover:bg-[#463699]/5">
+                                <td className="px-4 py-2 text-[#262335]">{j.name}</td>
+                                <td className="px-4 py-2 text-right font-mono text-[#262335]">{j.filmCount}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-1">
                     <Button onClick={handleGenerate} disabled={generating}>
-                      {generating ? "Generation..." : "Confirmer et generer"}
+                      {generating ? "Generation..." : "✓ Confirmer et generer"}
                     </Button>
                     <button
                       type="button"
-                      onClick={() => setPreview(null)}
+                      onClick={() => { setPreview(null); setStatsError(""); }}
                       className="text-[#262335] underline font-bold text-sm"
                     >
                       Annuler
@@ -762,7 +788,18 @@ export default function ProfileAdmin() {
                   <p className="text-green-700 text-sm">
                     Min: {distResult.min} | Max: {distResult.max} | Moy: {distResult.avg} films/jury
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => { setDistResult(null); setStatsError(""); }}
+                    className="mt-3 text-sm text-[#463699] font-bold underline"
+                  >
+                    Nouvelle repartition
+                  </button>
                 </div>
+              )}
+
+              {statsError && !preview && (
+                <p className="mt-3 text-sm text-red-600 font-medium">{statsError}</p>
               )}
             </section>
           </>
