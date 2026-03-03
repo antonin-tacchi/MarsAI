@@ -188,28 +188,19 @@ export default class Film {
       `SELECT status, COUNT(*) as count FROM films GROUP BY status`
     );
     const [countryRows] = await db.query(
-      `SELECT country, COUNT(*) as count FROM films WHERE status IN ('approved', 'selected') GROUP BY country ORDER BY count DESC`
-    );
-    const [aiToolRows] = await db.query(
-      `SELECT ai_tools_used AS tool, COUNT(*) as count
-       FROM films
-       WHERE status IN ('approved', 'selected') AND ai_tools_used IS NOT NULL AND ai_tools_used != ''
-       GROUP BY ai_tools_used
-       ORDER BY count DESC`
+      `SELECT country, COUNT(*) as count FROM films WHERE status = 'approved' GROUP BY country ORDER BY count DESC`,
     );
     const [categoryRows] = await db.query(
-      `SELECT c.id AS category_id, c.name AS category_name, COUNT(DISTINCT fc.film_id) AS count
+      `SELECT c.id as category_id, c.name as category_name, COUNT(fc.film_id) as count
        FROM categories c
-       JOIN film_categories fc ON c.id = fc.category_id
-       JOIN films f ON fc.film_id = f.id
-       WHERE f.status IN ('approved', 'selected')
+       INNER JOIN film_categories fc ON fc.category_id = c.id
+       INNER JOIN films f ON fc.film_id = f.id AND f.status = 'approved'
        GROUP BY c.id, c.name
-       ORDER BY count DESC`
+       ORDER BY c.name ASC`,
     );
     return {
       byStatus: statusRows,
       byCountry: countryRows,
-      byAITool: aiToolRows,
       byCategory: categoryRows,
       total: statusRows.reduce((sum, r) => sum + r.count, 0),
     };

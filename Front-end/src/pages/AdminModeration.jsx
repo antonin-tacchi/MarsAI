@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FilmModerationCard from "../components/FilmModerationCard";
 import ConfirmModal from "../components/ConfirmModal";
+import { useLanguage } from "../context/LanguageContext";
 import {
   getPendingFilms,
   approveFilm,
@@ -77,11 +78,11 @@ const AdminModeration = () => {
       // Remove film from list
       setFilms((prev) => prev.filter((f) => f.id !== selectedFilm.id));
 
-      showToast(t("adminModeration.approvedSuccess", { title: selectedFilm.title }), "success");
+      showToast(t("adminModeration.approvedToast", { title: selectedFilm.title }), "success");
       setShowApproveModal(false);
       setSelectedFilm(null);
     } catch (err) {
-      showToast(err.message || t("adminModeration.validateError"), "error");
+      showToast(err.message || t("adminModeration.errorValidation"), "error");
       console.error("Error approving film:", err);
     } finally {
       setProcessingFilmId(null);
@@ -98,12 +99,12 @@ const AdminModeration = () => {
       // Remove film from list
       setFilms((prev) => prev.filter((f) => f.id !== selectedFilm.id));
 
-      showToast(t("adminModeration.rejectedMsg", { title: selectedFilm.title }), "error");
+      showToast(t("adminModeration.rejectedToast", { title: selectedFilm.title }), "error");
       setShowRejectModal(false);
       setSelectedFilm(null);
       setRejectionReason("");
     } catch (err) {
-      showToast(err.message || t("adminModeration.rejectError"), "error");
+      showToast(err.message || t("adminModeration.errorRefus"), "error");
       console.error("Error rejecting film:", err);
     } finally {
       setProcessingFilmId(null);
@@ -117,7 +118,7 @@ const AdminModeration = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple border-t-transparent mx-auto mb-4"></div>
           <p className="text-dark-purple font-semibold font-saira">
-            {t("adminModeration.loading")}
+            {t("adminModeration.loadingText")}
           </p>
         </div>
       </div>
@@ -145,14 +146,14 @@ const AdminModeration = () => {
             </svg>
           </div>
           <h2 className="text-2xl font-black text-dark-purple mb-4 font-saira">
-            {t("adminModeration.error")}
+            {t("adminModeration.errorTitle")}
           </h2>
           <p className="text-gray-700 mb-6">{error}</p>
           <button
             onClick={fetchPendingFilms}
             className="px-6 py-3 bg-purple hover:bg-dark-purple text-white font-bold rounded-xl transition-colors font-saira"
           >
-            {t("adminModeration.retry")}
+            {t("adminModeration.retryBtn")}
           </button>
         </div>
       </div>
@@ -167,17 +168,17 @@ const AdminModeration = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-black mb-2 font-saira">
-                {t("adminModeration.title")}
+                {t("adminModeration.pageTitle")}
               </h1>
               <p className="text-lavender text-lg">
-                {t("adminModeration.subtitle")}
+                {t("adminModeration.pageSubtitle")}
               </p>
             </div>
             <button
               onClick={() => navigate("/admin")}
               className="px-6 py-3 bg-purple hover:bg-light-purple text-white font-bold rounded-xl transition-colors font-saira"
             >
-              {t("adminModeration.back")}
+              {t("adminModeration.backBtn")}
             </button>
           </div>
         </div>
@@ -189,7 +190,7 @@ const AdminModeration = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
               <div>
-                <p className="text-sm text-gray-600">{t("adminModeration.pendingCount")}</p>
+                <p className="text-sm text-gray-600">{t("adminModeration.pendingFilms")}</p>
                 <p className="text-3xl font-black text-purple font-saira">
                   {films.length}
                 </p>
@@ -212,7 +213,7 @@ const AdminModeration = () => {
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
-              {t("adminModeration.refresh")}
+              {t("adminModeration.refreshBtn")}
             </button>
           </div>
         </div>
@@ -239,10 +240,10 @@ const AdminModeration = () => {
               </svg>
             </div>
             <h2 className="text-3xl font-black text-dark-purple mb-4 font-saira">
-              {t("adminModeration.noPending")}
+              {t("adminModeration.emptyTitle")}
             </h2>
             <p className="text-gray-600 text-lg mb-6">
-              {t("adminModeration.noPendingDesc")}
+              {t("adminModeration.emptyDesc")}
             </p>
             <button
               onClick={() => navigate("/admin")}
@@ -272,10 +273,10 @@ const AdminModeration = () => {
         isOpen={showApproveModal}
         onClose={() => setShowApproveModal(false)}
         onConfirm={handleApproveConfirm}
-        title={t("adminModeration.approveTitle")}
-        message={t("adminModeration.approveMessage", { title: selectedFilm?.title })}
-        confirmText={t("adminModeration.approveConfirm")}
-        cancelText={t("adminModeration.cancel")}
+        title={t("adminModeration.approveModalTitle")}
+        message={t("adminModeration.approveModalMessage", { title: selectedFilm?.title })}
+        confirmText={t("adminModeration.approveConfirmText")}
+        cancelText={t("adminModeration.cancelText")}
         type="success"
       />
 
@@ -284,13 +285,13 @@ const AdminModeration = () => {
         isOpen={showRejectModal}
         onClose={() => setShowRejectModal(false)}
         onConfirm={handleRejectConfirm}
-        title={t("adminModeration.rejectTitle")}
+        title={t("adminModeration.rejectModalTitle")}
         type="danger"
-        confirmText={t("adminModeration.rejectConfirm")}
-        cancelText={t("adminModeration.cancel")}
+        confirmText={t("adminModeration.rejectConfirmText")}
+        cancelText={t("adminModeration.cancelText")}
       >
         <p className="text-gray-700 mb-4">
-          {t("adminModeration.rejectMessage", { title: selectedFilm?.title })}
+          {t("adminModeration.rejectModalMessage", { title: selectedFilm?.title })}
         </p>
         <div className="mb-4">
           <label className="block text-sm font-semibold text-purple mb-2">

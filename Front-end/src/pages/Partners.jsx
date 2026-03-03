@@ -48,7 +48,7 @@ export default function Partners() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FBF5F0] to-white">
 
-      {/* Section Hero : Titre + CTA */}
+      {/* Section Hero : Titre + CTA (call to action) */}
       <section className="relative overflow-hidden pt-20 pb-16 md:pt-24 md:pb-20">
 
         <div className="container mx-auto px-5 md:px-8 lg:px-12 xl:px-16 max-w-[1440px] relative z-10">
@@ -66,6 +66,7 @@ export default function Partners() {
             </Link>
           </div>
 
+          {/* Description principale */}
           <p className="text-base md:text-lg text-[#262335]/70 max-w-2xl leading-relaxed">
             {t("partners.description")}
           </p>
@@ -76,13 +77,14 @@ export default function Partners() {
       <section className="pb-24 md:pb-32">
         <div className="container mx-auto px-5 md:px-8 lg:px-12 xl:px-16 max-w-[1440px]">
 
+          {/* État vide : affiché si 0 partenaire */}
           {partners.length === 0 ? (
             <div className="text-center py-20 md:py-24 max-w-xl mx-auto">
               <h2 className="font-['Saira_Condensed'] text-[28px] md:text-[40px] font-bold text-[#262335] mb-3">
-                {t("partners.noPartners")}
+                {t("partners.emptyTitle")}
               </h2>
               <p className="text-base md:text-lg text-[#262335]/70 mb-8 leading-relaxed">
-                {t("partners.noPartnersDesc")}
+                {t("partners.emptyDesc")}
               </p>
               <Link
                 to="/contact"
@@ -92,6 +94,8 @@ export default function Partners() {
               </Link>
             </div>
           ) : (
+
+            /* Grille partenaires (4 colonnes desktop) */
             <div className="flex flex-wrap gap-5 md:gap-8">
               {partners.map((partner, index) => (
                 <div

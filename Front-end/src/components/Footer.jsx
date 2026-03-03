@@ -29,8 +29,8 @@ export default function Footer() {
   }
 
   const espaceLink = profile
-    ? { label: espaceLabel, href: profile.path }
-    : { label: espaceLabel, href: "/login" };
+    ? { label: t(profile.labelKey), href: profile.path }
+    : { label: t("footer.login"), href: "/login" };
 
   return (
     <footer className="relative w-full bg-[#262335] text-white">
@@ -43,16 +43,16 @@ export default function Footer() {
 
                 <nav className="flex flex-col items-center space-y-2 text-lg leading-7">
                     {[
-                    { label: t("footerNav.festival"), href: "/about" },
-                    { label: t("footerNav.catalog"), href: "/catalogs" },
-                    { label: t("footerNav.participate"), href: "/submissions" },
+                    { label: t("footer.festival"), href: "/about" },
+                    { label: t("footer.catalog"), href: "/catalogs" },
+                    { label: t("footer.participate"), href: "/submissions" },
                     { label: espaceLink.label, href: espaceLink.href },
-                    { label: t("footerNav.jury"), href: "/membres-du-jury" },
-                    { label: t("footerNav.partners"), href: "/nos-partenaires" },
-                    { label: t("footerNav.prizes"), href: "/prize-list" },
+                    { label: t("footer.juryMembers"), href: "/membres-du-jury" },
+                    { label: t("footer.partners"), href: "/nos-partenaires" },
+                    { label: t("footer.prizes"), href: "/prize-list" },
                     ].map((l) => (
                     <a
-                        key={l.label}
+                        key={l.href}
                         href={l.href}
                         className="text-center text-white/90 transition hover:text-white"
                     >
