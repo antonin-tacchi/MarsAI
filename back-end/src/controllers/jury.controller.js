@@ -175,6 +175,45 @@ export const getAssignedFilmsForJury = async (req, res) => {
   }
 };
 
+// Toggle film selection for catalog (approved ↔ selected)
+export const selectFilm = async (req, res) => {
+  try {
+    const filmId = parseInt(req.params.id, 10);
+    if (!filmId) {
+      return res.status(400).json({ success: false, message: "Invalid film ID" });
+    }
+
+    const userId = req.user.userId;
+
+    const film = await Film.findById(filmId);
+    if (!film) {
+      return res.status(404).json({ success: false, message: "Film non trouvé" });
+    }
+
+    if (film.status !== "approved" && film.status !== "selected") {
+      return res.status(400).json({
+        success: false,
+        message: "Seuls les films approuvés peuvent être mis en sélection",
+      });
+    }
+
+    const newStatus = film.status === "selected" ? "approved" : "selected";
+    await Film.updateStatus(filmId, newStatus, userId, null);
+
+    return res.status(200).json({
+      success: true,
+      message: newStatus === "selected" ? "Film ajouté à la sélection" : "Film retiré de la sélection",
+      data: { id: filmId, status: newStatus },
+    });
+  } catch (err) {
+    console.error("selectFilm error:", err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Erreur lors de la sélection du film",
+    });
+  }
+};
+
 // Refuse an assigned film
 export const refuseFilm = async (req, res) => {
   try {

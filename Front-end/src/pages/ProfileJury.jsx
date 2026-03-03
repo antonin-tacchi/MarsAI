@@ -83,7 +83,7 @@ function RefuseModal({ film, onClose, onConfirm, t }) {
   );
 }
 
-function FilmRow({ film, apiUrl, onRefuse, t }) {
+function FilmRow({ film, apiUrl, onRefuse, onSelect, t }) {
   return (
     <div className="flex items-center gap-4 p-3 bg-white rounded-xl border border-[#262335]/5 hover:border-[#463699]/30 transition-colors">
       <a href={`/details-film/${film?.id ?? ""}`} className="shrink-0 w-24 h-14 rounded-lg overflow-hidden bg-[#C7C2CE]">
@@ -102,6 +102,18 @@ function FilmRow({ film, apiUrl, onRefuse, t }) {
         </p>
       </a>
       <div className="flex items-center gap-3 shrink-0">
+        {(film?.status === "approved" || film?.status === "selected") && (
+          <button
+            onClick={() => onSelect(film)}
+            className={`text-sm font-medium transition-colors px-3 py-1 rounded-full border ${
+              film.status === "selected"
+                ? "bg-[#463699] text-white border-[#463699] hover:bg-[#362a80]"
+                : "border-[#463699] text-[#463699] hover:bg-[#463699]/10"
+            }`}
+          >
+            {film.status === "selected" ? "✓ Sélectionné" : "Sélectionner"}
+          </button>
+        )}
         {film?.user_rating !== null && film?.user_rating !== undefined ? (
           <span className="bg-gradient-to-r from-[#9a92c9] to-[#2f2a73] text-white text-sm font-bold px-3 py-1 rounded-full">
             {film.user_rating}/10
@@ -138,6 +150,7 @@ export default function ProfileJury() {
   const [page, setPage] = useState(1);
   const [refuseTarget, setRefuseTarget] = useState(null);
   const [stats, setStats] = useState({ totalAssigned: 0, totalRefused: 0, totalUnrated: 0, totalRated: 0 });
+  const [selectingFilmId, setSelectingFilmId] = useState(null);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil((filmCount || 0) / PER_PAGE)), [filmCount]);
   const token = localStorage.getItem("token");
@@ -209,6 +222,25 @@ export default function ProfileJury() {
   const handleListClick = (list) => { setPage(1); setCurrentView({ listId: list.id, listName: list.name }); };
   const handleBackToLists = () => { setCurrentView("lists"); setFilms([]); setPage(1); setUiState("idle"); };
   const handleRefuseConfirm = () => { setRefuseTarget(null); if (currentView !== "lists") fetchFilms(page, currentView.listId); };
+
+  const handleSelect = async (film) => {
+    if (selectingFilmId === film.id) return;
+    setSelectingFilmId(film.id);
+    try {
+      const res = await fetch(`${API_URL}/api/jury/films/${film.id}/select`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const newStatus = film.status === "selected" ? "approved" : "selected";
+        setFilms((prev) => prev.map((f) => f.id === film.id ? { ...f, status: newStatus } : f));
+      }
+    } catch (err) {
+      console.error("handleSelect error:", err);
+    } finally {
+      setSelectingFilmId(null);
+    }
+  };
 
   if (profileLoading) {
     return (
@@ -362,12 +394,27 @@ export default function ProfileJury() {
                   {films.map((film) => (
                     <div key={film.id} className="flex flex-col items-center w-[260px]">
                       <FilmCard film={film} apiUrl={API_URL} />
-                      {!film.user_rating && (
-                        <button onClick={(e) => { e.preventDefault(); setRefuseTarget(film); }}
-                          className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium transition-colors">
-                          {t("profileJury.refuseButton")}
-                        </button>
-                      )}
+                      <div className="flex gap-2 mt-2">
+                        {(film.status === "approved" || film.status === "selected") && (
+                          <button
+                            onClick={() => handleSelect(film)}
+                            disabled={selectingFilmId === film.id}
+                            className={`text-sm font-medium transition-colors px-3 py-1 rounded-full border disabled:opacity-50 ${
+                              film.status === "selected"
+                                ? "bg-[#463699] text-white border-[#463699] hover:bg-[#362a80]"
+                                : "border-[#463699] text-[#463699] hover:bg-[#463699]/10"
+                            }`}
+                          >
+                            {film.status === "selected" ? "✓ Sélectionné" : "Sélectionner"}
+                          </button>
+                        )}
+                        {!film.user_rating && (
+                          <button onClick={(e) => { e.preventDefault(); setRefuseTarget(film); }}
+                            className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors">
+                            {t("profileJury.refuseButton")}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -376,7 +423,7 @@ export default function ProfileJury() {
               {uiState === "success" && viewMode === "list" && (
                 <div className="flex flex-col gap-2">
                   {films.map((film) => (
-                    <FilmRow key={film.id} film={film} apiUrl={API_URL} onRefuse={setRefuseTarget} t={t} />
+                    <FilmRow key={film.id} film={film} apiUrl={API_URL} onRefuse={setRefuseTarget} onSelect={handleSelect} t={t} />
                   ))}
                 </div>
               )}

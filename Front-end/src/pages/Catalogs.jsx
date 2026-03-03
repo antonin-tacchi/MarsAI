@@ -29,7 +29,7 @@ export default function Catalogs() {
 
   // --- FILTRES ---
   const [filters, setFilters] = useState({
-    selected: "all",
+    selected: "selected",
     country: "",
     ai: "",
     category: "",

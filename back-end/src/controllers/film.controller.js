@@ -310,7 +310,7 @@ export const getFilms = async (req, res) => {
       offset,
       sortField,
       sortOrder,
-      status: "approved",
+      status: ["approved", "selected"],
     });
 
     const signedRows = await Promise.all(rows.map(withSignedMedia));

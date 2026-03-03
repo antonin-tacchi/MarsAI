@@ -10,6 +10,7 @@ import {
   getAssignedFilmsForJury,
   getResults,
   refuseFilm,
+  selectFilm,
 } from "../controllers/jury.controller.js";
 import { getMyLists } from "../controllers/jurylist.controller.js";
 
@@ -47,5 +48,8 @@ router.delete("/films/:id/rate", deleteRating);
 
 // Refuse an assigned film
 router.post("/films/:id/refuse", refuseFilm);
+
+// Toggle film selection for catalog (approved ↔ selected)
+router.patch("/films/:id/select", selectFilm);
 
 export default router;

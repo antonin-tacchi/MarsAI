@@ -120,7 +120,7 @@ CREATE TABLE `films` (
   `social_vimeo` varchar(255) DEFAULT NULL,
 
   -- Status and Tracking
-  `status` enum('pending', 'approved', 'rejected') DEFAULT 'pending',
+  `status` enum('pending', 'approved', 'rejected', 'selected') DEFAULT 'pending',
   `status_changed_at` datetime DEFAULT NULL,
   `status_changed_by` int DEFAULT NULL COMMENT 'User ID who changed the status',
   `rejection_reason` text COMMENT 'Reason for rejection (if rejected)',

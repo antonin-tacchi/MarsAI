@@ -89,7 +89,10 @@ export default class Film {
     const whereClauses = [];
     const queryParams = [];
 
-    if (status) {
+    if (Array.isArray(status)) {
+      whereClauses.push(`f.status IN (${status.map(() => "?").join(",")})`);
+      queryParams.push(...status);
+    } else if (status) {
       whereClauses.push("f.status = ?");
       queryParams.push(status);
     }
@@ -142,9 +145,9 @@ export default class Film {
     const sql = `
       SELECT id, title, country, description, poster_url, thumbnail_url,
              youtube_url, ai_tools_used, classification, director_firstname, director_lastname,
-             director_school, created_at
+             director_school, created_at, status
       FROM films
-      WHERE status = 'approved'
+      WHERE status IN ('approved', 'selected')
       ORDER BY created_at DESC
     `;
     const [rows] = await db.query(sql);
@@ -160,7 +163,7 @@ export default class Film {
              social_instagram, social_youtube, social_vimeo,
              created_at
       FROM films
-      WHERE id = ? AND status = 'approved'
+      WHERE id = ? AND status IN ('approved', 'selected')
       LIMIT 1
     `;
     const [rows] = await db.query(sql, [id]);
@@ -185,12 +188,12 @@ export default class Film {
       `SELECT status, COUNT(*) as count FROM films GROUP BY status`
     );
     const [countryRows] = await db.query(
-      `SELECT country, COUNT(*) as count FROM films WHERE status = 'approved' GROUP BY country ORDER BY count DESC`
+      `SELECT country, COUNT(*) as count FROM films WHERE status IN ('approved', 'selected') GROUP BY country ORDER BY count DESC`
     );
     const [aiToolRows] = await db.query(
       `SELECT ai_tools_used AS tool, COUNT(*) as count
        FROM films
-       WHERE status = 'approved' AND ai_tools_used IS NOT NULL AND ai_tools_used != ''
+       WHERE status IN ('approved', 'selected') AND ai_tools_used IS NOT NULL AND ai_tools_used != ''
        GROUP BY ai_tools_used
        ORDER BY count DESC`
     );
@@ -199,7 +202,7 @@ export default class Film {
        FROM categories c
        JOIN film_categories fc ON c.id = fc.category_id
        JOIN films f ON fc.film_id = f.id
-       WHERE f.status = 'approved'
+       WHERE f.status IN ('approved', 'selected')
        GROUP BY c.id, c.name
        ORDER BY count DESC`
     );
