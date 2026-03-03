@@ -41,7 +41,8 @@ export default {
     login: "Log in",
     title: "Sign up",
     register: "Sign up",
-    juryNote: "If you are a jury member or director, please use the password received by email",
+    juryNote:
+      "If you are a jury member or director, please use the password received by email",
     visitorNote: "If you are a visitor, you can create an account freely.",
     firstName: "First name",
     lastName: "Last name",
@@ -57,7 +58,8 @@ export default {
     emailInvalid: "Invalid email format",
     passwordRequired: "Password is required",
     passwordMinLength: "Password must be at least 8 characters",
-    passwordPattern: "Password must contain at least one uppercase, one lowercase and one digit",
+    passwordPattern:
+      "Password must contain at least one uppercase, one lowercase and one digit",
     error: "Registration failed. Please try again.",
   },
 
@@ -145,11 +147,6 @@ export default {
     ratedLabel: "rated",
     unratedLabel: "unrated",
     completed: "completed",
-    refusalPending: "⏳ Awaiting validation",
-    selectFilm: "Select",
-    selectedFilm: "✓ Selected",
-    refusalPendingCount: "⏳ {count} refusal(s) pending",
-    connectionError: "Unable to connect to the server.",
   },
 
   profileSuperJury: {
@@ -179,33 +176,9 @@ export default {
     confirmGenerate: "Confirm and generate",
     cancel: "Cancel",
     success: "Distribution generated successfully",
-    resultMessage: "{total} assignments created for {juryCount} juries (R={R}, Lmax={Lmax}).",
+    resultMessage:
+      "{total} assignments created for {juryCount} juries (R={R}, Lmax={Lmax}).",
     resultStats: "Min: {min} | Max: {max} | Avg: {avg} films/jury",
-    filmsTitle: "Film Management",
-    refusalsTab: "Pending refusals",
-    filterPending: "Pending",
-    filterApproved: "Approved",
-    filterRejected: "Rejected",
-    noFilmsStatus: "No films with this status.",
-    colTitle: "Title",
-    colDirector: "Director",
-    colCountry: "Country",
-    colStatus: "Status",
-    colActions: "Actions",
-    approveBtn: "Approve",
-    rejectBtn: "Reject",
-    refusalsPendingTitle: "Refusals awaiting validation",
-    noRefusals: "No refusals awaiting validation.",
-    colJury: "Jury",
-    colFilm: "Film",
-    colRefusalReason: "Refusal reason",
-    colDate: "Date",
-    validateBtn: "Validate",
-    rejectRefusalBtn: "Reject",
-    rejectModalTitle: "Reject: {title}",
-    rejectModalDesc: "An email will be sent to the director with the reason.",
-    rejectReasonPlaceholder: "Reason for rejection (required)...",
-    confirmRejectBtn: "Confirm rejection",
   },
 
   superJuryLists: {
@@ -356,7 +329,8 @@ export default {
   jury: {
     title: "JURY",
     titleHighlight: "MEMBERS",
-    subtitle: "AI experts, filmmakers, and visionaries united to deliberate on the official selection.",
+    subtitle:
+      "AI experts, filmmakers, and visionaries united to deliberate on the official selection.",
     loadError: "Error loading jury members",
     connectionError: "Server connection error",
     serverError: "Server error",
@@ -394,149 +368,25 @@ export default {
   },
 
   contact: {
-    subtitle: "A question? A bug? An AI that decided to go on vacation? We're reachable.",
+    subtitle:
+      "A question? A bug? An AI that decided to go on vacation? We’re reachable.",
     infoTitle: "Information",
     email: "Email",
     phone: "Phone",
     fax: "Fax",
     accessTitle: "Access",
     publicTransportTitle: "Public transport",
-    publicTransportText: "Tram T2 / T3 — Stop Arenc Le Silo. Metro M2 — Station Désirée Clary.",
+    publicTransportText:
+      "Tram T2 / T3 — Stop Arenc Le Silo. Metro M2 — Station Désirée Clary.",
     carTitle: "Car",
     carText: "Motorway A55 — Exit 2. Indigo Parking Quai du Lazaret, 200m away.",
     addressTitle: "Address",
-    addressText: "12 Rue D'Uzes, 13002 Marseille (Main entrance)",
+    addressText: "12 Rue D’Uzes, 13002 Marseille (Main entrance)",
     mapTitle: "Map",
     mapHint: "Zoom in, zoom out, and get lost (but with style).",
     openInNewTab: "Open",
     popupTitle: "MarsAI",
     mapAttribution: "&copy; OpenStreetMap contributors",
-  },
-
-  common: {
-    loading: "Loading...",
-    error: "Error",
-    cancel: "Cancel",
-    save: "Save",
-    delete: "Delete",
-    confirm: "Confirm",
-  },
-
-  // Home
-  home: {
-    discover: "Discover →",
-    participate: "I PARTICIPATE",
-    follow: "FOLLOW US",
-    statsTitle1: "The festival",
-    statsTitle2: "in numbers",
-    statsDesc: "Figures that reflect the scale and impact of the Mars AI Festival on the international cinema and creativity scene.",
-    days: "DAYS",
-    hours: "HOURS",
-    minutes: "MINUTES",
-    seconds: "SECONDS",
-    stat1Label: "Minimum visitors expected at the Festival",
-    stat2Label: "Countries represented in selection",
-    stat3Label: "generative AI professionals and personalities at the festival",
-    stat4Label: "Films submitted for selection",
-  },
-
-  // Footer extra
-  footerNav: {
-    festival: "The Festival",
-    catalog: "Catalog",
-    participate: "Participate",
-    jury: "The Jury",
-    partners: "Our Partners",
-    prizes: "Awards",
-    spaceAdmin: "Admin Space",
-    spaceSuperJury: "Super Jury Space",
-    spaceJury: "Jury Space",
-  },
-
-  // Regulations
-  regulations: {
-    label: "Mars AI Film Festival",
-    title: "Rules and Conditions",
-    footerNote: "By submitting your project to the Mars AI Film Festival, you acknowledge that you have read, understood and accepted all of these Rules and Conditions.",
-    section1Title: "General eligibility",
-    section1_1: "Submissions are open to filmmakers and photographers from all countries.",
-    section1_2: "All projects must have been completed after January 1, 2024.",
-    section1_3: "Applicants must be 18 years of age or older.",
-    section1_4: "All non-English-language films must be subtitled in English.",
-    section2Title: "Project and AI eligibility",
-    section2_1: "Mars AI accepts projects in two main areas:",
-    section2_1aLabel: "Short films:",
-    section2_1a: "all genres (fiction, experimental, documentary, animation, music video). Maximum duration: 20 minutes (including credits).",
-    section2_1bLabel: "Photography:",
-    section2_1b: "Single images or a coherent series (up to 10 images).",
-    section2_2Label: "MANDATORY AI REQUIREMENT:",
-    section2_2: "All submitted projects must use generative artificial intelligence as a significant part of their creation or production process.",
-    section2_3Label: "ACCEPTED METHODS:",
-    section2_3: "Mars AI welcomes all forms of human-AI collaboration, including but not limited to:",
-    section2_3aLabel: "Fully generative:",
-    section2_3a: "Works created primarily from text-to-video or text-to-image prompts (e.g., using tools like Sora 2, Veo3, Runway, Pika, Midjourney, Stable Diffusion, etc.).",
-    section2_3bLabel: "AI-enhanced (hybrid):",
-    section2_3b: "Human-created works (live-action footage, traditional photography, 3D renders) significantly modified, enhanced or finalised using AI tools (e.g., generative fill, AI-driven visual effects, style transfer, AI-assisted editing, AI colour grading or upscaling).",
-    section2_4Label: "MANDATORY AI STATEMENT:",
-    section2_4: "All applicants must include a brief AI statement (100–300 words) in their application. This statement must appear in the 'Cover Letter' section or in a custom field.",
-    section2_4a: "It must clearly and transparently describe the AI tools, models and processes used.",
-    section2_4b: "Examples: 'Live footage enhanced with Generative Fill and AI rotoscoping', 'Created entirely with Midjourney v6 and animated with Runway Gen-2', 'Script by GPT-4, visuals by Stable Diffusion, sound by an AI text-to-sound generator.'",
-    section2_4c: "The absence of a clear AI statement will result in disqualification.",
-    section3Title: "Intellectual property and rights grant",
-    section3_1: "As a material incentive and non-negotiable condition of entry, and in consideration for the review and possible exhibition of the Project, the Applicant hereby grants to Mars AI, its parent entities, subsidiaries, affiliated companies, successors, assigns and designated licensees (collectively, the 'Parties') a perpetual, irrevocable, non-exclusive, royalty-free, worldwide, sublicensable and transferable licence.",
-    section3_2: "This licence expressly includes the right to use, digitise, reproduce, copy, encode, store, analyse, data-mine, modify, adapt, create derivative works from and otherwise exploit all constituent elements of the submitted Project. This includes, without limitation, all visual data (individual frames, pixel data), audio data, spatial-temporal information and associated metadata.",
-    section3_3: "The rights granted under this Section 3 are intended for the following purposes:",
-    section3_3aLabel: "a) Dataset augmentation:",
-    section3_3a: "integrating the Project and its elements into new or existing databases and data repositories.",
-    section3_3bLabel: "b) Model development:",
-    section3_3b: "using the Project for the development, training, validation and refinement of machine learning algorithms, neural networks, large language models, diffusion models, generative models and any other artificial intelligence systems.",
-    section3_3cLabel: "c) Data acquisition and analysis:",
-    section3_3c: "all forms of computational research, heuristic analysis, pattern recognition and data extraction undertaken by the Parties or their representatives.",
-    section3_4: "The Applicant acknowledges and agrees that this rights grant facilitates the technological and research mission of the Mars AI Film Festival.",
-    section3_5: "The Applicant represents and warrants that they have full authority to grant such rights and that the Parties' use of the Project for the purposes described herein will not infringe the rights of any third party, including copyright, trademarks, moral rights or privacy and publicity rights.",
-    section3_6: "This licence shall remain in perpetuity, whether the Project is accepted, disqualified, withdrawn or selected for public exhibition at the Festival.",
-  },
-
-  // Partners
-  partners: {
-    title: "Our Partners",
-    joinUs: "Join us",
-    description: "They trust us and contribute to the success of our festival. Discover the companies and organisations that support us.",
-    noPartners: "No partners yet",
-    noPartnersDesc: "We are actively looking for partners to enrich our festival.",
-    becomePartner: "Become a partner",
-  },
-
-  // Practical Info
-  practicalInfo: {
-    backHome: "← Back to home",
-    label: "📍 Practical info",
-    venueTitle: "La Plateforme",
-    venueDesc: "The event will take place in a creative and digital space in the heart of Marseille. Find all practical information about the festival venue:",
-    venueName: "La Plateforme",
-    scheduleTitle: "Conference schedule",
-    accessTitle: "Access",
-    schedule1Title: "Welcome & Networking Coffee",
-    schedule1Pill: "Opening",
-    schedule2Title: "Opening conference",
-    schedule2Sub: "AI in the service of cinema",
-    schedule3Title: "Free Lunch",
-    schedule4Title: "Official Screening & Debate",
-    schedule5Title: "Round Table: Desirable Futures",
-    schedule5Sub: "Conference",
-    schedule6Title: "Grand Prix & Closing Ceremony",
-    schedule7Title: "MARS A.I Night - Immersive DJ Set",
-    schedule7Sub: "Let's celebrate together!",
-    schedule7Pill: "Evening",
-    access1Title: "Public transport",
-    access1Desc: "Metro line 1 – Vieux-Port station\nBus lines 82, 83 – Joliette stop",
-    access2Title: "Car",
-    access2Desc: "Euroméditerranée parking 200m away\nPaid street parking available",
-    access3Title: "Plane",
-    access3Desc: "Marseille-Provence Airport\nDirect shuttle to city centre (30 min)",
-    access4Title: "Train",
-    access4Desc: "Saint-Charles station – TGV\n15 min on foot or metro line 1",
-    mapTitle: "Marseille Map",
   },
 
   // AdminModeration
@@ -566,5 +416,103 @@ export default {
     loadError: "Error loading films",
     validateError: "Error approving film",
     rejectError: "Error rejecting film",
+  },
+
+  privacy: {
+    title: "Your Personal Data",
+    intro:
+      "This page explains what information may be collected when you use MarsAI, why we use it, and how you can exercise your rights.",
+    s1: {
+      title: "1) Data we may collect",
+      p: "Depending on how you use the service, we may collect:",
+      li1: "Account information (email, username, role).",
+      li2: "Content you submit (films, links, descriptions, media).",
+      li3: "Technical data (browser, logs, IP partially masked depending on setup).",
+      li4: "Preferences (language, cookie consent).",
+    },
+    s2: {
+      title: "2) Purposes",
+      p: "This data is used to operate the service, keep it secure, support moderation, and improve the user experience.",
+    },
+    s3: {
+      title: "3) Sharing",
+      p: "We do not sell your data. It may only be shared with:",
+      li1: "Service providers required for hosting and storage.",
+      li2: "Authorized staff (e.g., admins/moderators) when relevant.",
+      li3: "Authorities, if required by law.",
+      li4: "Technical tools (logs/monitoring) to maintain the service.",
+    },
+    s4: {
+      title: "4) Retention",
+      p: "We keep data only as long as needed for its purpose, then delete or anonymize it.",
+    },
+    s5: {
+      title: "5) Your rights",
+      p: "You may request access, correction, deletion, restriction, or object to processing, depending on applicable law.",
+    },
+    note:
+      "Note: this text is informational and should be adapted to your legal obligations (GDPR, mandatory legal notices, etc.).",
+    cta: {
+      contact: "Contact us",
+      cookies: "Cookie settings",
+    },
+  },
+
+  cookies: {
+    title: "Cookie Settings",
+    intro:
+      "Cookies are small files used to run the website, measure traffic, and improve your browsing experience.",
+    s1: {
+      title: "1) Why cookies?",
+      p: "We use cookies to remember your preferences (language), secure certain sessions, and analyze performance.",
+    },
+    s2: {
+      title: "2) Cookie types",
+      p: "Possible categories include:",
+      li1: "Essential: required for the website to function.",
+      li2: "Preferences: e.g., language, display settings.",
+      li3: "Analytics: anonymized statistics (depending on setup).",
+      li4: "Functional: improving user experience.",
+    },
+    s3: {
+      title: "3) How to manage them",
+      p: "You can configure your browser to block/delete cookies. Some features may not work properly.",
+    },
+    tip:
+      "Tip: if your language switch works, it’s often thanks to a cookie… or localStorage. Using both is fancy.",
+    cta: {
+      privacy: "Your Personal Data",
+      contact: "Contact us",
+    },
+  },
+
+  legal: {
+    title: "Legal Notice",
+    intro:
+      "The information below must be completed with your real details (publisher, hosting, contact, etc.).",
+    s1: {
+      title: "1) Website publisher",
+      p: "Name / Company: …\nAddress: …\nEmail: …", // need to be modified with real data
+    },
+    s2: {
+      title: "2) Hosting",
+      p: "Host: …\nAddress: …\nPhone: …",  // need to be modified with real data
+    },
+    s3: {
+      title: "3) Intellectual property",
+      p: "Content (texts, images, videos) is protected. Any unauthorized reproduction is prohibited.",
+    },
+    s4: {
+      title: "4) Liability",
+      p: "The publisher cannot be held liable for damages resulting from the use of the website, within legal limits.",
+    },
+    s5: {
+      title: "5) Contact",
+      p: "If you have any questions, you can contact us via the dedicated page.",
+    },
+    cta: {
+      privacy: "Your Personal Data",
+      cookies: "Cookie Settings",
+    },
   },
 };

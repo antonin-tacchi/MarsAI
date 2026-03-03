@@ -1,5 +1,4 @@
 export default {
-  // Header
   header: {
     festival: "Le festival",
     catalog: "Catalogue",
@@ -7,7 +6,6 @@ export default {
     prizes: "Palmarès",
   },
 
-  // Footer
   footer: {
     theFestival: "LE FESTIVAL",
     festival: "Le festival",
@@ -25,7 +23,6 @@ export default {
     contact: "Contact",
   },
 
-  // Login
   login: {
     title: "Se connecter",
     register: "S'inscrire",
@@ -40,12 +37,12 @@ export default {
     error: "La connexion a échoué. Veuillez réessayer.",
   },
 
-  // Register
   register: {
     login: "Se connecter",
     title: "S'inscrire",
     register: "S'inscrire",
-    juryNote: "Si vous êtes jury ou réalisateur, veuillez utiliser le mot de passe reçu par email",
+    juryNote:
+      "Si vous êtes jury ou réalisateur, veuillez utiliser le mot de passe reçu par email",
     visitorNote: "Si vous êtes visiteur, vous pouvez créer un compte librement.",
     firstName: "Prénom",
     lastName: "Nom",
@@ -61,11 +58,11 @@ export default {
     emailInvalid: "Format d'email invalide",
     passwordRequired: "Le mot de passe est requis",
     passwordMinLength: "Le mot de passe doit contenir au moins 8 caractères",
-    passwordPattern: "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
+    passwordPattern:
+      "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
     error: "L'inscription a échoué. Veuillez réessayer.",
   },
 
-  // Catalogs
   catalogs: {
     title: "Catalogue",
     serverError: "Erreur Serveur",
@@ -81,7 +78,6 @@ export default {
     lastPage: "Dernière page",
   },
 
-  // DetailsFilm
   detailsFilm: {
     backToCatalog: "← Retour aux catalogues",
     loading: "Chargement…",
@@ -101,7 +97,6 @@ export default {
     yourRating: "Votre note : {rating}/10",
     loadingReviews: "Chargement des avis…",
     noReviews: "Aucun avis pour le moment.",
-    // Approval panel
     filmManagement: "Gestion du film",
     statusPending: "En attente",
     statusApproved: "Approuvé",
@@ -119,7 +114,6 @@ export default {
     mustBeConnected: "Vous devez être connecté.",
   },
 
-  // ProfileJury
   profileJury: {
     loading: "Chargement...",
     greeting: "Bonjour {name}",
@@ -137,7 +131,8 @@ export default {
     refuseButton: "Refuser ce film",
     refuseTitle: "Refuser le film",
     refuseReasonLabel: "Raison du refus :",
-    refuseReasonPlaceholder: "Expliquez pourquoi ce contenu ne vous convient pas...",
+    refuseReasonPlaceholder:
+      "Expliquez pourquoi ce contenu ne vous convient pas...",
     confirmRefuse: "Confirmer le refus",
     refusing: "Envoi...",
     firstPage: "Première page",
@@ -160,7 +155,6 @@ export default {
     connectionError: "Impossible de se connecter au serveur.",
   },
 
-  // ProfileSuperJury
   profileSuperJury: {
     loading: "Chargement...",
     title: "Super Jury - {name}",
@@ -188,7 +182,8 @@ export default {
     confirmGenerate: "Confirmer et generer",
     cancel: "Annuler",
     success: "Repartition generee avec succes",
-    resultMessage: "{total} assignations creees pour {juryCount} jurys (R={R}, Lmax={Lmax}).",
+    resultMessage:
+      "{total} assignations creees pour {juryCount} jurys (R={R}, Lmax={Lmax}).",
     resultStats: "Min: {min} | Max: {max} | Moy: {avg} films/jury",
     filmsTitle: "Gestion des films",
     refusalsTab: "Refus en attente",
@@ -217,7 +212,6 @@ export default {
     confirmRejectBtn: "Confirmer le refus",
   },
 
-  // Super Jury Lists
   superJuryLists: {
     tabTitle: "Listes",
     title: "Gestion des listes",
@@ -250,7 +244,6 @@ export default {
     assignSelected: "Assigner la selection",
   },
 
-  // PrizeList (Palmares)
   prizeList: {
     title: "Palmares",
     loading: "Chargement du classement...",
@@ -266,7 +259,6 @@ export default {
     noRating: "Non note",
   },
 
-  // MovieForm (Submissions)
   movieForm: {
     generalInfo: "Informations Générales",
     title: "Titre",
@@ -309,7 +301,6 @@ export default {
     submitError: "Erreur lors de l'envoi du film.",
   },
 
-  // FilmCard
   filmCard: {
     unknownTitle: "Titre inconnu",
     defaultFirstName: "Prénom",
@@ -319,18 +310,15 @@ export default {
     votes: "votes",
   },
 
-  // CountrySelect
   countrySelect: {
     search: "Rechercher un pays...",
     noResults: "Aucun pays trouvé",
   },
 
-  // FilmPlayer
   filmPlayer: {
     videoNotSupported: "Votre navigateur ne supporte pas la lecture vidéo.",
   },
 
-  // Placeholder pages
   pages: {
     home: "HOME PAGE",
     about: "ABOUT PAGE",
@@ -342,7 +330,6 @@ export default {
     profileDirector: "PROFIL DIRECTOR PAGE",
   },
 
-  // ProfileAdmin CMS
   profileAdmin: {
     pageEditor: "Page d'accueil",
     french: "FR",
@@ -370,11 +357,11 @@ export default {
     pagesTab: "Pages",
   },
 
-  // Jury
   jury: {
     title: "LES MEMBRES",
     titleHighlight: "DU JURY",
-    subtitle: "Experts IA, cinéastes et visionnaires réunis pour délibérer sur la sélection officielle.",
+    subtitle:
+      "Experts IA, cinéastes et visionnaires réunis pour délibérer sur la sélection officielle.",
     loadError: "Erreur lors du chargement des membres du jury",
     connectionError: "Erreur de connexion au serveur",
     serverError: "Erreur serveur",
@@ -383,7 +370,6 @@ export default {
     undefined: "Non défini",
   },
 
-  // About
   about: {
     submitFilm: "Soumettre un film",
     newsletter: "Newsletter",
@@ -412,7 +398,6 @@ export default {
     section8Text: "MarsAI est porté par une équipe réunissant professionnels du cinéma, experts en IA et acteurs culturels. Le festival est soutenu par des institutions, écoles, studios et entreprises engagés dans l'innovation audiovisuelle.",
   },
 
-  // Contact Page
   contact: {
     subtitle:
       "Une question ? Un bug ? Une IA qui a décidé de prendre des vacances ? On est joignables.",
@@ -435,7 +420,6 @@ export default {
     mapAttribution: "&copy; contributeurs OpenStreetMap",
   },
 
-  // Common
   common: {
     loading: "Chargement...",
     error: "Erreur",
@@ -445,149 +429,101 @@ export default {
     confirm: "Confirmer",
   },
 
-  // Home
-  home: {
-    discover: "Découvrir →",
-    participate: "JE PARTICIPE",
-    follow: "NOUS SUIVRE",
-    statsTitle1: "Le festival",
-    statsTitle2: "en chiffre",
-    statsDesc: "Des chiffres qui reflètent l'ampleur et l'impact du Festival Mars AI sur la scène internationale du cinéma et de la créativité.",
-    days: "JOURS",
-    hours: "HEURES",
-    minutes: "MINUTES",
-    seconds: "SECONDES",
-    stat1Label: "Visiteurs minimum à attendre lors du Festival",
-    stat2Label: "Pays représentés en sélection",
-    stat3Label: "professionnels de l'IA générative et personnalités mobilisés lors du festival",
-    stat4Label: "Films soumis à la sélection",
+  privacy: {
+    title: "Vos données personnelles",
+    intro:
+      "Cette page explique quelles informations peuvent être collectées lorsque vous utilisez MarsAI, pourquoi nous les utilisons, et comment vous pouvez exercer vos droits.",
+    s1: {
+      title: "1) Données collectées",
+      p: "Selon votre usage, nous pouvons collecter :",
+      li1: "Informations de compte (email, identifiant, rôle).",
+      li2: "Contenus que vous soumettez (films, liens, descriptions, médias).",
+      li3: "Données techniques (navigateur, logs, adresse IP tronquée selon configuration).",
+      li4: "Préférences (langue, consentement cookies).",
+    },
+    s2: {
+      title: "2) Finalités",
+      p: "Ces données servent à assurer le fonctionnement du service, la sécurité, la modération et l’amélioration de l’expérience.",
+    },
+    s3: {
+      title: "3) Partage",
+      p: "Nous ne vendons pas vos données. Elles peuvent être partagées uniquement avec :",
+      li1: "Les prestataires nécessaires à l’hébergement et au stockage.",
+      li2: "Les membres habilités (ex: admin/modération) selon votre usage.",
+      li3: "Les autorités, si la loi l’exige.",
+      li4: "Des outils techniques (logs/monitoring) pour maintenir le service.",
+    },
+    s4: {
+      title: "4) Durée de conservation",
+      p: "Nous conservons les données le temps nécessaire à la finalité, puis les supprimons ou les anonymisons.",
+    },
+    s5: {
+      title: "5) Vos droits",
+      p: "Vous pouvez demander l’accès, la rectification, la suppression, la limitation ou l’opposition, selon le cadre applicable.",
+    },
+    note:
+      "Note : ce texte est informatif et doit être adapté à vos obligations légales (RGPD, mentions obligatoires, etc.).",
+    cta: {
+      contact: "Nous contacter",
+      cookies: "Gestion des cookies",
+    },
   },
 
-  // Footer extra
-  footerNav: {
-    festival: "Le festival",
-    catalog: "Catalogue",
-    participate: "Participer",
-    jury: "Le jury",
-    partners: "Nos partenaires",
-    prizes: "Palmares",
-    spaceAdmin: "Espace Admin",
-    spaceSuperJury: "Espace Super Jury",
-    spaceJury: "Espace Jury",
+  cookies: {
+    title: "Gestion des cookies",
+    intro:
+      "Les cookies sont de petits fichiers utilisés pour faire fonctionner le site, mesurer l’audience et améliorer votre navigation.",
+    s1: {
+      title: "1) Pourquoi des cookies ?",
+      p: "Nous utilisons des cookies pour mémoriser vos préférences (langue), sécuriser certaines sessions, et analyser la performance.",
+    },
+    s2: {
+      title: "2) Types de cookies",
+      p: "Voici les catégories possibles :",
+      li1: "Essentiels : nécessaires au fonctionnement du site.",
+      li2: "Préférences : ex. langue, affichage.",
+      li3: "Mesure d’audience : statistiques anonymisées (selon configuration).",
+      li4: "Fonctionnels : amélioration de l’expérience utilisateur.",
+    },
+    s3: {
+      title: "3) Comment gérer ?",
+      p: "Vous pouvez paramétrer votre navigateur pour bloquer/supprimer les cookies. Certaines fonctionnalités peuvent alors être dégradées.",
+    },
+    tip:
+      "Astuce : si ton bouton de langue marche, c’est souvent grâce à un cookie… ou à localStorage. Les deux, c’est du luxe.",
+    cta: {
+      privacy: "Vos données personnelles",
+      contact: "Nous contacter",
+    },
   },
 
-  // Regulations
-  regulations: {
-    label: "Mars AI Film Festival",
-    title: "Règles et Conditions",
-    footerNote: "En soumettant votre projet au Mars AI Film Festival, vous reconnaissez avoir lu, compris et accepté l'intégralité des présentes Règles et Conditions.",
-    section1Title: "Admissibilité générale",
-    section1_1: "Les candidatures sont ouvertes aux cinéastes et photographes de tous les pays.",
-    section1_2: "Tous les projets doivent avoir été achevés après le 1er janvier 2024.",
-    section1_3: "Les candidats doivent être âgés de 18 ans ou plus.",
-    section1_4: "Tous les films non anglophones doivent être sous-titrés en anglais.",
-    section2Title: "Éligibilité au projet et à l'IA",
-    section2_1: "Mars AI accepte des projets dans deux axes principaux :",
-    section2_1aLabel: "Courts métrages :",
-    section2_1a: "tous genres (fiction, expérimental, documentaire, animation, clip musical). Durée maximale : 20 minutes (générique compris).",
-    section2_1bLabel: "Photographie :",
-    section2_1b: "Images uniques ou série cohérente (jusqu'à 10 images).",
-    section2_2Label: "EXIGENCE OBLIGATOIRE EN MATIÈRE D'IA :",
-    section2_2: "Tous les projets soumis doivent utiliser l'intelligence artificielle générative comme une partie importante de leur processus de création ou de production.",
-    section2_3Label: "MÉTHODES ACCEPTÉES :",
-    section2_3: "Mars AI accueille toutes les formes de collaboration humain-IA, y compris, mais sans s'y limiter :",
-    section2_3aLabel: "Entièrement génératif :",
-    section2_3a: "Œuvres créées principalement à partir de commandes texte-vidéo ou texte-image (par exemple, à l'aide d'outils comme Sora 2, Veo3, Runway, Pika, Midjourney, Stable Diffusion, etc.).",
-    section2_3bLabel: "Amélioration par l'IA (hybride) :",
-    section2_3b: "Œuvres créées par l'homme (prises de vue réelles, photographies traditionnelles, rendus 3D) considérablement modifiées, améliorées ou finalisées à l'aide d'outils d'IA (par exemple, remplissage génératif, effets visuels pilotés par l'IA, transfert de style, montage assisté par l'IA, étalonnage des couleurs ou mise à l'échelle par l'IA).",
-    section2_4Label: "DÉCLARATION OBLIGATOIRE SUR L'IA :",
-    section2_4: "Tous les candidats doivent inclure une brève déclaration sur l'IA (100 à 300 mots) dans leur candidature. Cette déclaration doit figurer dans la section « Lettre de motivation » ou dans un champ personnalisé.",
-    section2_4a: "Elle doit décrire clairement et de manière transparente les outils, modèles et processus d'IA utilisés.",
-    section2_4b: "Exemples : « Images réelles améliorées avec Generative Fill et rotoscopie par IA », « Créé entièrement avec Midjourney v6 et animé avec Runway Gen-2 », « Scénario par GPT-4, visuels par Stable Diffusion, son par un générateur texte-son par IA. »",
-    section2_4c: "L'absence d'une déclaration claire relative à l'IA entraînera la disqualification.",
-    section3Title: "Propriété intellectuelle et concession de droits",
-    section3_1: "À titre d'incitation matérielle et de condition non négociable d'entrée, et en contrepartie de l'examen et de l'éventuelle exposition du Projet, le Candidat accorde par la présente à Mars AI, à ses entités mères, filiales, sociétés affiliées, successeurs, ayants droit et titulaires de licence désignés (collectivement, les « Parties ») une licence perpétuelle, irrévocable, non exclusive, exempte de redevances, mondiale, sous-licenciable et transférable.",
-    section3_2: "La présente licence inclut expressément le droit d'utiliser, de numériser, de reproduire, de copier, d'encoder, de stocker, d'analyser, d'extraire des données, de modifier, d'adapter, de créer des œuvres dérivées et d'exploiter de toute autre manière tous les éléments constitutifs du Projet soumis. Ceci inclut, sans toutefois s'y limiter, toutes les données visuelles (images individuelles, données de pixels), les données audio, les informations spatio-temporelles et les métadonnées associées.",
-    section3_3: "Les droits accordés en vertu du présent article 3 sont destinés aux fins suivantes :",
-    section3_3aLabel: "a) Augmentation des ensembles de données :",
-    section3_3a: "intégration du Projet et de ses éléments dans des bases de données et référentiels de données nouveaux ou existants.",
-    section3_3bLabel: "b) Développement de modèles :",
-    section3_3b: "utilisation du Projet pour le développement, l'entraînement, la validation et le perfectionnement d'algorithmes d'apprentissage automatique, de réseaux de neurones, de grands modèles de langage, de modèles de diffusion, de modèles génératifs et de tout autre système d'intelligence artificielle.",
-    section3_3cLabel: "c) Acquisition et analyse de données :",
-    section3_3c: "toutes les formes de recherche informatique, d'analyse heuristique, de reconnaissance de formes et d'extraction de données entreprises par les Parties ou leurs représentants.",
-    section3_4: "Le Candidat reconnaît et accepte que cet octroi de droits facilite la mission technologique et de recherche du Festival Mars AI.",
-    section3_5: "Le Candidat déclare et garantit qu'il possède l'autorité pleine et entière pour accorder de tels droits et que l'utilisation du Projet par les Parties aux fins décrites aux présentes ne portera pas atteinte aux droits d'un tiers, y compris les droits d'auteur, les marques de commerce, les droits moraux ou les droits à la vie privée et à la publicité.",
-    section3_6: "La présente licence restera valable à perpétuité, que le Projet soit accepté, disqualifié, retiré ou sélectionné pour une exposition publique au Festival.",
-  },
-
-  // Partners
-  partners: {
-    title: "Nos Partenaires",
-    joinUs: "Rejoignez-nous",
-    description: "Ils nous font confiance et contribuent à la réussite de notre festival. Découvrez les entreprises et organisations qui nous soutiennent.",
-    noPartners: "Aucun partenaire pour le moment",
-    noPartnersDesc: "Nous recherchons activement des partenaires pour enrichir notre festival.",
-    becomePartner: "Devenir partenaire",
-  },
-
-  // Practical Info
-  practicalInfo: {
-    backHome: "← Retour accueil",
-    label: "📍 Infos pratiques",
-    venueTitle: "La Plateforme",
-    venueDesc: "L'événement se tiendra dans un espace créatif et numérique au cœur de Marseille. Retrouvez toutes les informations pratiques sur le lieu du festival :",
-    venueName: "La Plateforme",
-    scheduleTitle: "Programme des conférences",
-    accessTitle: "Accès",
-    schedule1Title: "Accueil & Café Networking",
-    schedule1Pill: "Ouverture",
-    schedule2Title: "Conférence d'ouverture",
-    schedule2Sub: "L'IA au service du cinéma",
-    schedule3Title: "Déjeuner Libre",
-    schedule4Title: "Projection & Débat Officielle",
-    schedule5Title: "Table Ronde : Futurs souhaitables",
-    schedule5Sub: "Conférence",
-    schedule6Title: "Grand Prix & Cérémonie de Clôture",
-    schedule7Title: "MARS A.I Night - DJ Set immersif",
-    schedule7Sub: "On fête ça ensemble !",
-    schedule7Pill: "Soirée",
-    access1Title: "Transports en commun",
-    access1Desc: "Métro ligne 1 – station Vieux-Port\nBus lignes 82, 83 – arrêt Joliette",
-    access2Title: "Voiture",
-    access2Desc: "Parking Euroméditerranée à 200m\nStationnement payant en surface disponible",
-    access3Title: "Avion",
-    access3Desc: "Aéroport Marseille-Provence\nNavette directe vers le centre-ville (30 min)",
-    access4Title: "Train",
-    access4Desc: "Gare Saint-Charles – TGV\n15 min à pied ou métro ligne 1",
-    mapTitle: "Carte Marseille",
-  },
-
-  // AdminModeration
-  adminModeration: {
-    loading: "Chargement des films...",
-    error: "Erreur",
-    retry: "Réessayer",
-    title: "🎬 Modération des Films",
-    subtitle: "Validez ou refusez les films soumis au festival",
-    back: "← Retour",
-    pendingCount: "Films en attente",
-    refresh: "Actualiser",
-    noPending: "Aucun film en attente",
-    noPendingDesc: "Tous les films ont été modérés ! Revenez plus tard.",
-    backToDashboard: "Retour au tableau de bord",
-    approveTitle: "Valider ce film ?",
-    approveMessage: "Êtes-vous sûr de vouloir valider \"{title}\" ? Le film sera ajouté au catalogue public et le réalisateur sera notifié.",
-    approveConfirm: "Valider",
-    rejectTitle: "Refuser ce film ?",
-    rejectMessage: "Êtes-vous sûr de vouloir refuser \"{title}\" ? Le réalisateur sera notifié.",
-    rejectConfirm: "Refuser",
-    cancel: "Annuler",
-    rejectReasonLabel: "Raison du refus (optionnel)",
-    rejectReasonPlaceholder: "Expliquez pourquoi le film est refusé...",
-    approvedSuccess: "✓ \"{title}\" a été validé avec succès !",
-    rejectedMsg: "\"{title}\" a été refusé",
-    loadError: "Erreur lors du chargement des films",
-    validateError: "Erreur lors de la validation",
-    rejectError: "Erreur lors du refus",
+  legal: {
+    title: "Mentions légales",
+    intro:
+      "Les informations ci-dessous doivent être complétées avec vos données réelles (éditeur, hébergeur, contact, etc.).",
+    s1: {
+      title: "1) Éditeur du site",
+      p: "Nom / Société : …\nAdresse : …\nEmail : …",
+    },
+    s2: {
+      title: "2) Hébergement",
+      p: "Hébergeur : …\nAdresse : …\nTéléphone : …",
+    },
+    s3: {
+      title: "3) Propriété intellectuelle",
+      p: "Le contenu (textes, images, vidéos) est protégé. Toute reproduction non autorisée est interdite.",
+    },
+    s4: {
+      title: "4) Responsabilité",
+      p: "L’éditeur ne peut être tenu responsable des dommages résultant de l’utilisation du site, dans les limites prévues par la loi.",
+    },
+    s5: {
+      title: "5) Contact",
+      p: "Pour toute question, vous pouvez nous contacter via la page dédiée.",
+    },
+    cta: {
+      privacy: "Vos données personnelles",
+      cookies: "Gestion des cookies",
+    },
   },
 };
