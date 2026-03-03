@@ -144,7 +144,7 @@ export default function Jury() {
                   {/* INFO */}
                   <div className="p-5 bg-[#262335] text-white flex-grow flex flex-col">
                     <span className="text-xs font-bold tracking-wider uppercase text-[#FF6B35] mb-2 block">
-                      {member.role || 'Non défini'}
+                      {member.role || t("jury.undefined")}
                     </span>
                     <h2 className="text-xl md:text-[1.4rem] font-black uppercase tracking-tight mb-2 leading-tight">
                       {member.name}

@@ -7,6 +7,7 @@ import {
   approveFilm,
   rejectFilm,
 } from "../services/moderationService";
+import { useLanguage } from "../context/LanguageContext";
 
 /**
  * AdminModeration Page
@@ -14,6 +15,7 @@ import {
  */
 const AdminModeration = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [films, setFilms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,7 +42,7 @@ const AdminModeration = () => {
       const response = await getPendingFilms();
       setFilms(response.data || []);
     } catch (err) {
-      setError(err.message || "Erreur lors du chargement des films");
+      setError(err.message || t("adminModeration.loadError"));
       console.error("Error fetching films:", err);
     } finally {
       setLoading(false);
@@ -74,12 +76,12 @@ const AdminModeration = () => {
 
       // Remove film from list
       setFilms((prev) => prev.filter((f) => f.id !== selectedFilm.id));
-      
-      showToast(`✓ "${selectedFilm.title}" a été validé avec succès !`, "success");
+
+      showToast(t("adminModeration.approvedSuccess", { title: selectedFilm.title }), "success");
       setShowApproveModal(false);
       setSelectedFilm(null);
     } catch (err) {
-      showToast(err.message || "Erreur lors de la validation", "error");
+      showToast(err.message || t("adminModeration.validateError"), "error");
       console.error("Error approving film:", err);
     } finally {
       setProcessingFilmId(null);
@@ -95,13 +97,13 @@ const AdminModeration = () => {
 
       // Remove film from list
       setFilms((prev) => prev.filter((f) => f.id !== selectedFilm.id));
-      
-      showToast(`"${selectedFilm.title}" a été refusé`, "error");
+
+      showToast(t("adminModeration.rejectedMsg", { title: selectedFilm.title }), "error");
       setShowRejectModal(false);
       setSelectedFilm(null);
       setRejectionReason("");
     } catch (err) {
-      showToast(err.message || "Erreur lors du refus", "error");
+      showToast(err.message || t("adminModeration.rejectError"), "error");
       console.error("Error rejecting film:", err);
     } finally {
       setProcessingFilmId(null);
@@ -115,7 +117,7 @@ const AdminModeration = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple border-t-transparent mx-auto mb-4"></div>
           <p className="text-dark-purple font-semibold font-saira">
-            Chargement des films...
+            {t("adminModeration.loading")}
           </p>
         </div>
       </div>
@@ -143,14 +145,14 @@ const AdminModeration = () => {
             </svg>
           </div>
           <h2 className="text-2xl font-black text-dark-purple mb-4 font-saira">
-            Erreur
+            {t("adminModeration.error")}
           </h2>
           <p className="text-gray-700 mb-6">{error}</p>
           <button
             onClick={fetchPendingFilms}
             className="px-6 py-3 bg-purple hover:bg-dark-purple text-white font-bold rounded-xl transition-colors font-saira"
           >
-            Réessayer
+            {t("adminModeration.retry")}
           </button>
         </div>
       </div>
@@ -165,17 +167,17 @@ const AdminModeration = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-black mb-2 font-saira">
-                🎬 Modération des Films
+                {t("adminModeration.title")}
               </h1>
               <p className="text-lavender text-lg">
-                Validez ou refusez les films soumis au festival
+                {t("adminModeration.subtitle")}
               </p>
             </div>
             <button
               onClick={() => navigate("/admin")}
               className="px-6 py-3 bg-purple hover:bg-light-purple text-white font-bold rounded-xl transition-colors font-saira"
             >
-              ← Retour
+              {t("adminModeration.back")}
             </button>
           </div>
         </div>
@@ -187,7 +189,7 @@ const AdminModeration = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
               <div>
-                <p className="text-sm text-gray-600">Films en attente</p>
+                <p className="text-sm text-gray-600">{t("adminModeration.pendingCount")}</p>
                 <p className="text-3xl font-black text-purple font-saira">
                   {films.length}
                 </p>
@@ -210,7 +212,7 @@ const AdminModeration = () => {
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
-              Actualiser
+              {t("adminModeration.refresh")}
             </button>
           </div>
         </div>
@@ -237,16 +239,16 @@ const AdminModeration = () => {
               </svg>
             </div>
             <h2 className="text-3xl font-black text-dark-purple mb-4 font-saira">
-              Aucun film en attente
+              {t("adminModeration.noPending")}
             </h2>
             <p className="text-gray-600 text-lg mb-6">
-              Tous les films ont été modérés ! Revenez plus tard.
+              {t("adminModeration.noPendingDesc")}
             </p>
             <button
               onClick={() => navigate("/admin")}
               className="px-6 py-3 bg-purple hover:bg-dark-purple text-white font-bold rounded-xl transition-colors font-saira"
             >
-              Retour au tableau de bord
+              {t("adminModeration.backToDashboard")}
             </button>
           </div>
         ) : (
@@ -270,10 +272,10 @@ const AdminModeration = () => {
         isOpen={showApproveModal}
         onClose={() => setShowApproveModal(false)}
         onConfirm={handleApproveConfirm}
-        title="Valider ce film ?"
-        message={`Êtes-vous sûr de vouloir valider "${selectedFilm?.title}" ? Le film sera ajouté au catalogue public et le réalisateur sera notifié.`}
-        confirmText="Valider"
-        cancelText="Annuler"
+        title={t("adminModeration.approveTitle")}
+        message={t("adminModeration.approveMessage", { title: selectedFilm?.title })}
+        confirmText={t("adminModeration.approveConfirm")}
+        cancelText={t("adminModeration.cancel")}
         type="success"
       />
 
@@ -282,23 +284,22 @@ const AdminModeration = () => {
         isOpen={showRejectModal}
         onClose={() => setShowRejectModal(false)}
         onConfirm={handleRejectConfirm}
-        title="Refuser ce film ?"
+        title={t("adminModeration.rejectTitle")}
         type="danger"
-        confirmText="Refuser"
-        cancelText="Annuler"
+        confirmText={t("adminModeration.rejectConfirm")}
+        cancelText={t("adminModeration.cancel")}
       >
         <p className="text-gray-700 mb-4">
-          Êtes-vous sûr de vouloir refuser "{selectedFilm?.title}" ? Le réalisateur
-          sera notifié.
+          {t("adminModeration.rejectMessage", { title: selectedFilm?.title })}
         </p>
         <div className="mb-4">
           <label className="block text-sm font-semibold text-purple mb-2">
-            Raison du refus (optionnel)
+            {t("adminModeration.rejectReasonLabel")}
           </label>
           <textarea
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
-            placeholder="Expliquez pourquoi le film est refusé..."
+            placeholder={t("adminModeration.rejectReasonPlaceholder")}
             className="w-full px-4 py-3 border-2 border-lavender rounded-lg focus:outline-none focus:border-purple resize-none"
             rows="4"
           />

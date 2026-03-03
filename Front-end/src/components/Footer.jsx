@@ -16,9 +16,21 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: "smooth" });
 
   const profile = getProfileRoute();
+
+  let espaceLabel;
+  if (!profile) {
+    espaceLabel = t("footer.login");
+  } else if (profile.path === "/profile-admin") {
+    espaceLabel = t("footerNav.spaceAdmin");
+  } else if (profile.path === "/profile-superjury") {
+    espaceLabel = t("footerNav.spaceSuperJury");
+  } else {
+    espaceLabel = t("footerNav.spaceJury");
+  }
+
   const espaceLink = profile
-    ? { label: profile.label, href: profile.path }
-    : { label: t("footer.login"), href: "/login" };
+    ? { label: espaceLabel, href: profile.path }
+    : { label: espaceLabel, href: "/login" };
 
   return (
     <footer className="relative w-full bg-[#262335] text-white">
@@ -31,13 +43,13 @@ export default function Footer() {
 
                 <nav className="flex flex-col items-center space-y-2 text-lg leading-7">
                     {[
-                    { label: "Le festival", href: "/about" },
-                    { label: "Catalogue", href: "/catalogs" },
-                    { label: "Participer", href: "/submissions" },
+                    { label: t("footerNav.festival"), href: "/about" },
+                    { label: t("footerNav.catalog"), href: "/catalogs" },
+                    { label: t("footerNav.participate"), href: "/submissions" },
                     { label: espaceLink.label, href: espaceLink.href },
-                    { label: "Le jury", href: "/membres-du-jury" },
-                    { label: "Nos partenaires", href: "/nos-partenaires" },
-                    { label: "Palmares", href: "/prize-list" },
+                    { label: t("footerNav.jury"), href: "/membres-du-jury" },
+                    { label: t("footerNav.partners"), href: "/nos-partenaires" },
+                    { label: t("footerNav.prizes"), href: "/prize-list" },
                     ].map((l) => (
                     <a
                         key={l.label}
