@@ -34,7 +34,7 @@ export default function Footer() {
                     { label: "Le festival", href: "/about" },
                     { label: "Catalogue", href: "/catalogs" },
                     { label: "Participer", href: "/submissions" },
-                    { label: "Espace Jury", href: "/profile-jury" },
+                    { label: espaceLink.label, href: espaceLink.href },
                     { label: "Le jury", href: "/membres-du-jury" },
                     { label: "Nos partenaires", href: "/nos-partenaires" },
                     { label: "Palmares", href: "/prize-list" },
