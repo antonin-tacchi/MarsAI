@@ -26,6 +26,11 @@ export default {
     superJurySpace: "Super Jury Space",
     directorSpace: "Director Space",
     partners: "Our partners",
+    jurySpace: "Jury Space",
+    adminSpace: "Admin Space",
+    superJurySpace: "Super Jury Space",
+    directorSpace: "Director Space",
+    partners: "Our partners",
   },
 
   login: {
