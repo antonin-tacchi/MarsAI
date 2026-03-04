@@ -10,6 +10,8 @@ import {
   getAssignedFilmsForJury,
   getResults,
   refuseFilm,
+  selectFilm,
+  passFilm,
 } from "../controllers/jury.controller.js";
 import { getMyLists } from "../controllers/jurylist.controller.js";
 
@@ -47,5 +49,11 @@ router.delete("/films/:id/rate", deleteRating);
 
 // Refuse an assigned film
 router.post("/films/:id/refuse", refuseFilm);
+
+// Select a film (Jury)
+router.post("/films/:id/select", selectFilm);
+
+// Pass a film (Jury skips without rating)
+router.post("/films/:id/pass", passFilm);
 
 export default router;

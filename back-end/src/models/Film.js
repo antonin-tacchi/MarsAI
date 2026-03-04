@@ -180,16 +180,43 @@ export default class Film {
     return { ...film, status, rejection_reason: rejectionReason };
   }
 
+
+  static async selectFilm(filmId, userId) {
+    const film = await this.findById(filmId);
+    if (!film) throw new Error("Film non trouv\u00e9");
+
+    if (film.status !== "approved") {
+      throw new Error(`Impossible de s\u00e9lectionner un film avec le statut : ${film.status}`);
+    }
+
+    const sql = `
+      UPDATE films
+      SET status = 'selected', status_changed_at = NOW(), status_changed_by = ?
+      WHERE id = ?
+    `;
+    await db.query(sql, [userId, filmId]);
+    return { ...film, status: "selected" };
+  }
+
   static async getStats() {
     const [statusRows] = await db.query(
       `SELECT status, COUNT(*) as count FROM films GROUP BY status`
     );
     const [countryRows] = await db.query(
-      `SELECT country, COUNT(*) as count FROM films GROUP BY country ORDER BY count DESC`
+      `SELECT country, COUNT(*) as count FROM films WHERE status = 'approved' GROUP BY country ORDER BY count DESC`,
+    );
+    const [categoryRows] = await db.query(
+      `SELECT c.id as category_id, c.name as category_name, COUNT(fc.film_id) as count
+       FROM categories c
+       INNER JOIN film_categories fc ON fc.category_id = c.id
+       INNER JOIN films f ON fc.film_id = f.id AND f.status = 'approved'
+       GROUP BY c.id, c.name
+       ORDER BY c.name ASC`,
     );
     return {
       byStatus: statusRows,
       byCountry: countryRows,
+      byCategory: categoryRows,
       total: statusRows.reduce((sum, r) => sum + r.count, 0),
     };
   }
