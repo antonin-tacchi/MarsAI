@@ -1,16 +1,33 @@
 import db from "../config/database.js";
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 /**
- * Split an array into chunks of at most `size` elements.
+ * Split an array into chunks of at most `maxSize` elements,
+ * but distribute films evenly so all lists have the same size (±1).
+ *
+ * Example: 15 films, maxSize=10 → 2 lists of [8, 7] instead of [10, 5].
+ *
  * @param {any[]} arr
- * @param {number} size
+ * @param {number} maxSize  Maximum number of films per list
  * @returns {any[][]}
  */
-function chunk(arr, size) {
+function chunkBalanced(arr, maxSize) {
+  if (arr.length === 0) return [];
+
+  // Number of lists needed (at least 1)
+  const numLists = Math.ceil(arr.length / maxSize);
+
+  // Base size and how many lists get one extra film
+  const base  = Math.floor(arr.length / numLists);
+  const extra = arr.length % numLists; // first `extra` lists get (base+1) films
+
   const result = [];
-  for (let i = 0; i < arr.length; i += size) {
-    result.push(arr.slice(i, i + size));
+  let offset = 0;
+  for (let i = 0; i < numLists; i++) {
+    const size = base + (i < extra ? 1 : 0);
+    result.push(arr.slice(offset, offset + size));
+    offset += size;
   }
   return result;
 }
@@ -345,14 +362,14 @@ export const previewRotationLists = async (req, res) => {
     }
 
     const perJuryCounts = juries.map((j) => byJury.get(j.id).length);
-    const listsPerJury  = juries.map((j) => chunk(byJury.get(j.id), filmsPerList).length);
+    const listsPerJury  = juries.map((j) => chunkBalanced(byJury.get(j.id), filmsPerList).length);
 
     // Per-jury breakdown for display
     const juryBreakdown = juries.map((j) => ({
       id:         j.id,
       name:       j.name,
       filmCount:  byJury.get(j.id).length,
-      listCount:  chunk(byJury.get(j.id), filmsPerList).length,
+      listCount:  chunkBalanced(byJury.get(j.id), filmsPerList).length,
     }));
 
     // Store for confirmation
@@ -361,6 +378,13 @@ export const previewRotationLists = async (req, res) => {
       R, filmsPerList, juries,
       byJury: Object.fromEntries([...byJury.entries()].map(([k, v]) => [k, v])),
     });
+
+    // Compute balanced list size range across all juries for display
+    const allPackSizes = juries.flatMap((j) =>
+      chunkBalanced(byJury.get(j.id), filmsPerList).map((p) => p.length)
+    );
+    const listSizeMin = allPackSizes.length ? Math.min(...allPackSizes) : 0;
+    const listSizeMax = allPackSizes.length ? Math.max(...allPackSizes) : 0;
 
     return res.json({
       success: true,
@@ -373,6 +397,8 @@ export const previewRotationLists = async (req, res) => {
         juryCount:           J,
         R,
         filmsPerList,
+        listSizeMin,
+        listSizeMax,
         totalAssignments:    films.length * R,
         minAssignedPerJury:  Math.min(...perJuryCounts),
         maxAssignedPerJury:  Math.max(...perJuryCounts),
@@ -443,7 +469,7 @@ export const generateRotationLists = async (req, res) => {
 
     for (const jury of juries) {
       const filmIds = byJury[jury.id] || [];
-      const packs   = chunk(filmIds, filmsPerList);
+      const packs   = chunkBalanced(filmIds, filmsPerList);
 
       for (let idx = 0; idx < packs.length; idx++) {
         const listName = `AUTO-ROTATION ${nowLabel} - ${jury.name} - #${idx + 1}`;
