@@ -305,12 +305,16 @@ export const getFilms = async (req, res) => {
     const sortField = req.query.sortField || "created_at";
     const sortOrder = req.query.sortOrder || "DESC";
 
+    const allowedStatuses = ["approved", "selected", "pending", "rejected"];
+    const requestedStatus = req.query.status || "approved";
+    const safeStatus = allowedStatuses.includes(requestedStatus) ? requestedStatus : "approved";
+
     const { rows, count } = await Film.findAll({
       limit,
       offset,
       sortField,
       sortOrder,
-      status: "approved",
+      status: safeStatus,
     });
 
     const signedRows = await Promise.all(rows.map(withSignedMedia));
