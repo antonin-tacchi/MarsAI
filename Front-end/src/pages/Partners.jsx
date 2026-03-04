@@ -9,72 +9,10 @@ export default function Partners() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPartners = async () => {
-      try {
-        // TODO: Remplacer par l'endpoint API une fois le backend prêt (au lieu d'utiliser les données démo)
-        const response = await fetch('/api/partners');
-        const data = await response.json();
-        setPartners(data);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Erreur lors du chargement des partenaires:', error);
-        setIsLoading(false);
-
-        // DONNÉES DE DÉMONSTRATION (À retirer une fois BDD + API prêtes)
-        setPartners([
-          {
-            id: 1,
-            name: "Partenaire 1",
-            logo: "https://via.placeholder.com/200x80/463699/ffffff?text=Logo+1",
-            url: "https://example.com"
-          },
-          {
-            id: 2,
-            name: "Partenaire 2",
-            logo: "https://via.placeholder.com/200x80/8A83DA/ffffff?text=Logo+2",
-            url: "https://example.com"
-          },
-          {
-            id: 3,
-            name: "Partenaire 3",
-            logo: "https://via.placeholder.com/200x80/C7C2CE/262335?text=Logo+3",
-            url: "https://example.com"
-          },
-          {
-            id: 4,
-            name: "Partenaire 4",
-            logo: "https://via.placeholder.com/200x80/FBD5BD/262335?text=Logo+4",
-            url: "https://example.com"
-          },
-          {
-            id: 5,
-            name: "Partenaire 5",
-            logo: "https://via.placeholder.com/200x80/FBF5F0/262335?text=Logo+5",
-            url: "https://example.com"
-          },
-          {
-            id: 6,
-            name: "Partenaire 6",
-            logo: "https://via.placeholder.com/200x80/463699/ffffff?text=Logo+6",
-            url: "https://example.com"
-          },
-          {
-            id: 7,
-            name: "Partenaire 7",
-            logo: "https://via.placeholder.com/200x80/8A83DA/ffffff?text=Logo+7",
-            url: "https://example.com"
-          },
-          {
-            id: 8,
-            name: "Partenaire 8",
-            logo: "https://via.placeholder.com/200x80/C7C2CE/262335?text=Logo+8",
-            url: "https://example.com"
-          }
-        ]);
-      }
-    };
-
-    fetchPartners();
+    fetch('http://localhost:5001/api/partners')
+      .then(res => res.json())
+      .then(data => setPartners(Array.isArray(data) ? data : data.data || []))
+      .finally(() => setIsLoading(false));
   }, []);
 
   if (isLoading) {
@@ -93,11 +31,9 @@ export default function Partners() {
 
         <div className="container mx-auto px-5 md:px-8 lg:px-12 xl:px-16 max-w-[1440px] relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
-            {/* Titre principal */}
             <h1 className="font-['Saira_Condensed'] text-[36px] md:text-[64px] font-bold text-[#262335] leading-tight tracking-tight">
               {t("partners.title")}
             </h1>
-
             <Link
               to="/contact"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#463699] text-white rounded-xl font-semibold text-lg md:text-xl shadow-lg shadow-[#463699]/20 hover:bg-[#8A83DA] transition-all duration-300 whitespace-nowrap"
@@ -106,15 +42,12 @@ export default function Partners() {
               <span className="text-xl">→</span>
             </Link>
           </div>
-
-          {/* Description principale */}
           <p className="text-base md:text-lg text-[#262335]/70 max-w-2xl leading-relaxed">
-            {t("partners.description")}
+            Ils nous font confiance et contribuent à la réussite de notre festival.
           </p>
         </div>
       </section>
 
-      {/* Section grille des partenaires */}
       <section className="pb-24 md:pb-32">
         <div className="container mx-auto px-5 md:px-8 lg:px-12 xl:px-16 max-w-[1440px]">
 
@@ -141,16 +74,8 @@ export default function Partners() {
               {partners.map((partner, index) => (
                 <div
                   key={partner.id}
-                  className="
-                    w-full
-                    sm:w-[calc(50%-0.625rem)]
-                    md:w-[calc(25%-1.5rem)]
-                    opacity-0 animate-fadeInScale
-                  "
-                  style={{
-                    animationDelay: `${index * 50}ms`,
-                    animationFillMode: 'forwards'
-                  }}
+                  className="w-full sm:w-[calc(50%-0.625rem)] md:w-[calc(25%-1.5rem)] opacity-0 animate-fadeInScale"
+                  style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
                 >
                   <PartnerCard partner={partner} />
                 </div>
@@ -160,22 +85,12 @@ export default function Partners() {
         </div>
       </section>
 
-      {/* Animations CSS */}
       <style>{`
         @keyframes fadeInScale {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
-
-        .animate-fadeInScale {
-          animation: fadeInScale 0.5s ease-out;
-        }
+        .animate-fadeInScale { animation: fadeInScale 0.5s ease-out; }
       `}</style>
     </div>
   );
