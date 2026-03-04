@@ -448,12 +448,15 @@ export default function ProfileSuperJury() {
               </div>
 
               <div className="bg-[#FBF5F0] rounded-xl p-4 border border-[#262335]/10">
-                <label className="block text-sm font-bold text-[#262335] mb-1">Films par liste</label>
+                <label className="block text-sm font-bold text-[#262335] mb-1">Films max par liste</label>
                 <input type="number" min={1} max={200} value={filmsPerList}
                   onChange={(e) => { resetGenerator(); setFilmsPerList(Math.max(1, parseInt(e.target.value, 10) || 1)); }}
                   className="w-full px-3 py-2 border-2 border-[#262335]/10 rounded-lg text-center font-mono focus:outline-none focus:border-[#463699]"
                 />
-                <p className="text-xs text-[#262335]/60 mt-2">Toutes les listes auront <span className="font-mono">{generatorSummary.L}</span> films (si possible).</p>
+                <p className="text-xs text-[#262335]/60 mt-2">
+                  Maximum <span className="font-mono">{generatorSummary.L}</span> films/liste.
+                  Les listes sont équilibrées (taille identique ±1).
+                </p>
               </div>
 
               <div className="bg-[#FBF5F0] rounded-xl p-4 border border-[#262335]/10">
@@ -498,6 +501,16 @@ export default function ProfileSuperJury() {
                     </div>
                   ))}
                 </div>
+                {previewData.listSizeMin !== undefined && (
+                  <div className="bg-[#463699]/5 border border-[#463699]/20 rounded-xl px-4 py-3 text-sm text-[#262335]">
+                    📐 <span className="font-bold">Équilibrage des listes :</span> chaque liste contient{" "}
+                    {previewData.listSizeMin === previewData.listSizeMax
+                      ? <><span className="font-mono font-bold">{previewData.listSizeMin}</span> films</>
+                      : <><span className="font-mono font-bold">{previewData.listSizeMin}</span> ou <span className="font-mono font-bold">{previewData.listSizeMax}</span> films</>
+                    }
+                    {" "}(max configuré : <span className="font-mono">{previewData.filmsPerList}</span>).
+                  </div>
+                )}
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: "Min films / jury", value: previewData.minAssignedPerJury },
