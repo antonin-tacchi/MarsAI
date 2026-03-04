@@ -237,7 +237,7 @@ export const updateFilmStatus = async (req, res) => {
     }
 
     const newStatus = (status || "").trim();
-    if (!newStatus || !["pending", "approved", "rejected"].includes(newStatus)) {
+    if (!newStatus || !["pending", "approved", "rejected", "selected"].includes(newStatus)) {
       return res.status(400).json({ success: false, message: "Statut invalide" });
     }
 
