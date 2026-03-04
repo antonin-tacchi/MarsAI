@@ -221,3 +221,54 @@ export const refuseFilm = async (req, res) => {
     });
   }
 };
+
+// Select a film (Jury only)
+export const selectFilm = async (req, res) => {
+  try {
+    const filmId = parseInt(req.params.id, 10);
+    if (!filmId) {
+      return res.status(400).json({ success: false, message: "Invalid film ID" });
+    }
+
+    const userId = req.user.userId;
+    const film = await Film.selectFilm(filmId, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Film s\u00e9lectionn\u00e9 avec succ\u00e8s",
+      data: film,
+    });
+  } catch (err) {
+    console.error("selectFilm error:", err);
+    return res.status(400).json({
+      success: false,
+      message: err.message || "Erreur lors de la s\u00e9lection du film",
+    });
+  }
+};
+
+// Pass a film (jury skips it, persisted in DB)
+export const passFilm = async (req, res) => {
+  try {
+    const filmId = parseInt(req.params.id, 10);
+    if (!filmId) {
+      return res.status(400).json({ success: false, message: "Invalid film ID" });
+    }
+
+    const userId = req.user.userId;
+    const result = await JuryAssignment.pass(userId, filmId);
+
+    if (!result) {
+      return res.status(404).json({ success: false, message: "Ce film ne vous est pas assigné" });
+    }
+
+    if (result.alreadyPassed) {
+      return res.status(409).json({ success: false, message: "Vous avez déjà passé ce film" });
+    }
+
+    return res.status(200).json({ success: true, message: "Film passé avec succès" });
+  } catch (err) {
+    console.error("passFilm error:", err);
+    return res.status(500).json({ success: false, message: err.message || "Erreur lors du passage du film" });
+  }
+};

@@ -180,6 +180,24 @@ export default class Film {
     return { ...film, status, rejection_reason: rejectionReason };
   }
 
+
+  static async selectFilm(filmId, userId) {
+    const film = await this.findById(filmId);
+    if (!film) throw new Error("Film non trouv\u00e9");
+
+    if (film.status !== "approved") {
+      throw new Error(`Impossible de s\u00e9lectionner un film avec le statut : ${film.status}`);
+    }
+
+    const sql = `
+      UPDATE films
+      SET status = 'selected', status_changed_at = NOW(), status_changed_by = ?
+      WHERE id = ?
+    `;
+    await db.query(sql, [userId, filmId]);
+    return { ...film, status: "selected" };
+  }
+
   static async getStats() {
     const [statusRows] = await db.query(
       `SELECT status, COUNT(*) as count FROM films GROUP BY status`
