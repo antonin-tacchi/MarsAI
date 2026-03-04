@@ -89,6 +89,7 @@ export default {
   },
 
   detailsFilm: {
+    backToFilms: "Retour à mes films",
     backToCatalog: "← Retour aux catalogues",
     loading: "Chargement…",
     error: "Erreur",
@@ -158,9 +159,6 @@ export default {
     ratedLabel: "notés",
     unratedLabel: "non notés",
     completed: "terminé",
-    selectButton: "Sélectionner",
-    passButton: "Passer",
-    alreadySelected: "Déjà sélectionné",
   },
 
   profileSuperJury: {
