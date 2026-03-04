@@ -82,10 +82,10 @@ function RefuseModal({ film, onClose, onConfirm, t }) {
   );
 }
 
-function FilmRow({ film, apiUrl, onRefuse, t }) {
+function FilmRow({ film, apiUrl, onRefuse, onSelect, t }) {
   return (
     <div className="flex items-center gap-4 p-3 bg-white rounded-xl border border-[#262335]/5 hover:border-[#463699]/30 transition-colors">
-      <a href={`/details-film/${film?.id ?? ""}`} className="shrink-0 w-24 h-14 rounded-lg overflow-hidden bg-[#C7C2CE]">
+      <button type="button" onClick={() => onSelect(film)} className="shrink-0 w-24 h-14 rounded-lg overflow-hidden bg-[#C7C2CE]">
         <img
           src={
             film?.thumbnail_url
@@ -100,15 +100,15 @@ function FilmRow({ film, apiUrl, onRefuse, t }) {
             e.target.src = "/placeholder.jpg";
           }}
         />
-      </a>
+      </button>
 
-      <a href={`/details-film/${film?.id ?? ""}`} className="flex-1 min-w-0">
+      <button type="button" onClick={() => onSelect(film)} className="flex-1 min-w-0 text-left">
         <p className="font-semibold text-[#262335] truncate">{film?.title}</p>
         <p className="text-sm text-[#262335]/70 truncate">
           {film?.director_firstname} {film?.director_lastname}
           {film?.country && <span className="ml-2 text-[#262335]/50">({film.country})</span>}
         </p>
-      </a>
+      </button>
 
       <div className="flex items-center gap-3 shrink-0">
         {film?.user_rating !== null && film?.user_rating !== undefined ? (
@@ -127,6 +127,109 @@ function FilmRow({ film, apiUrl, onRefuse, t }) {
         {film?.average_rating != null && (
           <span className="text-sm font-bold text-[#463699]">{film.average_rating}/10</span>
         )}
+      </div>
+    </div>
+  );
+}
+
+
+function FilmModal({ film, apiUrl, onClose, onSelect, onPass, t }) {
+  const [selecting, setSelecting] = useState(false);
+  const [error, setError] = useState("");
+
+  const posterSrc = film?.poster_url
+    ? film.poster_url.startsWith("http")
+      ? film.poster_url
+      : `${apiUrl}${film.poster_url}`
+    : "/placeholder.jpg";
+
+  const youtubeEmbed = film?.youtube_url
+    ? film.youtube_url.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")
+    : null;
+
+  const handleSelect = async () => {
+    setSelecting(true);
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${apiUrl}/api/jury/films/${film.id}/select`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message || "Erreur");
+      onSelect();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSelecting(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-[#FBF5F0] rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        {/* Video / Poster */}
+        <div className="relative w-full aspect-video bg-black shrink-0">
+          {youtubeEmbed ? (
+            <iframe
+              src={youtubeEmbed}
+              title={film?.title}
+              className="w-full h-full"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            />
+          ) : (
+            <img src={posterSrc} alt={film?.title} className="w-full h-full object-cover" />
+          )}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg transition-colors"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto flex flex-col gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-[#262335] mb-1">{film?.title}</h2>
+            <p className="text-[#463699] font-medium">
+              {film?.director_firstname} {film?.director_lastname}
+              {film?.country && <span className="text-[#262335]/50 font-normal ml-2">— {film.country}</span>}
+            </p>
+          </div>
+
+          {film?.description && (
+            <p className="text-[#262335]/80 text-sm leading-relaxed line-clamp-5">{film.description}</p>
+          )}
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          {/* Action buttons */}
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={handleSelect}
+              disabled={selecting || film?.status === "selected"}
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#463699] to-[#2f2a73] text-white font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
+            >
+              {selecting
+                ? "..."
+                : film?.status === "selected"
+                ? t("profileJury.alreadySelected") || "Déjà sélectionné"
+                : t("profileJury.selectButton") || "Sélectionner"}
+            </button>
+            <button
+              onClick={onPass}
+              className="flex-1 py-3 rounded-xl border-2 border-[#262335]/20 text-[#262335] font-bold hover:bg-[#262335]/5 transition-colors"
+            >
+              {t("profileJury.passButton") || "Passer"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -153,6 +256,8 @@ export default function ProfileJury() {
   const [page, setPage] = useState(1);
 
   const [refuseTarget, setRefuseTarget] = useState(null);
+  const [selectTarget, setSelectTarget] = useState(null);
+
 
   const [stats, setStats] = useState({
     totalAssigned: 0,
@@ -273,6 +378,19 @@ export default function ProfileJury() {
   const onRefuseConfirm = () => {
     setRefuseTarget(null);
     if (view.type === "films") fetchFilms(page, view.listId);
+  };
+
+  const onSelectConfirm = () => {
+    if (selectTarget) {
+      setFilms((prev) => prev.filter((f) => f.id !== selectTarget.id));
+      setStats((prev) => ({
+        ...prev,
+        totalAssigned: Math.max(0, prev.totalAssigned - 1),
+        totalUnrated: selectTarget.user_rating == null ? Math.max(0, prev.totalUnrated - 1) : prev.totalUnrated,
+        totalRated: selectTarget.user_rating != null ? Math.max(0, prev.totalRated - 1) : prev.totalRated,
+      }));
+    }
+    setSelectTarget(null);
   };
 
   if (profileLoading) {
@@ -478,19 +596,13 @@ export default function ProfileJury() {
               {uiState === "success" && viewMode === "grid" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-12 justify-items-center">
                   {films.map((film) => (
-                    <div key={film.id} className="flex flex-col items-center w-[260px]">
-                      <FilmCard film={film} apiUrl={API_URL} />
-                      {!film.user_rating && (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setRefuseTarget(film);
-                          }}
-                          className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium transition-colors"
-                        >
-                          {t("profileJury.refuseButton")}
-                        </button>
-                      )}
+                    <div
+                      key={film.id}
+                      className={`flex flex-col items-center w-[260px] transition-opacity duration-300 ${
+                        film.is_passed ? "opacity-35 grayscale pointer-events-none" : ""
+                      }`}
+                    >
+                      <FilmCard film={film} apiUrl={API_URL} onClick={() => !film.is_passed && setSelectTarget(film)} />
                     </div>
                   ))}
                 </div>
@@ -499,7 +611,14 @@ export default function ProfileJury() {
               {uiState === "success" && viewMode === "list" && (
                 <div className="flex flex-col gap-2">
                   {films.map((film) => (
-                    <FilmRow key={film.id} film={film} apiUrl={API_URL} onRefuse={setRefuseTarget} t={t} />
+                    <div
+                      key={film.id}
+                      className={`transition-opacity duration-300 ${
+                        film.is_passed ? "opacity-35 grayscale pointer-events-none" : ""
+                      }`}
+                    >
+                      <FilmRow film={film} apiUrl={API_URL} onRefuse={setRefuseTarget} onSelect={setSelectTarget} t={t} />
+                    </div>
                   ))}
                 </div>
               )}
@@ -543,6 +662,37 @@ export default function ProfileJury() {
 
       {refuseTarget && (
         <RefuseModal film={refuseTarget} onClose={() => setRefuseTarget(null)} onConfirm={onRefuseConfirm} t={t} />
+      )}
+
+      {selectTarget && (
+        <FilmModal
+          film={selectTarget}
+          apiUrl={API_URL}
+          onClose={() => setSelectTarget(null)}
+          onSelect={onSelectConfirm}
+          onPass={async () => {
+            if (selectTarget) {
+              try {
+                const token = localStorage.getItem("token");
+                await fetch(`${API_URL}/api/jury/films/${selectTarget.id}/pass`, {
+                  method: "POST",
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+              } catch (err) {
+                console.error("passFilm error:", err);
+              }
+              setFilms((prev) =>
+                prev.map((f) => f.id === selectTarget.id ? { ...f, is_passed: true } : f)
+              );
+              setStats((prev) => ({
+                ...prev,
+                totalUnrated: selectTarget.user_rating == null ? Math.max(0, prev.totalUnrated - 1) : prev.totalUnrated,
+              }));
+            }
+            setSelectTarget(null);
+          }}
+          t={t}
+        />
       )}
     </div>
   );
