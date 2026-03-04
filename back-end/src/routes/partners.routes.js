@@ -1,7 +1,7 @@
 import express from "express";
-import { getAllPartners, getPartnerById, createPartner, updatePartner, deletePartner } from "../controllers/partners_controller.js";
-import { authenticateToken } from "../middlewares/auth_middleware.js";
-import { authorize } from "../middlewares/authorize_middleware.js";
+import { getAllPartners, getPartnerById, createPartner, updatePartner, deletePartner } from "../controllers/partners.controller.js";
+import { authenticateToken } from "../middleware/auth.middleware.js";
+import { authorize } from "../middleware/authorize.middleware.js";
 
 const router = express.Router();
 

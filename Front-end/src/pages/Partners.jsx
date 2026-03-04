@@ -9,14 +9,8 @@ export default function Partners() {
   useEffect(() => {
     fetch('/api/partners')
       .then(res => res.json())
-      .then(data => {
-        if (data.success) setPartners(data.data);
-        setIsLoading(false);
-      })
-      .catch(err => {
-        console.error('Erreur chargement partenaires:', err);
-        setIsLoading(false);
-      });
+      .then(data => setPartners(Array.isArray(data) ? data : data.data || []))
+      .finally(() => setIsLoading(false));
   }, []);
 
   if (isLoading) {
@@ -29,8 +23,6 @@ export default function Partners() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FBF5F0] to-white">
-      
-      {/* Hero */}
       <section className="relative overflow-hidden pt-20 pb-16 md:pt-24 md:pb-20">
         <div className="container mx-auto px-5 md:px-8 lg:px-12 xl:px-16 max-w-[1440px] relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
@@ -51,7 +43,6 @@ export default function Partners() {
         </div>
       </section>
 
-      {/* Grille partenaires */}
       <section className="pb-24 md:pb-32">
         <div className="container mx-auto px-5 md:px-8 lg:px-12 xl:px-16 max-w-[1440px]">
           {partners.length === 0 ? (
