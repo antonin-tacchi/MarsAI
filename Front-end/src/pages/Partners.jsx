@@ -7,7 +7,7 @@ export default function Partners() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/partners')
+    fetch('http://localhost:5001/api/partners')
       .then(res => res.json())
       .then(data => setPartners(Array.isArray(data) ? data : data.data || []))
       .finally(() => setIsLoading(false));
