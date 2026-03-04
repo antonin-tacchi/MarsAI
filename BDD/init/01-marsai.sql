@@ -476,6 +476,32 @@ ORDER BY u.name ASC;
 
 COMMIT;
 
+-- --------------------------------------------------------
+-- Table: partners
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `partners`;
+CREATE TABLE `partners` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `logo` VARCHAR(500) NOT NULL,
+  `url` VARCHAR(500) NOT NULL,
+  `display_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_display_order` (`display_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `partners` (`name`, `logo`, `url`, `display_order`) VALUES
+('La Plateforme', 'https://via.placeholder.com/200x80/463699/ffffff?text=La+Plateforme', 'https://laplateforme.io', 1),
+('Ville de Marseille', 'https://via.placeholder.com/200x80/8A83DA/ffffff?text=Marseille', 'https://marseille.fr', 2),
+('Région Sud', 'https://via.placeholder.com/200x80/C7C2CE/262335?text=Region+Sud', 'https://maregionsud.fr', 3),
+('OpenAI', 'https://via.placeholder.com/200x80/FBD5BD/262335?text=OpenAI', 'https://openai.com', 4),
+('Anthropic', 'https://via.placeholder.com/200x80/FBF5F0/262335?text=Anthropic', 'https://anthropic.com', 5);
+
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
