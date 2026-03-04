@@ -1,7 +1,12 @@
 -- MarsAI Database Schema (Simplified)
--- Version: 2.0
--- Date: 2026-01-26
+-- Version: 2.2
+-- Date: 2026-03-04
 -- Description: Film festival platform with jury/admin validation system
+-- Changelog v2.2:
+--   - jury_assignments.status : ajout de la valeur 'passed' (film passe par le jury sans noter)
+-- Changelog v2.1: 
+--   - films.status : ajout de la valeur 'selected' (film selectionne par le jury)
+--   - film_categories : ajout de assigned_by et assigned_at (traçabilite de l'assignation)
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -120,7 +125,7 @@ CREATE TABLE `films` (
   `social_vimeo` varchar(255) DEFAULT NULL,
 
   -- Status and Tracking
-  `status` enum('pending', 'approved', 'rejected') DEFAULT 'pending',
+  `status` enum('pending', 'approved', 'rejected', 'selected') DEFAULT 'pending' COMMENT 'pending=soumis, approved=validé admin, rejected=rejeté, selected=sélectionné jury',
   `status_changed_at` datetime DEFAULT NULL,
   `status_changed_by` int DEFAULT NULL COMMENT 'User ID who changed the status',
   `rejection_reason` text COMMENT 'Reason for rejection (if rejected)',
@@ -138,16 +143,21 @@ CREATE TABLE `films` (
 
 -- --------------------------------------------------------
 -- Table: film_categories (Junction table)
+-- Assignee par le jury au moment de la selection d'un film (status = 'selected')
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `film_categories`;
 CREATE TABLE `film_categories` (
   `film_id` int NOT NULL,
   `category_id` int NOT NULL,
+  `assigned_by` int DEFAULT NULL COMMENT 'Jury member who assigned the category',
+  `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'Date of category assignment',
   PRIMARY KEY (`film_id`, `category_id`),
   KEY `category_id` (`category_id`),
+  KEY `fk_fc_assigned_by` (`assigned_by`),
   CONSTRAINT `fk_fc_film` FOREIGN KEY (`film_id`) REFERENCES `films` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_fc_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_fc_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_fc_assigned_by` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -303,7 +313,7 @@ CREATE TABLE `jury_assignments` (
   `list_id` int DEFAULT NULL COMMENT 'Jury list this assignment belongs to',
   `assigned_by` int NOT NULL COMMENT 'Super Jury who made the assignment',
   `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `status` enum('active','refused') NOT NULL DEFAULT 'active' COMMENT 'Assignment status',
+  `status` enum('active','refused','passed') NOT NULL DEFAULT 'active' COMMENT 'Assignment status: active=en cours, refused=refusé par jury, passed=passé sans noter',
   `refusal_reason` text DEFAULT NULL COMMENT 'Reason if jury refused the film',
   `refused_at` datetime DEFAULT NULL COMMENT 'Timestamp of refusal',
   PRIMARY KEY (`id`),

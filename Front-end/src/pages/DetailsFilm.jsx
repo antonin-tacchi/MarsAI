@@ -32,222 +32,6 @@ function withAuthHeaders(headers = {}) {
   return token ? { ...headers, Authorization: `Bearer ${token}` } : headers;
 }
 
-function ReviewForm({ rating, comment, onRatingChange, onCommentChange }) {
-  const { t } = useLanguage();
-  return (
-    <div className="mt-12 flex flex-col gap-10 md:flex-row items-end mb-[69px]">
-      <div className="md:flex-1">
-        <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
-          {t("detailsFilm.giveOpinion")}
-        </h2>
-
-        <div className="w-full max-w-[600px] h-[80px] flex items-center justify-between px-[27px] bg-black/10 border border-[#262335]/10 rounded-md">
-          {Array.from({ length: 10 }).map((_, i) => {
-            const value = i + 1;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => onRatingChange(value)}
-                className="w-10 h-10 p-0 border-0 bg-transparent flex items-center justify-center focus:outline-none"
-              >
-                <svg
-                  className={`w-8 h-8 ${
-                    value <= rating ? "text-yellow-400" : "text-gray-300"
-                  }`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.97a1 1 0 00.95.69h4.178c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.97c.3.921-.755 1.688-1.54 1.118l-3.381-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.785.57-1.84-.197-1.54-1.118l1.286-3.97a1 1 0 00-.364-1.118L2.049 9.397c-.783-.57-.38-1.81.588-1.81h4.178a1 1 0 00.95.69l1.286-3.97z" />
-                </svg>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="md:flex-1">
-        <h2 className="mb-4 text-[28px] font-medium text-[#262335]">
-          {t("detailsFilm.addComment")}
-        </h2>
-
-        <div className="w-full max-w-[600px] h-[80px] p-[3px] bg-white border border-black/10">
-          <textarea
-            name="comment"
-            value={comment}
-            onChange={(e) => onCommentChange(e.target.value)}
-            placeholder={t("detailsFilm.commentPlaceholder")}
-            className="w-full h-full bg-black/5 border border-black/10 outline-none resize-none px-4 py-4 text-base text-[#262335] placeholder:text-[#262335]/40"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const STATUS_STYLES = {
-  pending: {
-    bg: "bg-yellow-100",
-    text: "text-yellow-800",
-    border: "border-yellow-300",
-  },
-  approved: {
-    bg: "bg-green-100",
-    text: "text-green-800",
-    border: "border-green-300",
-  },
-  rejected: { bg: "bg-red-100", text: "text-red-800", border: "border-red-300" },
-};
-
-const STATUS_LABEL_KEYS = {
-  pending: "detailsFilm.statusPending",
-  approved: "detailsFilm.statusApproved",
-  rejected: "detailsFilm.statusRejected",
-};
-
-function StatusBadge({ filmStatus }) {
-  const { t } = useLanguage();
-  const cfg = STATUS_STYLES[filmStatus] || STATUS_STYLES.pending;
-  const labelKey = STATUS_LABEL_KEYS[filmStatus] || STATUS_LABEL_KEYS.pending;
-  return (
-    <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${cfg.bg} ${cfg.text} ${cfg.border}`}
-    >
-      {t(labelKey)}
-    </span>
-  );
-}
-
-function ApprovalPanel({
-  filmStatus,
-  rejectionReason,
-  onReasonChange,
-  onApprove,
-  onReject,
-  updating,
-  statusMessage,
-}) {
-  const [showRejectForm, setShowRejectForm] = useState(false);
-  const { t } = useLanguage();
-
-  return (
-    <div className="mt-8 rounded-xl border border-[#262335]/15 bg-[#f8f6f3] p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-[#262335]">
-          {t("detailsFilm.filmManagement")}
-        </h3>
-        <StatusBadge filmStatus={filmStatus} />
-      </div>
-
-      {statusMessage && (
-        <div
-          className={`mb-4 rounded-lg px-4 py-3 text-sm font-medium ${
-            statusMessage.type === "success"
-              ? "bg-green-50 text-green-700 border border-green-200"
-              : "bg-red-50 text-red-700 border border-red-200"
-          }`}
-        >
-          {statusMessage.text}
-        </div>
-      )}
-
-      {!showRejectForm ? (
-        <div className="flex flex-wrap gap-3">
-          {filmStatus !== "approved" && (
-            <button
-              onClick={onApprove}
-              disabled={updating}
-              className="px-5 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
-            >
-              {updating ? t("detailsFilm.updating") : t("detailsFilm.approve")}
-            </button>
-          )}
-          {filmStatus !== "rejected" && (
-            <button
-              onClick={() => setShowRejectForm(true)}
-              disabled={updating}
-              className="px-5 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
-            >
-              {t("detailsFilm.reject")}
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-[#262335]">
-            {t("detailsFilm.rejectionLabel")}
-          </label>
-          <textarea
-            value={rejectionReason}
-            onChange={(e) => onReasonChange(e.target.value)}
-            rows={3}
-            placeholder={t("detailsFilm.rejectionPlaceholder")}
-            className="w-full rounded-lg border border-[#262335]/20 bg-white px-4 py-3 text-[#262335] placeholder:text-[#262335]/40 outline-none focus:ring-2 focus:ring-red-300 resize-none"
-          />
-          <div className="flex gap-3">
-            <button
-              onClick={onReject}
-              disabled={updating || !rejectionReason.trim()}
-              className="px-5 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
-            >
-              {updating ? t("detailsFilm.sending") : t("detailsFilm.confirmReject")}
-            </button>
-            <button
-              onClick={() => {
-                setShowRejectForm(false);
-                onReasonChange("");
-              }}
-              disabled={updating}
-              className="px-5 py-2 rounded-lg border border-[#262335]/20 text-[#262335] font-medium hover:bg-black/5 transition-colors"
-            >
-              {t("detailsFilm.cancel")}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SaveButton({
-  onSave,
-  saving,
-  saveSuccess,
-  saveError,
-  onNextFilm,
-  hasNextFilm,
-  hasVoted,
-}) {
-  const { t } = useLanguage();
-  return (
-    <div className="mt-4 flex flex-wrap items-center gap-4 mb-8">
-      <button
-        onClick={onSave}
-        disabled={saving}
-        className="px-6 py-2 rounded-md bg-[#262335] text-white disabled:opacity-50"
-      >
-        {saving ? t("detailsFilm.saving") : t("detailsFilm.save")}
-      </button>
-
-      {hasVoted && hasNextFilm && (
-        <button
-          onClick={onNextFilm}
-          className="px-6 py-2 rounded-md bg-[#463699] text-white hover:bg-[#362b7a] transition-colors"
-        >
-          Film suivant →
-        </button>
-      )}
-
-      {saveSuccess && (
-        <span className="text-green-600 text-sm font-medium">
-          {t("detailsFilm.saved")}
-        </span>
-      )}
-      {saveError && <span className="text-red-600 text-sm">{saveError}</span>}
-    </div>
-  );
-}
-
 export default function DetailsFilm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -295,31 +79,17 @@ export default function DetailsFilm() {
     [API_URL]
   );
 
-  const fetchFilmsPage = useCallback(
-    async (page, limit, signal) => {
-      const res = await fetch(`${API_URL}/api/films?page=${page}&limit=${limit}`, {
+  const fetchSelectedFilms = useCallback(
+    async (signal) => {
+      const res = await fetch(`${API_URL}/api/films?all=1&status=selected`, {
         signal,
         headers: withAuthHeaders(),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "Erreur films");
-      return { items: data.data || [], pagination: data.pagination };
+      return data.data || [];
     },
     [API_URL]
-  );
-
-  const fetchAllFilms = useCallback(
-    async (signal) => {
-      const first = await fetchFilmsPage(1, 50, signal);
-      const all = [...first.items];
-      const totalPages = first.pagination?.totalPages || 1;
-      for (let p = 2; p <= totalPages; p++) {
-        const next = await fetchFilmsPage(p, 50, signal);
-        all.push(...next.items);
-      }
-      return all;
-    },
-    [fetchFilmsPage]
   );
 
   const fetchMyRatings = useCallback(
@@ -377,7 +147,7 @@ export default function DetailsFilm() {
     (async () => {
       try {
         const [allFilms, filmData] = await Promise.all([
-          fetchAllFilms(controller.signal),
+          fetchSelectedFilms(controller.signal),
           fetchFilmById(id, controller.signal),
         ]);
 
@@ -466,7 +236,7 @@ export default function DetailsFilm() {
     canReview,
     isJury,
     API_URL,
-    fetchAllFilms,
+    fetchSelectedFilms,
     fetchFilmById,
     fetchMyRatings,
     fetchFilmStats,
@@ -636,220 +406,132 @@ export default function DetailsFilm() {
   );
 
   return (
-    <div className="bg-white">
-      <div
-        className="
-          mx-auto max-w-7xl
-          px-4 sm:px-6
-          lg:pl-8 lg:pr-16
-          py-8 sm:py-10
-        "
-      >
+    <div className="bg-[#FBF5F0] min-h-screen">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+        {/* Retour */}
         <div className="mb-6">
           <Link
             to={isJury ? "/profile-jury" : "/catalogs"}
-            className="text-[#262335]/70 hover:text-[#262335]"
+            className="text-[#262335]/60 hover:text-[#262335] text-sm transition-colors"
           >
-            ← {isJury ? "Retour à mes films" : "Retour aux catalogues"}
+            ← {isJury ? t("detailsFilm.backToFilms") : t("detailsFilm.backToCatalog")}
           </Link>
         </div>
 
-        {status === "loading" && <div className="text-[#262335]">Chargement…</div>}
+        {/* Chargement */}
+        {status === "loading" && (
+          <div className="flex flex-col gap-6 lg:flex-row lg:gap-10">
+            <div className="lg:flex-[2] space-y-4">
+              <div className="w-full aspect-video rounded-xl bg-[#262335]/10 animate-pulse" />
+              <div className="h-6 bg-[#262335]/10 rounded w-1/2 animate-pulse" />
+              <div className="h-4 bg-[#262335]/10 rounded w-1/3 animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-4 bg-[#262335]/10 rounded animate-pulse" />
+                <div className="h-4 bg-[#262335]/10 rounded animate-pulse" />
+                <div className="h-4 bg-[#262335]/10 rounded w-3/4 animate-pulse" />
+              </div>
+            </div>
+            <div className="lg:w-[300px] lg:shrink-0 space-y-4">
+              {[0,1,2].map(i => (
+                <div key={i} className="flex gap-3">
+                  <div className="w-[120px] h-[70px] rounded-lg bg-[#262335]/10 animate-pulse shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-[#262335]/10 rounded animate-pulse" />
+                    <div className="h-3 bg-[#262335]/10 rounded w-3/4 animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
+        {/* Erreur */}
         {status === "error" && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4">
             <p className="text-red-700 font-medium">Erreur : {error}</p>
           </div>
         )}
 
+        {/* Succès */}
         {status === "success" && (
-          <div className="flex flex-col gap-10 lg:flex-row lg:gap-16">
+          <div className="flex flex-col gap-10 lg:flex-row lg:gap-12">
+
+            {/* ── Colonne principale ── */}
             <div className="min-w-0 lg:flex-[2]">
-              <div className="lg:hidden">
-                <div className="w-full max-w-[387px] mx-auto">
-                  <div className="w-full aspect-video">
-                    <FilmPlayer
-                      title={title}
-                      aiUrl={aiUrl}
-                      thumbnailUrl={film?.thumbnail_stream_url || film?.thumbnail_url}
-                      posterUrl={film?.poster_stream_url || film?.poster_url}
-                      apiUrl={API_URL}
-                    />
-                  </div>
 
-                  <div className="mt-6">
-                    <p className="text-[24px] font-semibold text-[#262335] leading-tight">
-                      {title}
-                    </p>
-
-                    <div className="mt-4 flex items-center justify-between gap-6">
-                      <div className="min-w-0 flex items-center gap-4">
-                        <div className="w-[56px] h-[56px] shrink-0 rounded-full bg-black/10 border border-[#262335]/10 overflow-hidden">
-                          <img
-                            src={posterUrl}
-                            alt={director}
-                            className="w-full h-full object-cover"
-                            onError={(e) => (e.currentTarget.src = "/placeholder.jpg")}
-                          />
-                        </div>
-                        <p className="text-[16px] font-medium text-[#262335] truncate">
-                          {director}
-                        </p>
-                      </div>
-                      <p className="shrink-0 text-[16px] font-medium text-[#262335]">
-                        {views}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6">
-                    <p className="text-[16px] font-medium text-[#262335]">
-                      {published ? `Publié le ${published}` : "Date de publication"}
-                    </p>
-                    <p className="mt-3 max-w-[80ch] text-[16px] text-[#262335]/80 leading-relaxed whitespace-pre-line">
-                      {description}
-                    </p>
-                  </div>
-
-                  {canReview && (
-                    <ApprovalPanel
-                      filmStatus={filmStatus}
-                      rejectionReason={rejectionReason}
-                      onReasonChange={setRejectionReason}
-                      onApprove={() => handleStatusChange("approved")}
-                      onReject={() => handleStatusChange("rejected")}
-                      updating={statusUpdating}
-                      statusMessage={statusMessage}
-                    />
-                  )}
-
-                  {canReview && filmStatus === "approved" && (
-                    <>
-                      <ReviewForm
-                        rating={rating}
-                        comment={comment}
-                        onRatingChange={setRating}
-                        onCommentChange={setComment}
-                      />
-                      <SaveButton
-                        onSave={saveRating}
-                        saving={saving}
-                        saveSuccess={saveSuccess}
-                        saveError={saveError}
-                        hasNextFilm={!!nextFilmId}
-                        hasVoted={!!ratingId || saveSuccess}
-                        onNextFilm={() => navigate(`/details-film/${nextFilmId}`)}
-                      />
-                    </>
-                  )}
-
-                  {canReview && filmStatus === "approved" && <JurySection compact />}
-                </div>
-              </div>
-
-              <div className="hidden lg:block">
-                <div className="w-full rounded-[18px] overflow-hidden">
-                  <div className="w-full aspect-video">
-                    <FilmPlayer
-                      title={title}
-                      aiUrl={aiUrl}
-                      thumbnailUrl={film?.thumbnail_stream_url || film?.thumbnail_url}
-                      posterUrl={film?.poster_stream_url || film?.poster_url}
-                      apiUrl={API_URL}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-6 flex items-start justify-between gap-6">
-                  <div className="min-w-0">
-                    <p className="text-lg font-medium">{title}</p>
-                    <div className="mt-4 flex items-center gap-4">
-                      <p className="text-lg font-medium truncate">{director}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <p className="text-base font-medium text-[#262335]">
-                    {published ? `Publié le ${published}` : "Date de publication"}
-                  </p>
-                  <p className="mt-3 max-w-[80ch] text-base text-[#262335]/80 leading-relaxed whitespace-pre-line">
-                    {description}
-                  </p>
-                </div>
-
-                {canReview && (
-                  <ApprovalPanel
-                    filmStatus={filmStatus}
-                    rejectionReason={rejectionReason}
-                    onReasonChange={setRejectionReason}
-                    onApprove={() => handleStatusChange("approved")}
-                    onReject={() => handleStatusChange("rejected")}
-                    updating={statusUpdating}
-                    statusMessage={statusMessage}
+              {/* Lecteur vidéo */}
+              <div className="w-full rounded-xl overflow-hidden shadow-md">
+                <div className="w-full aspect-video">
+                  <FilmPlayer
+                    title={title}
+                    aiUrl={aiUrl}
+                    thumbnailUrl={film?.thumbnail_stream_url || film?.thumbnail_url}
+                    posterUrl={film?.poster_stream_url || film?.poster_url}
+                    apiUrl={API_URL}
                   />
-                )}
-
-                {canReview && filmStatus === "approved" && (
-                  <>
-                    <ReviewForm
-                      rating={rating}
-                      comment={comment}
-                      onRatingChange={setRating}
-                      onCommentChange={setComment}
-                    />
-                    <SaveButton
-                      onSave={saveRating}
-                      saving={saving}
-                      saveSuccess={saveSuccess}
-                      saveError={saveError}
-                      hasNextFilm={!!nextFilmId}
-                      hasVoted={!!ratingId || saveSuccess}
-                      onNextFilm={() => navigate(`/details-film/${nextFilmId}`)}
-                    />
-                  </>
-                )}
-
-                {canReview && filmStatus === "approved" && <JurySection />}
+                </div>
               </div>
+
+              {/* Titre */}
+              <h1 className="mt-5 text-xl sm:text-2xl font-semibold text-[#262335] leading-tight">
+                {title}
+              </h1>
+
+              {/* Réalisateur + pays */}
+              <div className="mt-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-semibold text-[#262335] truncate">
+                      {film?.director_firstname} {film?.director_lastname}
+                    </p>
+                    {film?.country && (
+                      <p className="text-xs text-[#262335]/50">{film.country}</p>
+                    )}
+                  </div>
+                </div>
+                {film?.director_school && (
+                  <p className="shrink-0 text-sm text-[#262335]/60 italic">{film.director_school}</p>
+                )}
+              </div>
+
+              {/* Date + description */}
+              <div className="mt-5 border-t border-[#262335]/10 pt-5">
+                {published && (
+                  <p className="text-sm font-medium text-[#262335]/60 mb-3">
+                    Publié le {published}
+                  </p>
+                )}
+                <p className="text-[15px] text-[#262335]/80 leading-relaxed whitespace-pre-line max-w-[75ch]">
+                  {description}
+                </p>
+              </div>
+
+              {/* Outils IA */}
+              {film?.ai_tools_used && (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {film.ai_tools_used.split(",").map((tool) => tool.trim()).filter(Boolean).map((tool) => (
+                    <span key={tool} className="text-xs px-3 py-1 rounded-full bg-[#463699]/10 text-[#463699] font-medium">
+                      {tool}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+
             </div>
 
-            {!isJury && (
-              <aside
-                className="
-                  w-full
-                  max-w-[300px]
-                  mx-auto
-                  pt-2
-                  space-y-5
-                  lg:w-[300px]
-                  lg:shrink-0
-                  lg:mx-0
-                "
-              >
+            {/* ── Suggestions ── */}
+            {suggestions.length > 0 && (
+              <aside className="w-full lg:w-[260px] lg:shrink-0 pt-0 lg:pt-2 flex flex-row lg:flex-col gap-6 lg:gap-8 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
                 {suggestions.map((s) => (
-                  <div
-                    key={`sug-${id}-${s.id}`}
-                    className="
-                      max-w-[260px]
-                      mx-auto
-                      [&>a]:w-full
-                      [&_.relative]:aspect-video
-                      [&_.relative]:h-auto
-                      [&_img]:h-full
-                      [&_img]:w-full
-                      [&_img]:object-cover
-                      [&_p:first-of-type]:text-[14px]
-                      [&_p:first-of-type]:leading-snug
-                      [&_p:last-of-type]:text-[12px]
-                      [&_p:first-of-type]:mt-1
-                    "
-                  >
-                    <FilmCard film={s} apiUrl={API_URL} imageVariant="thumbnail" />
+                  <div key={`sug-${id}-${s.id}`} className="shrink-0 lg:shrink">
+                    <FilmCard film={s} apiUrl={API_URL} imageVariant="auto" />
                   </div>
                 ))}
               </aside>
             )}
+
           </div>
         )}
       </div>
