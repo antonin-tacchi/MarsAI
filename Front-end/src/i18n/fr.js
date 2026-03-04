@@ -89,6 +89,7 @@ export default {
   },
 
   detailsFilm: {
+    backToFilms: "Retour à mes films",
     backToCatalog: "← Retour aux catalogues",
     loading: "Chargement…",
     error: "Erreur",

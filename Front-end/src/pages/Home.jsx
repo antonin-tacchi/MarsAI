@@ -86,7 +86,7 @@ export default function Home() {
 
   // ✅ Randomize 3 films on each page load
   useEffect(() => {
-    fetch(`${API_URL}/api/films?all=1`)
+    fetch(`${API_URL}/api/films?all=1&status=selected`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.success && Array.isArray(data.data)) {

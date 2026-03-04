@@ -44,6 +44,7 @@ export default class JuryAssignment {
         ja.assigned_at,
         ja.status AS assignment_status,
         ja.refusal_reason,
+        (ja.status = 'passed') AS is_passed,
 
         jr.rating   AS user_rating,
         jr.comment  AS user_comment,
@@ -59,7 +60,8 @@ export default class JuryAssignment {
       LEFT JOIN jury_ratings jr_all
         ON jr_all.film_id = f.id
       WHERE ja.jury_id = ?
-        AND ja.status = 'active'
+        AND ja.status IN ('active', 'passed')
+        AND f.status != 'selected'
         ${listFilter}
       GROUP BY
         f.id,
@@ -88,11 +90,13 @@ export default class JuryAssignment {
       SELECT
         COUNT(*) AS total_assigned,
         SUM(CASE WHEN ja.status = 'refused' THEN 1 ELSE 0 END) AS total_refused,
-        SUM(CASE WHEN ja.status = 'active' AND jr.id IS NULL THEN 1 ELSE 0 END) AS total_unrated,
-        SUM(CASE WHEN ja.status = 'active' AND jr.id IS NOT NULL THEN 1 ELSE 0 END) AS total_rated
+        SUM(CASE WHEN ja.status = 'passed' THEN 1 ELSE 0 END) AS total_passed,
+        SUM(CASE WHEN ja.status IN ('active', 'passed') AND jr.id IS NULL THEN 1 ELSE 0 END) AS total_unrated,
+        SUM(CASE WHEN ja.status IN ('active', 'passed') AND jr.id IS NOT NULL THEN 1 ELSE 0 END) AS total_rated
       FROM jury_assignments ja
       LEFT JOIN jury_ratings jr
         ON jr.film_id = ja.film_id AND jr.user_id = ?
+      INNER JOIN films f ON f.id = ja.film_id AND f.status != 'selected'
       WHERE ja.jury_id = ?
         ${listFilter}
     `;
@@ -117,6 +121,24 @@ export default class JuryAssignment {
        SET status = 'refused', refusal_reason = ?, refused_at = NOW()
        WHERE jury_id = ? AND film_id = ?`,
       [reason, juryId, filmId]
+    );
+
+    return { success: true };
+  }
+
+  // Pass a film (jury skips it without rating)
+  static async pass(juryId, filmId) {
+    const [existing] = await db.query(
+      "SELECT id, status FROM jury_assignments WHERE jury_id = ? AND film_id = ?",
+      [juryId, filmId]
+    );
+
+    if (!existing.length) return null;
+    if (existing[0].status === "passed") return { alreadyPassed: true };
+
+    await db.query(
+      `UPDATE jury_assignments SET status = 'passed' WHERE jury_id = ? AND film_id = ?`,
+      [juryId, filmId]
     );
 
     return { success: true };

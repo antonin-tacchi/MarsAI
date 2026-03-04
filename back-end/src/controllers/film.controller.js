@@ -237,7 +237,7 @@ export const updateFilmStatus = async (req, res) => {
     }
 
     const newStatus = (status || "").trim();
-    if (!newStatus || !["pending", "approved", "rejected"].includes(newStatus)) {
+    if (!newStatus || !["pending", "approved", "rejected", "selected"].includes(newStatus)) {
       return res.status(400).json({ success: false, message: "Statut invalide" });
     }
 
@@ -305,12 +305,16 @@ export const getFilms = async (req, res) => {
     const sortField = req.query.sortField || "created_at";
     const sortOrder = req.query.sortOrder || "DESC";
 
+    const allowedStatuses = ["approved", "selected", "pending", "rejected"];
+    const requestedStatus = req.query.status || "approved";
+    const safeStatus = allowedStatuses.includes(requestedStatus) ? requestedStatus : "approved";
+
     const { rows, count } = await Film.findAll({
       limit,
       offset,
       sortField,
       sortOrder,
-      status: "approved",
+      status: safeStatus,
     });
 
     const signedRows = await Promise.all(rows.map(withSignedMedia));

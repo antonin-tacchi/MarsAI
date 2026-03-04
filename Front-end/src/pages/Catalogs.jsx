@@ -42,7 +42,7 @@ export default function Catalogs() {
     setError("");
 
     try {
-      const res = await fetch(`${API_URL}/api/films?all=1`);
+      const res = await fetch(`${API_URL}/api/films?all=1&status=selected`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -127,9 +127,6 @@ export default function Catalogs() {
   // --- FILTRAGE FINAL ---
   const filteredFilms = useMemo(() => {
     return films.filter((film) => {
-      if (filters.selected === "selected" && film.status !== "selected")
-        return false;
-
       if (filters.rated) {
         const r = rankingMap.get(film.id);
         if (!r || r.average_rating === null) return false;
