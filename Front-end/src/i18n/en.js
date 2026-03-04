@@ -157,6 +157,9 @@ export default {
     ratedLabel: "rated",
     unratedLabel: "unrated",
     completed: "completed",
+    selectButton: "Select",
+    passButton: "Pass",
+    alreadySelected: "Already selected",
   },
 
   profileSuperJury: {

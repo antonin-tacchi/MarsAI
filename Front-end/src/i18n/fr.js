@@ -158,6 +158,9 @@ export default {
     ratedLabel: "notés",
     unratedLabel: "non notés",
     completed: "terminé",
+    selectButton: "Sélectionner",
+    passButton: "Passer",
+    alreadySelected: "Déjà sélectionné",
   },
 
   profileSuperJury: {
