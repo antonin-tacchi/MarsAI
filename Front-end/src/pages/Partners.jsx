@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 import PartnerCard from '../components/PartnerCard';
 import { useLanguage } from '../context/LanguageContext';
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+
 export default function Partners() {
   const { t } = useLanguage();
   const [partners, setPartners] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/partners')
+    fetch(`${API_URL}/api/partners`)
       .then(res => res.json())
       .then(data => setPartners(Array.isArray(data) ? data : data.data || []))
       .finally(() => setIsLoading(false));
@@ -26,9 +28,8 @@ export default function Partners() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FBF5F0] to-white">
 
-      {/* Section Hero : Titre + CTA (call to action) */}
+      {/* Section Hero */}
       <section className="relative overflow-hidden pt-20 pb-16 md:pt-24 md:pb-20">
-
         <div className="container mx-auto px-5 md:px-8 lg:px-12 xl:px-16 max-w-[1440px] relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
             <h1 className="font-['Saira_Condensed'] text-[36px] md:text-[64px] font-bold text-[#262335] leading-tight tracking-tight">
@@ -51,7 +52,6 @@ export default function Partners() {
       <section className="pb-24 md:pb-32">
         <div className="container mx-auto px-5 md:px-8 lg:px-12 xl:px-16 max-w-[1440px]">
 
-          {/* État vide : affiché si 0 partenaire */}
           {partners.length === 0 ? (
             <div className="text-center py-20 md:py-24 max-w-xl mx-auto">
               <h2 className="font-['Saira_Condensed'] text-[28px] md:text-[40px] font-bold text-[#262335] mb-3">
@@ -68,8 +68,7 @@ export default function Partners() {
               </Link>
             </div>
           ) : (
-
-            /* Grille partenaires (4 colonnes desktop) */
+            /* Grille partenaires — logo.url est l'URL publique Scaleway directe */
             <div className="flex flex-wrap gap-5 md:gap-8">
               {partners.map((partner, index) => (
                 <div
