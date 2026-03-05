@@ -8,6 +8,7 @@ export const findAll = async () => {
       u.name,
       u.email,
       u.profile_picture,
+      u.profile_picture_key,
       u.role_title,
       u.bio,
       u.created_at
@@ -26,6 +27,7 @@ export const findById = async (id) => {
       u.name,
       u.email,
       u.profile_picture,
+      u.profile_picture_key,
       u.role_title,
       u.bio,
       u.created_at
@@ -33,7 +35,6 @@ export const findById = async (id) => {
     INNER JOIN user_roles ur ON u.id = ur.user_id
     WHERE ur.role_id = 1 AND u.id = ?
   `, [id]);
-  
   return rows[0] || null;
 };
 
@@ -41,10 +42,13 @@ export const updateProfile = async (id, updates) => {
   const fields = [];
   const values = [];
 
-  // Uniquement les champs modifiables
   if (updates.profile_picture !== undefined) {
     fields.push('profile_picture = ?');
     values.push(updates.profile_picture);
+  }
+  if (updates.profile_picture_key !== undefined) {
+    fields.push('profile_picture_key = ?');
+    values.push(updates.profile_picture_key);
   }
   if (updates.role_title !== undefined) {
     fields.push('role_title = ?');
@@ -55,18 +59,13 @@ export const updateProfile = async (id, updates) => {
     values.push(updates.bio);
   }
 
-  if (fields.length === 0) {
-    throw new Error('Aucun champ à mettre à jour');
-  }
+  if (fields.length === 0) throw new Error('Aucun champ à mettre à jour');
 
   values.push(id);
-
-  const [result] = await db.query(`
-    UPDATE users 
-    SET ${fields.join(', ')}
-    WHERE id = ?
-  `, values);
-
+  const [result] = await db.query(
+    `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+    values
+  );
   return result.affectedRows > 0;
 };
 
@@ -78,7 +77,6 @@ export const isJuryMember = async (id) => {
     INNER JOIN user_roles ur ON u.id = ur.user_id
     WHERE ur.role_id = 1 AND u.id = ?
   `, [id]);
-  
   return rows.length > 0;
 };
 
@@ -90,6 +88,5 @@ export const count = async () => {
     INNER JOIN user_roles ur ON u.id = ur.user_id
     WHERE ur.role_id = 1
   `);
-  
   return rows[0].total;
 };
