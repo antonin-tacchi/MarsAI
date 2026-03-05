@@ -1,10 +1,14 @@
 -- MarsAI Database Schema (Simplified)
--- Version: 2.2
--- Date: 2026-03-04
+-- Version: 2.3
+-- Date: 2026-03-05
 -- Description: Film festival platform with jury/admin validation system
+-- Changelog v2.3:
+--   - partners.logo remplacé par logo_key (Scaleway Object Storage key)
+--   - users.profile_picture remplacé par profile_picture_key (Scaleway Object Storage key)
+--   - Logique : stocker uniquement la key, générer la signed URL côté backend
 -- Changelog v2.2:
 --   - jury_assignments.status : ajout de la valeur 'passed' (film passe par le jury sans noter)
--- Changelog v2.1: 
+-- Changelog v2.1:
 --   - films.status : ajout de la valeur 'selected' (film selectionne par le jury)
 --   - film_categories : ajout de assigned_by et assigned_at (traçabilite de l'assignation)
 
@@ -49,7 +53,7 @@ CREATE TABLE `users` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `profile_picture` varchar(500) DEFAULT NULL COMMENT 'URL photo de profil (obligatoire pour jury)',
+  `profile_picture_key` varchar(500) DEFAULT NULL COMMENT 'Scaleway Object Storage key (ex: users/profile-abc.jpg)',
   `role_title` varchar(255) DEFAULT NULL COMMENT 'Fonction du jury (ex: CHERCHEUSE IA / OPENAI)',
   `bio` text DEFAULT NULL COMMENT 'Description du membre du jury (optionnel)',
   PRIMARY KEY (`id`),
@@ -105,10 +109,10 @@ CREATE TABLE `films` (
   `country` varchar(100) DEFAULT NULL COMMENT 'Country of origin',
   `description` text COMMENT 'Original description in the director''s language',
   `description_english` text COMMENT 'English description for international audiences',
-  `film_url` varchar(500) DEFAULT NULL COMMENT 'URL to uploaded film file',
+  `film_url` varchar(500) DEFAULT NULL COMMENT 'Scaleway Object Storage key (ex: films/film-abc.mp4)',
   `youtube_url` varchar(500) DEFAULT NULL COMMENT 'YouTube video URL for public viewing',
-  `poster_url` varchar(500) DEFAULT NULL COMMENT 'Main poster image',
-  `thumbnail_url` varchar(500) DEFAULT NULL COMMENT 'Small thumbnail for lists',
+  `poster_url` varchar(500) DEFAULT NULL COMMENT 'Scaleway Object Storage key (ex: films/poster-abc.jpg)',
+  `thumbnail_url` varchar(500) DEFAULT NULL COMMENT 'Scaleway Object Storage key (ex: films/thumb-abc.jpg)',
   `ai_tools_used` text COMMENT 'AI tools used (free text)',
   `ai_certification` tinyint(1) DEFAULT 0 COMMENT 'Certifies film was made with AI tools',
   `classification` varchar(50) DEFAULT NULL COMMENT 'Classification du film, ex: G, PG, PG-13, R',
@@ -143,7 +147,6 @@ CREATE TABLE `films` (
 
 -- --------------------------------------------------------
 -- Table: film_categories (Junction table)
--- Assignee par le jury au moment de la selection d'un film (status = 'selected')
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `film_categories`;
@@ -226,7 +229,7 @@ CREATE TABLE `events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: awards (Prix basés sur le classement des notes)
+-- Table: awards
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `awards`;
@@ -252,7 +255,7 @@ CREATE TABLE `awards` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: jury_lists (Named film lists created by Super Jury)
+-- Table: jury_lists
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `jury_lists`;
@@ -268,7 +271,7 @@ CREATE TABLE `jury_lists` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: jury_list_films (Films belonging to a jury list)
+-- Table: jury_list_films
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `jury_list_films`;
@@ -282,7 +285,7 @@ CREATE TABLE `jury_list_films` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: jury_list_assignments (Assign a list to a jury member)
+-- Table: jury_list_assignments
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `jury_list_assignments`;
@@ -302,7 +305,7 @@ CREATE TABLE `jury_list_assignments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: jury_assignments (Super Jury assigns films to Jury)
+-- Table: jury_assignments
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `jury_assignments`;
@@ -313,7 +316,7 @@ CREATE TABLE `jury_assignments` (
   `list_id` int DEFAULT NULL COMMENT 'Jury list this assignment belongs to',
   `assigned_by` int NOT NULL COMMENT 'Super Jury who made the assignment',
   `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `status` enum('active','refused','passed') NOT NULL DEFAULT 'active' COMMENT 'Assignment status: active=en cours, refused=refusé par jury, passed=passé sans noter',
+  `status` enum('active','refused','passed') NOT NULL DEFAULT 'active' COMMENT 'active=en cours, refused=refusé par jury, passed=passé sans noter',
   `refusal_reason` text DEFAULT NULL COMMENT 'Reason if jury refused the film',
   `refused_at` datetime DEFAULT NULL COMMENT 'Timestamp of refusal',
   PRIMARY KEY (`id`),
@@ -330,7 +333,7 @@ CREATE TABLE `jury_assignments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: jury_ratings (Jury film ratings)
+-- Table: jury_ratings
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `jury_ratings`;
@@ -353,7 +356,7 @@ CREATE TABLE `jury_ratings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: invitations (Admin/Jury invitations)
+-- Table: invitations
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `invitations`;
@@ -377,7 +380,7 @@ CREATE TABLE `invitations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: site_pages (CMS-like editable page content)
+-- Table: site_pages
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `site_pages`;
@@ -394,7 +397,6 @@ CREATE TABLE `site_pages` (
   CONSTRAINT `fk_sp_user` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Default home page content
 INSERT INTO `site_pages` (`slug`, `content_fr`, `content_en`) VALUES
 ('home', JSON_OBJECT(
   'hero', JSON_OBJECT(
@@ -447,6 +449,30 @@ INSERT INTO `site_pages` (`slug`, `content_fr`, `content_en`) VALUES
 ));
 
 -- --------------------------------------------------------
+-- Table: partners
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `partners`;
+CREATE TABLE `partners` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `logo_key` VARCHAR(500) NOT NULL COMMENT 'Scaleway Object Storage key (ex: partners/logo-abc.png)',
+  `url` VARCHAR(500) NOT NULL,
+  `display_order` INT DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_display_order` (`display_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `partners` (`name`, `logo_key`, `url`, `display_order`) VALUES
+('La Plateforme', 'partners/logo-laplateforme.png', 'https://laplateforme.io', 1),
+('Ville de Marseille', 'partners/logo-marseille.png', 'https://marseille.fr', 2),
+('Région Sud', 'partners/logo-regionsud.png', 'https://maregionsud.fr', 3),
+('OpenAI', 'partners/logo-openai.png', 'https://openai.com', 4),
+('Anthropic', 'partners/logo-anthropic.png', 'https://anthropic.com', 5);
+
+-- --------------------------------------------------------
 -- Sample films for testing
 -- --------------------------------------------------------
 
@@ -457,7 +483,7 @@ INSERT INTO `films` (`title`, `country`, `description`, `youtube_url`, `ai_tools
 ('Mars Colony 2084', 'Germany', 'A speculative fiction piece imagining life on Mars, where AI systems manage the colony ecosystem. Created using a combination of AI video generation and traditional filmmaking techniques.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'Sora, ElevenLabs, Midjourney', 1, 'Hans', 'Mueller', 'hans.mueller@example.com', 'Filmakademie Baden-Wuerttemberg', 'approved', NOW());
 
 -- --------------------------------------------------------
--- View: view_jury_members (for jury profile queries)
+-- View: view_jury_members
 -- --------------------------------------------------------
 
 CREATE OR REPLACE VIEW `view_jury_members` AS
@@ -465,7 +491,7 @@ SELECT
     u.id,
     u.name,
     u.email,
-    u.profile_picture,
+    u.profile_picture_key,
     u.role_title,
     u.bio,
     u.created_at
@@ -473,32 +499,6 @@ FROM users u
 INNER JOIN user_roles ur ON u.id = ur.user_id
 WHERE ur.role_id = 1
 ORDER BY u.name ASC;
-
-COMMIT;
-
--- --------------------------------------------------------
--- Table: partners
--- --------------------------------------------------------
-
-DROP TABLE IF EXISTS `partners`;
-CREATE TABLE `partners` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL,
-  `logo` VARCHAR(500) NOT NULL,
-  `url` VARCHAR(500) NOT NULL,
-  `display_order` INT DEFAULT 0,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  INDEX `idx_display_order` (`display_order`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-INSERT INTO `partners` (`name`, `logo`, `url`, `display_order`) VALUES
-('La Plateforme', 'https://via.placeholder.com/200x80/463699/ffffff?text=La+Plateforme', 'https://laplateforme.io', 1),
-('Ville de Marseille', 'https://via.placeholder.com/200x80/8A83DA/ffffff?text=Marseille', 'https://marseille.fr', 2),
-('Région Sud', 'https://via.placeholder.com/200x80/C7C2CE/262335?text=Region+Sud', 'https://maregionsud.fr', 3),
-('OpenAI', 'https://via.placeholder.com/200x80/FBD5BD/262335?text=OpenAI', 'https://openai.com', 4),
-('Anthropic', 'https://via.placeholder.com/200x80/FBF5F0/262335?text=Anthropic', 'https://anthropic.com', 5);
 
 COMMIT;
 
