@@ -43,8 +43,8 @@ export default function Partners() {
               <span className="text-xl">→</span>
             </Link>
           </div>
-          <p className="text-base md:text-lg text-[#262335]/70 max-w-2xl leading-relaxed">
-            Ils nous font confiance et contribuent à la réussite de notre festival.
+         <p className="text-base md:text-lg text-[#262335]/70 max-w-2xl leading-relaxed">
+            {t("partners.description")}
           </p>
         </div>
       </section>
