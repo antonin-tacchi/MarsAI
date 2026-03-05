@@ -35,10 +35,14 @@ const validate = (data, isUpdate = false) => {
 
   if (!isUpdate || data.url !== undefined) {
     if (!data.url) errors.push("URL site requise");
-    else if (data.url.length > 500) errors.push("URL site trop longue");
     else {
-      try { new URL(data.url); }
-      catch { errors.push("URL site doit être valide"); }
+      // Auto-préfixer https:// si manquant
+      if (!/^https?:\/\//i.test(data.url)) data.url = "https://" + data.url;
+      if (data.url.length > 500) errors.push("URL site trop longue");
+      else {
+        try { new URL(data.url); }
+        catch { errors.push("URL site doit être valide"); }
+      }
     }
   }
 
