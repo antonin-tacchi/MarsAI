@@ -26,15 +26,10 @@ export default function Jury() {
     const fetchJuryMembers = async () => {
       setStatus("loading");
       setError("");
-
       try {
         const res = await fetch(`${API_URL}/api/jury-members`);
         const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data?.message || t("jury.loadError") || "Erreur de chargement");
-        }
-
+        if (!res.ok) throw new Error(data?.message || t("jury.loadError") || "Erreur de chargement");
         setJuryMembers(data?.data || []);
         setStatus("idle");
       } catch (err) {
@@ -43,7 +38,6 @@ export default function Jury() {
         setStatus("idle");
       }
     };
-
     fetchJuryMembers();
   }, [t]);
 
@@ -62,7 +56,7 @@ export default function Jury() {
             </span>
           </h1>
           <p className="text-base md:text-lg text-[#262335]/70 leading-relaxed max-w-3xl px-4">
-            {t("jury.subtitle") || 
+            {t("jury.subtitle") ||
               "Experts IA, cinéastes et visionnaires réunis pour délibérer sur la sélection officielle."}
           </p>
         </header>
@@ -87,9 +81,7 @@ export default function Jury() {
         {/* --- LOADING --- */}
         {status === "loading" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {[...Array(6)].map((_, i) => (
-              <SkeletonJuryCard key={i} />
-            ))}
+            {[...Array(6)].map((_, i) => <SkeletonJuryCard key={i} />)}
           </div>
         )}
 
@@ -108,23 +100,20 @@ export default function Jury() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {juryMembers.map((member, index) => {
               const bgColor = member.color || defaultColors[index % defaultColors.length];
-              
               return (
                 <article
                   key={member.id}
                   className="group flex flex-col rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-[0_20px_60px_rgba(0,0,0,0.25)] transition-all duration-300 hover:-translate-y-3"
-                  style={{
-                    animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
-                  }}
+                  style={{ animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both` }}
                 >
-                  {/* IMAGE */}
+                  {/* IMAGE — URL directe Scaleway, pas de préfixe API_URL */}
                   <div
                     className="relative w-full h-[240px] md:h-[280px] lg:h-[300px] flex-shrink-0"
                     style={{ backgroundColor: bgColor }}
                   >
                     {member.image_url ? (
                       <img
-                        src={`${API_URL}${member.image_url}`}
+                        src={member.image_url}
                         alt={member.name}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         onError={(e) => {
@@ -134,9 +123,7 @@ export default function Jury() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-white text-7xl font-black">
-                          {member.name.charAt(0)}
-                        </span>
+                        <span className="text-white text-7xl font-black">{member.name.charAt(0)}</span>
                       </div>
                     )}
                   </div>
@@ -164,38 +151,17 @@ export default function Jury() {
 
       <style>{`
         @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes shimmer {
-          0% {
-            background-color: rgba(38, 35, 53, 0.05);
-          }
-          50% {
-            background-color: rgba(38, 35, 53, 0.15);
-          }
-          100% {
-            background-color: rgba(38, 35, 53, 0.05);
-          }
+          0% { background-color: rgba(38, 35, 53, 0.05); }
+          50% { background-color: rgba(38, 35, 53, 0.15); }
+          100% { background-color: rgba(38, 35, 53, 0.05); }
         }
-
-        .animate-shimmer {
-          animation: shimmer 1.5s ease-in-out infinite;
-        }
-
+        .animate-shimmer { animation: shimmer 1.5s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
-          * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
+          * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
         }
       `}</style>
     </main>
