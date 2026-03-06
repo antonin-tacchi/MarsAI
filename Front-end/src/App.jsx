@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import RootLayout from "./layouts/RootLayout.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
@@ -49,8 +49,35 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default function App() {
+  // Détecte si le jury doit changer son mot de passe à la 1ère connexion
+  const checkMustReset = () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      // Le backend met must_reset_password=true uniquement pour les jurys
+      return user.must_reset_password === true || user.must_reset_password === 1;
+    } catch { return false; }
+  };
+
+  const [mustReset, setMustReset] = useState(checkMustReset);
+
+  // Se déclenche après chaque login (Login.jsx dispatch "auth-change")
+  useEffect(() => {
+    const handler = () => setMustReset(checkMustReset());
+    window.addEventListener("auth-change", handler);
+    return () => window.removeEventListener("auth-change", handler);
+  }, []);
+
+  const handlePasswordChanged = () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    localStorage.setItem("user", JSON.stringify({ ...user, must_reset_password: false }));
+    setMustReset(false);
+  };
+
   return (
     <BrowserRouter>
+      {/* Modal bloquante si 1ère connexion jury */}
+      {mustReset && <ChangePassword forceMode onSuccess={handlePasswordChanged} />}
+
       <ScrollToTop />
       <Routes>
         <Route path="login" element={<Login />} />
