@@ -7,7 +7,7 @@ class UserModel {
   async findByEmail(email) {
     try {
       const [rows] = await pool.execute(
-        "SELECT id, name, email, password, created_at FROM users WHERE email = ?",
+        "SELECT id, name, email, password, must_reset_password, created_at FROM users WHERE email = ?",
         [email]
       );
       return rows[0] || null;
@@ -20,7 +20,7 @@ class UserModel {
   async findById(id) {
     try {
       const [rows] = await pool.execute(
-        "SELECT id, name, email, password, created_at FROM users WHERE id = ?",
+        "SELECT id, name, email, password, must_reset_password, created_at FROM users WHERE id = ?",
         [id]
       );
       return rows[0] || null;
@@ -32,12 +32,12 @@ class UserModel {
 
   async create(userData) {
     try {
-      const { name, email, password } = userData;
+      const { name, email, password, must_reset_password = 0 } = userData;
 
       const [result] = await pool.execute(
-        `INSERT INTO users (name, email, password, created_at)
-         VALUES (?, ?, ?, NOW())`,
-        [name, email, password]
+        `INSERT INTO users (name, email, password, must_reset_password, created_at)
+         VALUES (?, ?, ?, ?, NOW())`,
+        [name, email, password, must_reset_password]
       );
 
       return await this.findById(result.insertId);
@@ -110,6 +110,61 @@ class UserModel {
       );
     } catch (error) {
       console.error("Error assigning role to user:", error);
+      throw error;
+    }
+  }
+
+  // ── Password reset tokens ──────────────────────────────────
+
+  async createPasswordResetToken(userId, token, expiresAt) {
+    try {
+      await pool.execute(
+        "DELETE FROM password_reset_tokens WHERE user_id = ?",
+        [userId]
+      );
+      await pool.execute(
+        "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+        [userId, token, expiresAt]
+      );
+    } catch (error) {
+      console.error("Error creating reset token:", error);
+      throw error;
+    }
+  }
+
+  async findValidResetToken(token) {
+    try {
+      const [rows] = await pool.execute(
+        "SELECT * FROM password_reset_tokens WHERE token = ? AND expires_at > NOW() AND used = 0",
+        [token]
+      );
+      return rows[0] || null;
+    } catch (error) {
+      console.error("Error finding reset token:", error);
+      throw error;
+    }
+  }
+
+  async invalidateResetToken(token) {
+    try {
+      await pool.execute(
+        "UPDATE password_reset_tokens SET used = 1 WHERE token = ?",
+        [token]
+      );
+    } catch (error) {
+      console.error("Error invalidating reset token:", error);
+      throw error;
+    }
+  }
+
+  async updatePassword(userId, hashedPassword) {
+    try {
+      await pool.execute(
+        "UPDATE users SET password = ?, must_reset_password = 0 WHERE id = ?",
+        [hashedPassword, userId]
+      );
+    } catch (error) {
+      console.error("Error updating password:", error);
       throw error;
     }
   }
