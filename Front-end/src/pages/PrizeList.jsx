@@ -3,10 +3,10 @@ import { useLanguage } from "../context/LanguageContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-const MEDAL = {
-  1: { emoji: "🥇", bg: "bg-yellow-400", text: "text-yellow-900", bar: "bg-yellow-400", label: "GOLD" },
-  2: { emoji: "🥈", bg: "bg-gray-300", text: "text-gray-800", bar: "bg-gray-300", label: "SILVER" },
-  3: { emoji: "🥉", bg: "bg-amber-600", text: "text-amber-100", bar: "bg-amber-600", label: "BRONZE" },
+const MEDAL_CONFIG = {
+  1: { emoji: "🥇", bg: "bg-yellow-400", text: "text-yellow-900", bar: "bg-yellow-400", key: "medalGold" },
+  2: { emoji: "🥈", bg: "bg-gray-300", text: "text-gray-800", bar: "bg-gray-300", key: "medalSilver" },
+  3: { emoji: "🥉", bg: "bg-amber-600", text: "text-amber-100", bar: "bg-amber-600", key: "medalBronze" },
 };
 
 function StarRating({ value, max = 10 }) {
@@ -27,8 +27,8 @@ function StarRating({ value, max = 10 }) {
   );
 }
 
-function PodiumCard({ film, index }) {
-  const medal = MEDAL[film.rank] || {};
+function PodiumCard({ film, index, t }) {
+  const medal = MEDAL_CONFIG[film.rank] || {};
   const isFirst = film.rank === 1;
 
   return (
@@ -82,14 +82,14 @@ function PodiumCard({ film, index }) {
         className={`w-full mt-3 rounded-b-xl flex items-center justify-center font-black tracking-widest text-xs py-2 ${medal.bg} ${medal.text}`}
         style={{ minHeight: isFirst ? 56 : film.rank === 2 ? 40 : 28 }}
       >
-        {medal.label}
+        {medal.key ? t(`prizeList.${medal.key}`) : ""}
       </div>
     </div>
   );
 }
 
 function TableRow({ film, index }) {
-  const medal = MEDAL[film.rank];
+  const medal = MEDAL_CONFIG[film.rank];
 
   return (
     <tr
@@ -212,7 +212,7 @@ export default function PrizeList() {
           {/* ── HEADER ── */}
           <div className="mb-14" style={{ animation: "fadeUp 0.5s ease both" }}>
             <p className="text-xs font-black tracking-[0.3em] text-[#463699] uppercase mb-3">
-              Festival MarsAi
+              {t("prizeList.festivalLabel")}
             </p>
             <h1 className="text-5xl md:text-6xl font-black text-[#262335] uppercase tracking-tighter italic leading-none">
               {t("prizeList.title")}
@@ -254,11 +254,11 @@ export default function PrizeList() {
               {top3.length > 0 && (
                 <div className="mb-16">
                   <p className="text-xs font-black tracking-[0.25em] text-[#262335]/30 uppercase mb-8">
-                    — Podium
+                    — {t("prizeList.podiumLabel")}
                   </p>
                   <div className="grid grid-cols-3 gap-4 md:gap-6 items-end max-w-2xl mx-auto">
                     {top3.map((film, i) => (
-                      <PodiumCard key={film.film_id} film={film} index={i} />
+                      <PodiumCard key={film.film_id} film={film} index={i} t={t} />
                     ))}
                   </div>
                 </div>
@@ -268,7 +268,7 @@ export default function PrizeList() {
               {rest.length > 0 && (
                 <div>
                   <p className="text-xs font-black tracking-[0.25em] text-[#262335]/30 uppercase mb-6">
-                    — Classement complet
+                    — {t("prizeList.rankingLabel")}
                   </p>
                   <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">

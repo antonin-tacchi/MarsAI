@@ -237,6 +237,12 @@ export default {
     averageRating: "Average rating",
     votes: "Votes",
     noRating: "Not rated",
+    podiumLabel: "Podium",
+    rankingLabel: "Full ranking",
+    medalGold: "GOLD",
+    medalSilver: "SILVER",
+    medalBronze: "BRONZE",
+    festivalLabel: "Festival MarsAi",
   },
 
   movieForm: {
@@ -351,9 +357,59 @@ export default {
   },
 
   about: {
+    // Hero
+    festivalBadge: "Film Festival",
+    heroTitle: "Festival",
+    heroTitleAccent: "MarsAI",
+    heroDescription: "MarsAI celebrates a new generation of filmmakers exploring the boundaries between human creativity and artificial intelligence.",
+
+    // Stats section
+    statsTitle: "The festival\nin numbers",
+    statsDescription: "An international edition bringing together creators, professionals and enthusiasts around AI-generated cinema.",
+    stat1Value: "3000",
+    stat1Label: "EXPECTED VISITORS",
+    stat2Value: "+60",
+    stat2Label: "PROFESSIONALS",
+    stat3Value: "+120",
+    stat3Label: "FILMS SCREENED",
+    stat4Value: "+600",
+    stat4Label: "FILMS SUBMITTED",
+
+    // Sections header
+    sectionTitle: "About the festival",
+
+    // 8 sections
+    section01Title: "Why MarsAI",
+    section01Text: "MarsAI was born from the observation that artificial intelligence is profoundly transforming visual creation and cinema. The festival offers an international stage to artists who use AI as a narrative, aesthetic or experimental tool.",
+    section02Title: "A new generation of cinema",
+    section02Text: "The works presented explore new visual languages born from generative technologies. MarsAI champions emerging forms of storytelling where the algorithm becomes a creative partner.",
+    section03Title: "The festival theme",
+    section03Text: "Each edition explores the relationships between human and machine, imagination and algorithm. Selected films question our perception of reality and image in the age of automated generation.",
+    section04Title: "How the festival works",
+    section04Text: "Films are submitted by creators from around the world. A pre-selection committee evaluates works based on artistic quality, originality and the integration of AI in the creative process.",
+    section05Title: "Jury & selection",
+    section05Text: "The jury brings together directors, digital artists, AI researchers and producers. It rewards works that push the boundaries of audiovisual creation.",
+    section06Title: "Awards & prizes",
+    section06Text: "Grand Prix MarsAI, Visual Innovation Award, AI Narrative Award, Audience Award and Student Award. Laureates benefit from international visibility and distribution support.",
+    section07Title: "An event in Marseille",
+    section07Text: "Marseille, a city of cinema and cultures, offers a unique setting between heritage, sea and innovation. The festival is part of the city's creative and technological ecosystem.",
+    section08Title: "Organisation & partners",
+    section08Text: "MarsAI is led by a team of cinema professionals, AI experts and cultural stakeholders. The festival is supported by institutions, schools, studios and companies committed to audiovisual innovation.",
+
+    // Manifeste
+    manifesteLabel: "Our vision",
+    manifesteQuote: "\"The algorithm as a creative partner, not a substitute.\"",
+    manifesteText: "Every selected film proves that machine and imagination can co-write an original story.",
+
+    // CTA
+    ctaTitle: "Join\nthe festival",
+    ctaParticipateLabel: "Participate",
     submitFilm: "Submit a film",
+    submitFilmBtn: "Submit my film →",
     newsletter: "Newsletter",
+    newsletterBtn: "Subscribe →",
     regulation: "Regulations",
+    regulationBtn: "Read →",
   },
 
   contact: {
