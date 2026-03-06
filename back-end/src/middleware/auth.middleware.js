@@ -21,9 +21,9 @@ export const authenticateToken = (req, res, next) => {
       });
     }
 
-  
     req.user = {
       userId: decoded.userId,
+      id: decoded.userId,   // alias pour compatibilité avec les controllers qui utilisent req.user.id
       email: decoded.email,
       roles: decoded.roles || [],
     };
