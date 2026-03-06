@@ -1,15 +1,19 @@
--- MarsAI Database Schema (Simplified)
--- Version: 2.3
+-- MarsAI Database Schema
+-- Version: 2.4
 -- Date: 2026-03-05
 -- Description: Film festival platform with jury/admin validation system
+-- Changelog v2.4:
+--   - users.must_reset_password : flag 1ère connexion jury (forcer changement mdp)
+--   - Table password_reset_tokens : tokens pour forgot/reset password (lien magique 1h)
+--   - Table newsletter_subscribers : abonnés newsletter avec double opt-in FR/EN
 -- Changelog v2.3:
 --   - partners.logo_key : ajout de la clé objet Scaleway pour suppression
 --   - users.profile_picture_key : ajout de la clé objet Scaleway pour suppression
 -- Changelog v2.2:
---   - jury_assignments.status : ajout de la valeur 'passed' (film passe par le jury sans noter)
--- Changelog v2.1: 
---   - films.status : ajout de la valeur 'selected' (film selectionne par le jury)
---   - film_categories : ajout de assigned_by et assigned_at (traçabilite de l'assignation)
+--   - jury_assignments.status : ajout de la valeur 'passed'
+-- Changelog v2.1:
+--   - films.status : ajout de la valeur 'selected'
+--   - film_categories : ajout de assigned_by et assigned_at
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -21,11 +25,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 -- --------------------------------------------------------
--- Database: `marsai`
--- --------------------------------------------------------
-
--- --------------------------------------------------------
--- Table: roles (Jury, Super Jury, and Admin)
+-- Table: roles
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `roles`;
@@ -42,7 +42,7 @@ INSERT INTO `roles` (`id`, `role_name`) VALUES
 (3, 'Super Jury');
 
 -- --------------------------------------------------------
--- Table: users (Jury and Admin accounts only)
+-- Table: users
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `users`;
@@ -56,13 +56,14 @@ CREATE TABLE `users` (
   `profile_picture_key` varchar(500) DEFAULT NULL COMMENT 'Clé objet Scaleway pour suppression',
   `role_title` varchar(255) DEFAULT NULL COMMENT 'Fonction du jury (ex: CHERCHEUSE IA / OPENAI)',
   `bio` text DEFAULT NULL COMMENT 'Description du membre du jury (optionnel)',
+  `must_reset_password` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1 = doit changer son mot de passe au prochain login (jury 1ère connexion)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   KEY `idx_users_jury` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: user_roles (Junction table)
+-- Table: user_roles
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `user_roles`;
@@ -73,6 +74,46 @@ CREATE TABLE `user_roles` (
   KEY `role_id` (`role_id`),
   CONSTRAINT `fk_ur_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ur_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+-- Table: password_reset_tokens
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `password_reset_tokens`;
+CREATE TABLE `password_reset_tokens` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `token` varchar(255) NOT NULL COMMENT 'Token aléatoire 32 bytes hex (unique)',
+  `expires_at` datetime NOT NULL COMMENT 'Expiration : 1h après création',
+  `used` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1 = token déjà utilisé (invalidé)',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `idx_token` (`token`),
+  KEY `fk_prt_user` (`user_id`),
+  CONSTRAINT `fk_prt_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+-- Table: newsletter_subscribers
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `newsletter_subscribers`;
+CREATE TABLE `newsletter_subscribers` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) NOT NULL,
+  `lang` enum('fr','en') NOT NULL DEFAULT 'fr' COMMENT 'Langue préférée pour les emails',
+  `confirmed` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Double opt-in : 1 = inscription confirmée par email',
+  `confirmed_at` datetime DEFAULT NULL COMMENT 'Date de confirmation',
+  `confirm_token` varchar(255) DEFAULT NULL COMMENT 'Token de confirmation (supprimé après confirmation)',
+  `token_expires_at` datetime DEFAULT NULL COMMENT 'Expiration du token de confirmation (24h)',
+  `unsubscribed_at` datetime DEFAULT NULL COMMENT 'Date de désinscription (NULL = toujours abonné)',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  KEY `idx_confirmed` (`confirmed`),
+  KEY `idx_confirm_token` (`confirm_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -96,7 +137,7 @@ INSERT INTO `categories` (`id`, `name`, `description`) VALUES
 (5, 'Art et Culture', 'Expression artistique et culturelle future');
 
 -- --------------------------------------------------------
--- Table: films (Film submissions with director info)
+-- Table: films
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `films`;
@@ -129,7 +170,7 @@ CREATE TABLE `films` (
   `social_vimeo` varchar(255) DEFAULT NULL,
 
   -- Status and Tracking
-  `status` enum('pending', 'approved', 'rejected', 'selected') DEFAULT 'pending' COMMENT 'pending=soumis, approved=validé admin, rejected=rejeté, selected=sélectionné jury',
+  `status` enum('pending','approved','rejected','selected') DEFAULT 'pending' COMMENT 'pending=soumis, approved=validé admin, rejected=rejeté, selected=sélectionné jury',
   `status_changed_at` datetime DEFAULT NULL,
   `status_changed_by` int DEFAULT NULL COMMENT 'User ID who changed the status',
   `rejection_reason` text COMMENT 'Reason for rejection (if rejected)',
@@ -146,7 +187,7 @@ CREATE TABLE `films` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: film_categories (Junction table)
+-- Table: film_categories
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `film_categories`;
@@ -164,7 +205,7 @@ CREATE TABLE `film_categories` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: email_logs (Track sent emails)
+-- Table: email_logs
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `email_logs`;
@@ -172,7 +213,7 @@ CREATE TABLE `email_logs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `film_id` int NOT NULL,
   `recipient_email` varchar(255) NOT NULL,
-  `email_type` enum('submission_received', 'status_approved', 'status_rejected') NOT NULL,
+  `email_type` enum('submission_received','status_approved','status_rejected') NOT NULL,
   `sent_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `success` tinyint(1) DEFAULT 1,
   `error_message` text,
@@ -204,10 +245,11 @@ INSERT INTO `festival_config` (`id`, `submission_start`, `submission_end`, `even
 -- Default Admin Account
 -- Email: admin@marsai.com
 -- Password: admin123 (bcrypt hashed)
+-- must_reset_password = 0 (admin ne doit pas réinitialiser)
 -- --------------------------------------------------------
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `created_at`) VALUES
-(1, 'Admin MarsAI', 'admin@marsai.com', '$2a$10$8K1p/a0dL1LXMIgoEDFrwOjL8N5M1R1qH0gL1V7mF3q.d3X5O5Ixe', NOW());
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `created_at`, `must_reset_password`) VALUES
+(1, 'Admin MarsAI', 'admin@marsai.com', '$2a$10$8K1p/a0dL1LXMIgoEDFrwOjL8N5M1R1qH0gL1V7mF3q.d3X5O5Ixe', NOW(), 0);
 
 INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
 (1, 2);
@@ -219,7 +261,7 @@ INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
 DROP TABLE IF EXISTS `events`;
 CREATE TABLE `events` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `event_type` enum('workshop', 'ceremony', 'screening', 'conference') NOT NULL,
+  `event_type` enum('workshop','ceremony','screening','conference') NOT NULL,
   `title` varchar(255) NOT NULL,
   `description` text,
   `event_date` datetime NOT NULL,
@@ -238,7 +280,7 @@ CREATE TABLE `awards` (
   `film_id` int NOT NULL COMMENT 'Film gagnant',
   `category_id` int DEFAULT NULL COMMENT 'Catégorie du prix (NULL = toutes catégories)',
   `rank` int NOT NULL COMMENT 'Classement: 1=1er, 2=2ème, 3=3ème...',
-  `award_type` enum('grand_prix', 'jury_prize', 'public_prize', 'special_mention', 'gold', 'silver', 'bronze') NOT NULL,
+  `award_type` enum('grand_prix','jury_prize','public_prize','special_mention','gold','silver','bronze') NOT NULL,
   `award_name` varchar(100) NOT NULL COMMENT 'Nom du prix affiché',
   `final_score` decimal(3,2) DEFAULT NULL COMMENT 'Moyenne des notes au moment du prix',
   `year` int NOT NULL,
@@ -316,7 +358,7 @@ CREATE TABLE `jury_assignments` (
   `list_id` int DEFAULT NULL COMMENT 'Jury list this assignment belongs to',
   `assigned_by` int NOT NULL COMMENT 'Super Jury who made the assignment',
   `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `status` enum('active','refused','passed') NOT NULL DEFAULT 'active' COMMENT 'Assignment status: active=en cours, refused=refusé par jury, passed=passé sans noter',
+  `status` enum('active','refused','passed') NOT NULL DEFAULT 'active' COMMENT 'active=en cours, refused=refusé par jury, passed=passé sans noter',
   `refusal_reason` text DEFAULT NULL COMMENT 'Reason if jury refused the film',
   `refused_at` datetime DEFAULT NULL COMMENT 'Timestamp of refusal',
   PRIMARY KEY (`id`),
@@ -380,7 +422,7 @@ CREATE TABLE `invitations` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
--- Table: site_pages (CMS-like editable page content)
+-- Table: site_pages (CMS)
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `site_pages`;
@@ -463,15 +505,15 @@ INSERT INTO `films` (`title`, `country`, `description`, `youtube_url`, `ai_tools
 -- --------------------------------------------------------
 
 CREATE OR REPLACE VIEW `view_jury_members` AS
-SELECT 
-    u.id,
-    u.name,
-    u.email,
-    u.profile_picture,
-    u.profile_picture_key,
-    u.role_title,
-    u.bio,
-    u.created_at
+SELECT
+  u.id,
+  u.name,
+  u.email,
+  u.profile_picture,
+  u.profile_picture_key,
+  u.role_title,
+  u.bio,
+  u.created_at
 FROM users u
 INNER JOIN user_roles ur ON u.id = ur.user_id
 WHERE ur.role_id = 1
