@@ -60,6 +60,10 @@ export default function Login() {
       const response = await login(formData);
       console.log("Login successful:", response);
 
+      // Notifie App.jsx pour qu'il affiche la modal si must_reset_password = true
+      // (authService a déjà sauvegardé must_reset_password dans le user du localStorage)
+      window.dispatchEvent(new Event("auth-change"));
+
       // Redirect to profile page based on user role
       const profile = getProfileRoute();
       navigate(profile ? profile.path : "/");
