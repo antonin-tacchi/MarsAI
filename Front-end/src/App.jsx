@@ -20,10 +20,14 @@ import NotFound from "./pages/NotFound.jsx";
 import AdminModeration from "./pages/AdminModeration.jsx";
 import Partners from "./pages/Partners.jsx";
 import InfosPratiques from "./pages/PracticalInfo.jsx";
-import Newslatter from "./pages/Newslatter.jsx";
 import Privacy from "./pages/Privacy.jsx";
 import Cookies from "./pages/Cookies.jsx";
 import Legal from "./pages/Legal.jsx";
+import ChangePassword from "./pages/ChangePassword.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
+import NewsletterSubscribe from "./components/NewsletterSubscribe.jsx";
+import NewsletterConfirm from "./pages/NewsletterConfirm.jsx";
 
 
 function ScrollToTop() {
@@ -64,10 +68,14 @@ export default function App() {
           <Route path="regulation" element={<Regulation />} />
           <Route path="submissions" element={<Submissions />} />
           <Route path="practicalinfos" element={<InfosPratiques />} />
-          <Route path="newslatter" element={<Newslatter />} />
           <Route path="privacy" element={<Privacy />} />
           <Route path="cookies" element={<Cookies />} />
           <Route path="legal" element={<Legal />} />
+          <Route path="newsletter-subscribe" element={<NewsletterSubscribe />} />
+          <Route path="newsletter/confirm" element={<NewsletterConfirm />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="change-password" element={<ChangePassword />} />
           <Route
             path="profile-admin"
             element={
