@@ -2,7 +2,6 @@ import pool from "../config/database.js";
 import bcrypt from "bcryptjs";
 import Film from "../models/Film.js";
 import { canChangeFilmStatus } from "../services/filmStatus.service.js";
-import { sendRejectionEmail } from "../services/email.service.js";
 
 // ─── USERS ──────────────────────────────────────────────────
 

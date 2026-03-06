@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import path from "path";
 import adminRoutes from "./routes/admin.routes.js";
 import healthRoutes from "./routes/health.routes.js";
 import authRoutes from "./routes/auth.routes.js";
@@ -12,6 +11,7 @@ import partnersRoutes from "./routes/partners.routes.js";
 import ratingRoutes from "./routes/rating.routes.js";
 import festivalConfigRoutes from "./routes/festivalConfig.routes.js";
 import juryMembersRoutes from "./routes/juryMembers.routes.js";
+import newsletterRoutes from "./routes/newsletter.routes.js";
 import { getPageContent } from "./controllers/sitepage.controller.js";
 import { testConnection } from "./config/database.js";
 
@@ -28,9 +28,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-
       if (allowedOrigins.includes(origin)) return callback(null, true);
-
       return callback(new Error(`CORS blocked for origin: ${origin}`), false);
     },
     credentials: true,
@@ -40,10 +38,7 @@ app.use(
 );
 
 app.options("*", cors());
-
 app.use(express.json());
-
-// app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 app.get("/", (req, res) => {
   res.json({ message: "MarsAI API online 🚀" });
@@ -60,6 +55,7 @@ app.use("/api/partners", partnersRoutes);
 app.use("/api/ratings", ratingRoutes);
 app.use("/api/festivalconfig", festivalConfigRoutes);
 app.use("/api", juryMembersRoutes);
+app.use("/api/newsletter", newsletterRoutes); // ← Newsletter : subscribe, confirm, unsubscribe, admin
 
 const port = Number(process.env.PORT) || 5000;
 
