@@ -3,6 +3,14 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM = process.env.RESEND_FROM || "onboarding@resend.dev";
+
+// En dev, redirige tous les emails vers cette adresse (domaine non vérifié Resend)
+const DEV_RECIPIENT = process.env.RESEND_DEV_RECIPIENT || null;
+const to_ = (email) => {
+  const resolved = DEV_RECIPIENT || email;
+  console.log("[Resend] to_ resolved:", JSON.stringify(resolved), "| DEV_RECIPIENT:", JSON.stringify(DEV_RECIPIENT), "| original:", JSON.stringify(email));
+  return resolved;
+};
 const APP_NAME = "MarsAI Festival";
 const APP_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
@@ -92,7 +100,7 @@ export async function sendJuryWelcome({ to, name, password, lang = "fr" }) {
   console.log("[Resend] FROM:", FROM);
   const result = await resend.emails.send({
     from: FROM,
-    to,
+    to: to_(to),
     subject: isFr ? `🎬 Vos accès jury — ${APP_NAME}` : `🎬 Your jury access — ${APP_NAME}`,
     html: baseTemplate(content, lang),
   });
@@ -129,7 +137,7 @@ export async function sendPasswordReset({ to, name, token, lang = "fr" }) {
   console.log("[Resend] API Key set:", !!process.env.RESEND_API_KEY);
   const result = await resend.emails.send({
     from: FROM,
-    to,
+    to: to_(to),
     subject: isFr ? `🔐 Réinitialisation de mot de passe — ${APP_NAME}` : `🔐 Password reset — ${APP_NAME}`,
     html: baseTemplate(content, lang),
   });
@@ -159,7 +167,7 @@ export async function sendNewsletterConfirmation({ to, token, lang = "fr" }) {
   console.log("[Resend] Sending newsletter confirm to:", to);
   const result = await resend.emails.send({
     from: FROM,
-    to,
+    to: to_(to),
     subject: isFr ? `✅ Confirmez votre inscription — ${APP_NAME}` : `✅ Confirm your subscription — ${APP_NAME}`,
     html: baseTemplate(content, lang),
   });

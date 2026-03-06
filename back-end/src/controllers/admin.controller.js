@@ -2,6 +2,7 @@ import pool from "../config/database.js";
 import bcrypt from "bcryptjs";
 import Film from "../models/Film.js";
 import { canChangeFilmStatus } from "../services/filmStatus.service.js";
+import { sendJuryWelcome } from "../services/email.service.js";
 
 // ─── USERS ──────────────────────────────────────────────────
 
@@ -51,18 +52,29 @@ export const createUser = async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, 10);
+    const roleList = Array.isArray(roles) && roles.length > 0 ? roles : [1];
+    const isJury = roleList.includes(1);
+
+    // Si c'est un jury, forcer le changement de mot de passe à la 1ère connexion
     const [result] = await pool.query(
-      "INSERT INTO users (name, email, password, created_at) VALUES (?, ?, ?, NOW())",
-      [name, email, hashed]
+      "INSERT INTO users (name, email, password, must_reset_password, created_at) VALUES (?, ?, ?, ?, NOW())",
+      [name, email, hashed, isJury ? 1 : 0]
     );
 
     const userId = result.insertId;
 
-    const roleList = Array.isArray(roles) && roles.length > 0 ? roles : [1];
     for (const roleId of roleList) {
       await pool.query(
         "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)",
         [userId, roleId]
+      );
+    }
+
+    // Si c'est un jury, créer l'entrée jury_members + envoyer l'email de bienvenue
+    if (isJury) {
+      await pool.query("INSERT INTO jury_members (user_id) VALUES (?)", [userId]).catch(() => {});
+      sendJuryWelcome({ to: email, name, password, lang: req.body.lang || "fr" }).catch((err) =>
+        console.error("[Email] Erreur envoi jury welcome:", err)
       );
     }
 

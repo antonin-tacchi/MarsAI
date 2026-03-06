@@ -58,7 +58,12 @@ export const login = async (credentials) => {
     // Store token and user data if login successful
     if (data.data?.token) {
       localStorage.setItem("token", data.data.token);
-      localStorage.setItem("user", JSON.stringify(data.data.user));
+      // must_reset_password est dans data.data (retourné par le login controller)
+      const mustReset = data.data.must_reset_password === true;
+      localStorage.setItem("user", JSON.stringify({
+        ...data.data.user,
+        must_reset_password: mustReset,
+      }));
     }
 
     return data;
