@@ -84,6 +84,14 @@ export default function ProfileAdmin() {
   const [partnerSaving, setPartnerSaving] = useState(false);
   const partnerLogoRef = useRef(null);
 
+  // ── Newsletter state ──
+  const [subscribers, setSubscribers] = useState([]);
+  const [subscribersLoading, setSubscribersLoading] = useState(false);
+  const [newsletterSubject, setNewsletterSubject] = useState("");
+  const [newsletterBody, setNewsletterBody] = useState("");
+  const [newsletterSending, setNewsletterSending] = useState(false);
+  const [newsletterSentResult, setNewsletterSentResult] = useState(null);
+
   // ── Films state ──
   const [films, setFilms] = useState([]);
   const [filmsLoading, setFilmsLoading] = useState(false);
@@ -147,6 +155,16 @@ export default function ProfileAdmin() {
     finally { setPartnersLoading(false); }
   }, []);
 
+  // ── Fetch subscribers ──
+  const fetchSubscribers = useCallback(async () => {
+    setSubscribersLoading(true);
+    try {
+      const json = await api(`${API_URL}/api/newsletter/subscribers`, token);
+      setSubscribers(json.data || []);
+    } catch (err) { console.error(err); }
+    finally { setSubscribersLoading(false); }
+  }, [token]);
+
   // ── Fetch films ──
   const fetchFilms = useCallback(async (page = 1, status = "") => {
     setFilmsLoading(true);
@@ -181,6 +199,7 @@ export default function ProfileAdmin() {
   useEffect(() => { if (activeTab === "users") fetchUsers(); }, [activeTab, fetchUsers]);
   useEffect(() => { if (activeTab === "jury") fetchJury(); }, [activeTab, fetchJury]);
   useEffect(() => { if (activeTab === "partners") fetchPartners(); }, [activeTab, fetchPartners]);
+  useEffect(() => { if (activeTab === "newsletter") fetchSubscribers(); }, [activeTab, fetchSubscribers]);
   useEffect(() => { if (activeTab === "films") fetchFilms(filmPage, filmFilter); }, [activeTab, filmPage, filmFilter, fetchFilms]);
   useEffect(() => { if (activeTab === "pages") fetchPage(); }, [activeTab, fetchPage]);
 
@@ -354,6 +373,25 @@ export default function ProfileAdmin() {
     } catch (err) { alert(err.message); }
   };
 
+  // ── Newsletter handlers ──
+  const handleSendNewsletter = async () => {
+    if (!newsletterSubject || !newsletterBody) return alert("Sujet et contenu requis.");
+    if (!confirm(`Envoyer cette newsletter à tous les abonnés confirmés ?`)) return;
+    setNewsletterSending(true);
+    setNewsletterSentResult(null);
+    try {
+      const json = await api(`${API_URL}/api/newsletter/send`, token, {
+        method: "POST",
+        body: JSON.stringify({ subject: newsletterSubject, htmlContent: `<p style="color:#262335;font-size:15px;line-height:1.7;">${newsletterBody.replace(/\n/g, '</p><p style="color:#262335;font-size:15px;line-height:1.7;">')}</p>` }),
+      });
+      setNewsletterSentResult(json);
+      setNewsletterSubject("");
+      setNewsletterBody("");
+      fetchSubscribers();
+    } catch (err) { alert(err.message); }
+    finally { setNewsletterSending(false); }
+  };
+
   // ── CMS handlers ──
   const handleSavePage = async () => {
     setPageSaving(true);
@@ -443,6 +481,7 @@ export default function ProfileAdmin() {
             { key: "jury", label: "Jury" },
             { key: "partners", label: "Partenaires" },
             { key: "films", label: "Films" },
+            { key: "newsletter", label: "Newsletter" },
             { key: "pages", label: "Pages" },
           ].map(({ key, label }) => (
             <button
@@ -592,6 +631,100 @@ export default function ProfileAdmin() {
               </div>
             )}
           </section>
+        )}
+
+        {/* ════════════════ NEWSLETTER TAB ════════════════ */}
+        {activeTab === "newsletter" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* ── Abonnés ── */}
+            <section className="bg-white rounded-2xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-[#262335] mb-4">Abonnés</h2>
+              {subscribersLoading ? <p className="text-[#262335]/50">Chargement...</p> : (
+                <>
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="bg-[#463699]/10 rounded-xl p-4 text-center">
+                      <p className="text-2xl font-black text-[#463699]">{subscribers.filter(s => s.confirmed).length}</p>
+                      <p className="text-xs text-[#262335]/60 font-bold mt-1">Confirmés</p>
+                    </div>
+                    <div className="bg-[#262335]/5 rounded-xl p-4 text-center">
+                      <p className="text-2xl font-black text-[#262335]">{subscribers.length}</p>
+                      <p className="text-xs text-[#262335]/60 font-bold mt-1">Total inscrits</p>
+                    </div>
+                  </div>
+
+                  {subscribers.length === 0 ? (
+                    <p className="text-[#262335]/50 italic text-sm">Aucun abonné.</p>
+                  ) : (
+                    <div className="space-y-1 max-h-80 overflow-y-auto">
+                      {subscribers.map((s) => (
+                        <div key={s.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-[#262335]/5">
+                          <div>
+                            <p className="text-sm text-[#262335] font-medium">{s.email}</p>
+                            <p className="text-xs text-[#262335]/40">{new Date(s.created_at).toLocaleDateString("fr-FR")} · {s.lang?.toUpperCase()}</p>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${s.confirmed ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                            {s.confirmed ? "✓ Confirmé" : "En attente"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+
+            {/* ── Envoyer newsletter ── */}
+            <section className="bg-white rounded-2xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-[#262335] mb-4">Envoyer une newsletter</h2>
+
+              {newsletterSentResult && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+                  <p className="text-green-700 font-bold text-sm">
+                    ✅ Envoyée à {newsletterSentResult.sent}/{newsletterSentResult.total} abonnés
+                    {newsletterSentResult.failed > 0 && ` (${newsletterSentResult.failed} échecs)`}
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-[#262335] mb-1">Sujet *</label>
+                  <input
+                    type="text"
+                    value={newsletterSubject}
+                    onChange={(e) => setNewsletterSubject(e.target.value)}
+                    placeholder="Ex : Programme du festival MarsAI 2026"
+                    className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-[#262335] mb-1">Contenu *</label>
+                  <textarea
+                    rows={8}
+                    value={newsletterBody}
+                    onChange={(e) => setNewsletterBody(e.target.value)}
+                    placeholder="Rédigez le contenu de votre newsletter...&#10;&#10;Vous pouvez sauter des lignes pour créer des paragraphes."
+                    className="w-full px-4 py-2 border-2 border-[#262335]/10 rounded-lg focus:outline-none focus:border-[#463699] text-sm"
+                  />
+                  <p className="text-xs text-[#262335]/40 mt-1">Les sauts de ligne seront convertis en paragraphes dans l'email.</p>
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-xs text-[#262335]/50">
+                    {subscribers.filter(s => s.confirmed).length} destinataire(s) confirmé(s)
+                  </p>
+                  <Button
+                    onClick={handleSendNewsletter}
+                    disabled={!newsletterSubject || !newsletterBody || newsletterSending || subscribers.filter(s => s.confirmed).length === 0}
+                  >
+                    {newsletterSending ? "Envoi en cours..." : "📨 Envoyer"}
+                  </Button>
+                </div>
+              </div>
+            </section>
+          </div>
         )}
 
         {/* ════════════════ FILMS TAB ════════════════ */}
