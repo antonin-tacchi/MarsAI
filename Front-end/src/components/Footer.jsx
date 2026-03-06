@@ -81,9 +81,16 @@ export default function Footer() {
 
                 <a
                     href="/contact"
-                    className="mb-6 text-lg text-white/90 transition hover:text-white"
+                    className="text-lg text-white/90 transition hover:text-white"
                 >
                     {t("footer.contact")}
+                </a>
+
+                <a
+                    href="/contact"
+                    className="mb-6 text-lg text-white/90 transition hover:text-white"
+                >
+                    newsletter
                 </a>
 
                 <div className="flex items-center justify-center gap-4">
