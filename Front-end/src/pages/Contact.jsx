@@ -1,6 +1,7 @@
 // src/pages/Contact.jsx
 import { useMemo } from "react";
 import { useLanguage } from "../context/LanguageContext";
+import NewsletterSubscribe from "../components/NewsletterSubscribe";
 
 // ✅ Interactive map (Leaflet / OpenStreetMap)
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -246,6 +247,23 @@ export default function Contact() {
           </div>
         </section>
       </div>
+
+      {/* ── Newsletter ── */}
+      <section className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_18px_60px_-45px_rgba(0,0,0,0.9)] backdrop-blur">
+        <div className="flex flex-col md:flex-row md:items-center gap-6">
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-black">
+              {tt("contactNewsletter.title", "Restez informé")}
+            </h2>
+            <p className="mt-1 text-sm text-black/70">
+              {tt("contactNewsletter.text", "Inscrivez-vous à notre newsletter pour recevoir les actualités du festival, les annonces de sélection et les dates clés.")}
+            </p>
+          </div>
+          <div className="flex-1">
+            <NewsletterSubscribe />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
