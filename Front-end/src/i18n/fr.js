@@ -230,14 +230,20 @@ export default {
     loading: "Chargement du classement...",
     error: "Erreur lors du chargement du classement.",
     noResults: "Aucun classement disponible",
-    noResultsDesc: "Les films n'ont pas encore ete notes par le jury.",
+    noResultsDesc: "Les films n'ont pas encore été notés par le jury.",
     rank: "Rang",
     film: "Film",
-    director: "Realisateur",
+    director: "Réalisateur",
     country: "Pays",
     averageRating: "Note moyenne",
     votes: "Votes",
-    noRating: "Non note",
+    noRating: "Non noté",
+    podiumLabel: "Podium",
+    rankingLabel: "Classement complet",
+    medalGold: "OR",
+    medalSilver: "ARGENT",
+    medalBronze: "BRONZE",
+    festivalLabel: "Festival MarsAi",
   },
 
   movieForm: {
@@ -352,9 +358,59 @@ export default {
   },
 
   about: {
+    // Hero
+    festivalBadge: "Festival de cinéma",
+    heroTitle: "Festival",
+    heroTitleAccent: "MarsAI",
+    heroDescription: "MarsAI célèbre une nouvelle génération de cinéastes qui explorent les frontières entre créativité humaine et intelligence artificielle.",
+
+    // Stats section
+    statsTitle: "Le festival\nen chiffres",
+    statsDescription: "Une édition internationale qui réunit créateurs, professionnels et passionnés autour du cinéma généré par l'IA.",
+    stat1Value: "3000",
+    stat1Label: "VISITEURS ATTENDUS",
+    stat2Value: "+60",
+    stat2Label: "PROFESSIONNELS",
+    stat3Value: "+120",
+    stat3Label: "FILMS PROJETÉS",
+    stat4Value: "+600",
+    stat4Label: "FILMS SOUMIS",
+
+    // Sections header
+    sectionTitle: "À propos du festival",
+
+    // 8 sections
+    section01Title: "Pourquoi MarsAI",
+    section01Text: "MarsAI est né du constat que l'intelligence artificielle transforme profondément la création visuelle et le cinéma. Le festival offre une scène internationale aux artistes qui utilisent l'IA comme outil narratif, esthétique ou expérimental.",
+    section02Title: "Une nouvelle génération de cinéma",
+    section02Text: "Les œuvres présentées explorent de nouveaux langages visuels issus des technologies génératives. MarsAI valorise les formes émergentes de storytelling où l'algorithme devient un partenaire de création.",
+    section03Title: "Le thème du festival",
+    section03Text: "Chaque édition explore les relations entre l'humain et la machine, l'imaginaire et l'algorithme. Les films sélectionnés interrogent notre perception du réel et de l'image à l'ère de la génération automatisée.",
+    section04Title: "Comment fonctionne le festival",
+    section04Text: "Les films sont soumis par des créateurs du monde entier. Un comité de présélection évalue les œuvres selon leur qualité artistique, leur originalité et l'intégration de l'IA dans le processus créatif.",
+    section05Title: "Jury & sélection",
+    section05Text: "Le jury réunit réalisateurs, artistes numériques, chercheurs en intelligence artificielle et producteurs. Il récompense les œuvres qui repoussent les limites de la création audiovisuelle.",
+    section06Title: "Prix & récompenses",
+    section06Text: "Grand Prix MarsAI, Prix de l'innovation visuelle, Prix narration IA, Prix du public et Prix étudiant. Les lauréats bénéficient d'une visibilité internationale et d'un accompagnement à la diffusion.",
+    section07Title: "Un événement à Marseille",
+    section07Text: "Marseille, ville de cinéma et de cultures, offre un cadre unique entre patrimoine, mer et innovation. Le festival s'inscrit dans l'écosystème créatif et technologique de la ville.",
+    section08Title: "Organisation & partenaires",
+    section08Text: "MarsAI est porté par une équipe réunissant professionnels du cinéma, experts en IA et acteurs culturels. Le festival est soutenu par des institutions, écoles, studios et entreprises engagés dans l'innovation audiovisuelle.",
+
+    // Manifeste
+    manifesteLabel: "Notre vision",
+    manifesteQuote: "\"L'algorithme comme partenaire de création, pas comme substitut.\"",
+    manifesteText: "Chaque film sélectionné est la preuve que la machine et l'imaginaire peuvent co-écrire une histoire inédite.",
+
+    // CTA
+    ctaTitle: "Rejoindre\nle festival",
+    ctaParticipateLabel: "Participer",
     submitFilm: "Soumettre un film",
+    submitFilmBtn: "Soumettre mon film →",
     newsletter: "Newsletter",
+    newsletterBtn: "S'abonner →",
     regulation: "Règlement",
+    regulationBtn: "Lire →",
   },
 
   contact: {
