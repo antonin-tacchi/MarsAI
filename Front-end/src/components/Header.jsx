@@ -58,7 +58,7 @@ export default function Header() {
       {/* Logo */}
       <div className="flex items-center py-3">
         <NavLink to="/" className="flex items-center">
-          <img src={logoSombre} alt="Logo MarsAI" className="h-[58px] w-auto" />
+          <img src={logoSombre} alt="Logo MarsAI" className="h-[80px] w-auto" />
         </NavLink>
       </div>
 
@@ -130,7 +130,7 @@ export default function Header() {
       scrolled ? "bg-[#0A0A0F]/95 backdrop-blur-md border-b border-[#C9A84C]/20" : "bg-[#0A0A0F] border-b border-[#C9A84C]/10"
     }`}>
       <NavLink to="/" className="shrink-0">
-        <img src={logoSombre} alt="Logo MarsAI" className="h-9 w-auto" draggable="false" />
+        <img src={logoSombre} alt="Logo MarsAI" className="h-12 w-auto" draggable="false" />
       </NavLink>
 
       <div className="flex items-center gap-3">
@@ -160,7 +160,7 @@ export default function Header() {
         {/* Top bar */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#C9A84C]/15">
           <NavLink to="/" onClick={() => setMenuOpen(false)} className="shrink-0">
-            <img src={logoSombre} alt="Logo MarsAI" className="h-9 w-auto" draggable="false" />
+            <img src={logoSombre} alt="Logo MarsAI" className="h-12 w-auto" draggable="false" />
           </NavLink>
 
           <button
