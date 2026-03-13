@@ -13,20 +13,20 @@ export default function About() {
   ];
 
   const sections = [
-    { id: "01", title: t("about.section01Title"), text: t("about.section01Text") },
-    { id: "02", title: t("about.section02Title"), text: t("about.section02Text") },
-    { id: "03", title: t("about.section03Title"), text: t("about.section03Text") },
-    { id: "04", title: t("about.section04Title"), text: t("about.section04Text") },
-    { id: "05", title: t("about.section05Title"), text: t("about.section05Text") },
-    { id: "06", title: t("about.section06Title"), text: t("about.section06Text") },
-    { id: "07", title: t("about.section07Title"), text: t("about.section07Text") },
-    { id: "08", title: t("about.section08Title"), text: t("about.section08Text") },
+    { title: t("about.section01Title"), text: t("about.section01Text") },
+    { title: t("about.section02Title"), text: t("about.section02Text") },
+    { title: t("about.section03Title"), text: t("about.section03Text") },
+    { title: t("about.section04Title"), text: t("about.section04Text") },
+    { title: t("about.section05Title"), text: t("about.section05Text") },
+    { title: t("about.section06Title"), text: t("about.section06Text") },
+    { title: t("about.section07Title"), text: t("about.section07Text") },
+    { title: t("about.section08Title"), text: t("about.section08Text") },
   ];
 
   return (
-    <div className="bg-[#FBF5F0] min-h-screen">
+    <div className="bg-[#0A0A0F] min-h-screen">
 
-      {/* HERO */}
+      {/* ── HERO ── */}
       <section
         className="relative flex flex-col items-center justify-center min-h-screen text-center px-6 py-40"
         style={{
@@ -35,55 +35,61 @@ export default function About() {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-[#262335]/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0F]/65 via-[#0A0A0F]/50 to-[#0A0A0F]" />
 
+        {/* Watermark */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-white/[0.04] font-black text-[14rem] md:text-[18rem] leading-none tracking-widest uppercase whitespace-nowrap italic">
+          <span className="text-white/[0.03] font-display font-black text-[14rem] md:text-[20rem] leading-none tracking-widest uppercase whitespace-nowrap">
             MARSAI
           </span>
         </div>
 
+        {/* Gold top accent */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent" />
+
         <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 mb-8">
-            <span className="w-6 h-px bg-[#463699]" />
-            <span className="text-[#463699] text-xs font-bold tracking-[0.25em] uppercase">
+          <div className="flex items-center justify-center gap-3 mb-7">
+            <div className="w-8 h-px bg-[#C9A84C]" />
+            <span className="text-[#C9A84C] text-[10px] font-bold tracking-[0.4em] uppercase">
               {t("about.festivalBadge")}
             </span>
-            <span className="w-6 h-px bg-[#463699]" />
+            <div className="w-8 h-px bg-[#C9A84C]" />
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter italic leading-none mb-8">
+          <h1 className="font-display text-5xl md:text-7xl font-black text-[#F5F0E8] leading-[0.95] mb-6">
             {t("about.heroTitle")}<br />
-            <span className="text-[#463699]">{t("about.heroTitleAccent")}</span>
+            <span className="text-gold-gradient">{t("about.heroTitleAccent")}</span>
           </h1>
 
-          <p className="text-base md:text-lg text-white/70 leading-relaxed max-w-xl mx-auto">
+          <p className="text-[#C8C0B0] text-base md:text-lg leading-relaxed max-w-xl mx-auto">
             {t("about.heroDescription")}
           </p>
         </div>
       </section>
 
-      {/* STATS */}
+      {/* ── STATS ── */}
       <section className="background-stats py-20 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 md:gap-20 items-start">
           <div className="md:w-1/2">
-            <h2 className="text-4xl md:text-5xl font-black text-[#262335] leading-tight mb-4 uppercase tracking-tighter italic">
+            <p className="text-[10px] font-semibold tracking-[0.4em] uppercase text-[#C9A84C] mb-4">— En Chiffres —</p>
+            <h2 className="font-display text-4xl md:text-5xl font-bold text-[#F5F0E8] leading-tight mb-4">
               {t("about.statsTitle").split("\n").map((line, i) => (
                 <span key={i}>{line}{i === 0 && <br />}</span>
               ))}
             </h2>
-            <p className="text-[#262335]/60 text-base leading-relaxed max-w-sm">
+            <div className="w-12 h-px bg-gradient-to-r from-[#C9A84C] to-transparent mb-4" />
+            <p className="text-[#C8C0B0] text-base leading-relaxed max-w-sm">
               {t("about.statsDescription")}
             </p>
           </div>
 
           <div className="md:w-1/2 grid grid-cols-2 gap-10">
             {stats.map(({ value, label }) => (
-              <div key={label}>
-                <div className="text-4xl md:text-5xl font-black text-[#463699] mb-2 tabular-nums">
+              <div key={label} className="pl-4 border-l border-[#C9A84C]/25">
+                <div className="text-4xl md:text-5xl font-black text-gold-gradient font-display mb-2 tabular-nums">
                   {value}
                 </div>
-                <p className="text-sm text-[#262335]/70 leading-snug tracking-wide">
+                <p className="text-sm text-[#C8C0B0] leading-snug tracking-wide">
                   {label}
                 </p>
               </div>
@@ -92,26 +98,27 @@ export default function About() {
         </div>
       </section>
 
-      {/* SECTIONS */}
-      <section className="px-6 py-16">
+      {/* ── SECTIONS ── */}
+      <section className="px-6 py-20 bg-[#0A0A0F]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-black text-[#262335] uppercase tracking-tighter italic mb-12 p-6">
-            {t("about.sectionTitle")}
-          </h2>
+          <div className="text-center mb-12">
+            <p className="text-[10px] font-semibold tracking-[0.4em] uppercase text-[#C9A84C] mb-3">— À Propos —</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-[#F5F0E8]">
+              {t("about.sectionTitle")}
+            </h2>
+            <div className="mt-4 w-14 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent mx-auto" />
+          </div>
 
           <div className="grid md:grid-cols-2 gap-5">
-            {sections.map((s) => (
+            {sections.map((s, i) => (
               <div
-                key={s.id}
-                className="rounded-2xl border border-white/10 bg-white/5 p-8 shadow-[0_18px_60px_-45px_rgba(0,0,0,0.15)] backdrop-blur hover:shadow-[0_18px_60px_-30px_rgba(70,54,153,0.15)] hover:border-[#463699]/20 transition-all duration-300 group"
+                key={i}
+                className="cinema-card p-8 group"
               >
-                <span className="text-[#463699] text-xs font-bold tracking-[0.25em] uppercase block mb-4">
-                  {s.id}
-                </span>
-                <h3 className="text-xl font-black text-[#262335] mb-3 uppercase tracking-tight group-hover:text-[#463699] transition-colors">
+                <h3 className="font-display text-lg font-bold text-[#F5F0E8] mb-3 group-hover:text-[#C9A84C] transition-colors duration-200">
                   {s.title}
                 </h3>
-                <p className="text-[#262335]/60 text-sm leading-relaxed">
+                <p className="text-[#C8C0B0] text-sm leading-relaxed">
                   {s.text}
                 </p>
               </div>
@@ -120,68 +127,78 @@ export default function About() {
         </div>
       </section>
 
-      {/* MANIFESTE */}
-      <section className="relative py-28 px-6 text-center overflow-hidden bg-[#262335]">
+      {/* ── MANIFESTE ── */}
+      <section className="relative py-28 px-6 text-center overflow-hidden bg-[#12121A]">
+        {/* Gold top/bottom accents */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent" />
+
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-white/[0.04] font-black text-[10rem] md:text-[16rem] leading-none tracking-widest uppercase whitespace-nowrap italic">
+          <span className="text-white/[0.025] font-display font-black text-[10rem] md:text-[16rem] leading-none tracking-widest uppercase whitespace-nowrap">
             MARSAI
           </span>
         </div>
 
         <div className="relative z-10 max-w-3xl mx-auto">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-8 py-12">
-            <p className="text-[#463699] text-xs font-bold tracking-[0.25em] uppercase mb-6">
+          <div className="border border-[#C9A84C]/20 bg-[#0A0A0F]/60 backdrop-blur-sm rounded-lg px-8 py-12 shadow-[0_0_40px_rgba(201,168,76,0.06)]">
+            <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#C9A84C] mb-6">
               {t("about.manifesteLabel")}
             </p>
-            <blockquote className="text-2xl md:text-4xl font-black text-white leading-tight italic mb-6 uppercase tracking-tight">
+            <blockquote className="font-display text-2xl md:text-4xl font-bold text-[#F5F0E8] leading-tight italic mb-6">
               {t("about.manifesteQuote")}
             </blockquote>
-            <p className="text-white/50 text-sm leading-relaxed max-w-xl mx-auto">
+            <div className="w-10 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent mx-auto mb-6" />
+            <p className="text-[#C8C0B0] text-sm leading-relaxed max-w-xl mx-auto">
               {t("about.manifesteText")}
             </p>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* ── CTA ── */}
       <section className="background-stats py-24 px-6">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-4xl font-black text-[#262335] uppercase tracking-tighter italic mb-12 p-6">
-            {t("about.ctaTitle").split("\n").map((line, i) => (
-              <span key={i}>{line}{i === 0 && <br />}</span>
-            ))}
-          </h2>
+          <div className="text-center mb-12">
+            <p className="text-[10px] font-semibold tracking-[0.4em] uppercase text-[#C9A84C] mb-3">— Rejoignez-nous —</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-[#F5F0E8]">
+              {t("about.ctaTitle").split("\n").map((line, i) => (
+                <span key={i}>{line}{i === 0 && <br />}</span>
+              ))}
+            </h2>
+          </div>
 
-          <div className="grid md:grid-cols-3 gap-5 px-6">
+          <div className="grid md:grid-cols-3 gap-5">
+            {/* Main CTA */}
             <Link
               to="/submissions"
-              className="md:col-span-2 group relative rounded-2xl bg-[#262335] p-10 flex flex-col justify-between min-h-[200px] hover:bg-[#463699] transition-colors duration-300 overflow-hidden"
+              className="md:col-span-2 group relative rounded border border-[#C9A84C]/20 bg-[#12121A] p-10 flex flex-col justify-between min-h-[200px] hover:border-[#C9A84C]/50 hover:shadow-[0_0_30px_rgba(201,168,76,0.1)] transition-all duration-300 overflow-hidden"
             >
-              <div className="absolute top-6 right-8 text-white/10 font-black text-8xl leading-none select-none italic pointer-events-none">
+              <div className="absolute top-5 right-7 text-[#C9A84C]/10 font-black text-8xl leading-none select-none pointer-events-none">
                 →
               </div>
               <div>
-                <p className="text-white/40 text-xs font-bold tracking-[0.2em] uppercase mb-3">
+                <p className="text-[#C9A84C]/60 text-[10px] font-bold tracking-[0.25em] uppercase mb-3">
                   {t("about.ctaParticipateLabel")}
                 </p>
-                <h3 className="text-2xl font-black text-white uppercase tracking-tight">
+                <h3 className="font-display text-2xl font-bold text-[#F5F0E8]">
                   {t("about.submitFilm")}
                 </h3>
               </div>
               <span className="mt-6 inline-flex">
-                <span className="px-8 py-3 bg-white text-[#262335] font-black rounded-full uppercase tracking-wider text-xs group-hover:bg-[#FBF5F0] transition-colors">
+                <span className="px-8 py-3 bg-gradient-to-r from-[#C9A84C] to-[#E8C97A] text-[#0A0A0F] font-bold rounded text-[11px] tracking-[0.2em] uppercase group-hover:shadow-[0_0_20px_rgba(201,168,76,0.4)] transition-all duration-300">
                   {t("about.submitFilmBtn")}
                 </span>
               </span>
             </Link>
 
+            {/* Secondary CTAs */}
             <div className="flex flex-col gap-5">
-              <button className="flex-1 group rounded-2xl border-2 border-[#262335] p-7 flex flex-col justify-between hover:bg-[#262335] transition-colors duration-300 text-left">
-                <h3 className="text-base font-black text-[#262335] group-hover:text-white transition-colors uppercase tracking-tight">
+              <button className="flex-1 group rounded border border-[#C9A84C]/15 bg-[#12121A] p-7 flex flex-col justify-between hover:border-[#C9A84C]/40 hover:bg-[#1E1E2E] transition-all duration-300 text-left">
+                <h3 className="font-display text-base font-bold text-[#F5F0E8] group-hover:text-[#C9A84C] transition-colors">
                   {t("about.newsletter")}
                 </h3>
                 <span className="mt-4 inline-flex">
-                  <span className="px-5 py-2 border border-[#262335] group-hover:border-white text-[#262335] group-hover:text-white font-black rounded-full uppercase tracking-wider text-xs transition-colors">
+                  <span className="px-5 py-2 border border-[#C9A84C]/30 group-hover:border-[#C9A84C] text-[#C9A84C] font-bold rounded text-[11px] tracking-[0.15em] uppercase transition-colors">
                     {t("about.newsletterBtn")}
                   </span>
                 </span>
@@ -189,13 +206,13 @@ export default function About() {
 
               <Link
                 to="/regulation"
-                className="flex-1 group rounded-2xl border-2 border-[#262335] p-7 flex flex-col justify-between hover:bg-[#262335] transition-colors duration-300"
+                className="flex-1 group rounded border border-[#C9A84C]/15 bg-[#12121A] p-7 flex flex-col justify-between hover:border-[#C9A84C]/40 hover:bg-[#1E1E2E] transition-all duration-300"
               >
-                <h3 className="text-base font-black text-[#262335] group-hover:text-white transition-colors uppercase tracking-tight">
+                <h3 className="font-display text-base font-bold text-[#F5F0E8] group-hover:text-[#C9A84C] transition-colors">
                   {t("about.regulation")}
                 </h3>
                 <span className="mt-4 inline-flex">
-                  <span className="px-5 py-2 border border-[#262335] group-hover:border-white text-[#262335] group-hover:text-white font-black rounded-full uppercase tracking-wider text-xs transition-colors">
+                  <span className="px-5 py-2 border border-[#C9A84C]/30 group-hover:border-[#C9A84C] text-[#C9A84C] font-bold rounded text-[11px] tracking-[0.15em] uppercase transition-colors">
                     {t("about.regulationBtn")}
                   </span>
                 </span>
