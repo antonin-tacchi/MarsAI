@@ -215,15 +215,9 @@ export default function Home() {
       {/* ═══════════════════════════════════════════
           COMPTE À REBOURS — Cinematic countdown
       ═══════════════════════════════════════════ */}
-      <section
-        className="relative py-28 px-6 text-center overflow-hidden"
-        style={{
-          backgroundImage: `url(${imgCountdown})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="absolute inset-0 bg-[#0A0A0F]/94" />
+      <section className="relative py-28 px-6 text-center overflow-hidden bg-[#12121A]">
+        {/* Subtle radial glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_50%,rgba(201,168,76,0.06),transparent)]" />
 
         {/* Gold top accent */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent" />
