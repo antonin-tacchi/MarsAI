@@ -141,14 +141,14 @@ export default function About() {
 
         <div className="relative z-10 max-w-3xl mx-auto">
           <div className="border border-[#C9A84C]/20 bg-[#0A0A0F]/60 backdrop-blur-sm rounded-lg px-8 py-12 shadow-[0_0_40px_rgba(201,168,76,0.06)]">
-            <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#C9A84C] mb-6">
+            <p className="text-[11px] font-bold tracking-[0.4em] uppercase text-[#C9A84C] mb-6">
               {t("about.manifesteLabel")}
             </p>
-            <blockquote className="font-display text-2xl md:text-4xl font-bold text-[#F5F0E8] leading-tight italic mb-6">
+            <blockquote className="font-display text-2xl md:text-4xl font-bold text-white leading-tight italic mb-6">
               {t("about.manifesteQuote")}
             </blockquote>
             <div className="w-10 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent mx-auto mb-6" />
-            <p className="text-[#C8C0B0] text-sm leading-relaxed max-w-xl mx-auto">
+            <p className="text-[#E8E0D0] text-sm leading-relaxed max-w-xl mx-auto">
               {t("about.manifesteText")}
             </p>
           </div>
@@ -156,7 +156,10 @@ export default function About() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="background-stats py-24 px-6">
+      <section className="py-24 px-6 bg-[#12121A]">
+        {/* Gold top accent */}
+        <div className="h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent mb-16" />
+
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-[10px] font-semibold tracking-[0.4em] uppercase text-[#C9A84C] mb-3">— Rejoignez-nous —</p>
@@ -165,22 +168,23 @@ export default function About() {
                 <span key={i}>{line}{i === 0 && <br />}</span>
               ))}
             </h2>
+            <div className="mt-4 w-14 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent mx-auto" />
           </div>
 
           <div className="grid md:grid-cols-3 gap-5">
             {/* Main CTA */}
             <Link
               to="/submissions"
-              className="md:col-span-2 group relative rounded border border-[#C9A84C]/20 bg-[#12121A] p-10 flex flex-col justify-between min-h-[200px] hover:border-[#C9A84C]/50 hover:shadow-[0_0_30px_rgba(201,168,76,0.1)] transition-all duration-300 overflow-hidden"
+              className="md:col-span-2 group relative rounded border border-[#C9A84C]/30 bg-[#1E1E2E] p-10 flex flex-col justify-between min-h-[200px] hover:border-[#C9A84C]/70 hover:shadow-[0_0_30px_rgba(201,168,76,0.15)] transition-all duration-300 overflow-hidden"
             >
-              <div className="absolute top-5 right-7 text-[#C9A84C]/10 font-black text-8xl leading-none select-none pointer-events-none">
+              <div className="absolute top-5 right-7 text-[#C9A84C]/20 font-black text-8xl leading-none select-none pointer-events-none">
                 →
               </div>
               <div>
-                <p className="text-[#C9A84C]/60 text-[10px] font-bold tracking-[0.25em] uppercase mb-3">
+                <p className="text-[#C9A84C] text-[10px] font-bold tracking-[0.25em] uppercase mb-3">
                   {t("about.ctaParticipateLabel")}
                 </p>
-                <h3 className="font-display text-2xl font-bold text-[#F5F0E8]">
+                <h3 className="font-display text-2xl font-bold text-white">
                   {t("about.submitFilm")}
                 </h3>
               </div>
@@ -193,12 +197,12 @@ export default function About() {
 
             {/* Secondary CTAs */}
             <div className="flex flex-col gap-5">
-              <button className="flex-1 group rounded border border-[#C9A84C]/15 bg-[#12121A] p-7 flex flex-col justify-between hover:border-[#C9A84C]/40 hover:bg-[#1E1E2E] transition-all duration-300 text-left">
-                <h3 className="font-display text-base font-bold text-[#F5F0E8] group-hover:text-[#C9A84C] transition-colors">
+              <button className="flex-1 group rounded border border-[#C9A84C]/30 bg-[#1E1E2E] p-7 flex flex-col justify-between hover:border-[#C9A84C]/60 hover:bg-[#262336] transition-all duration-300 text-left">
+                <h3 className="font-display text-base font-bold text-white group-hover:text-[#C9A84C] transition-colors">
                   {t("about.newsletter")}
                 </h3>
                 <span className="mt-4 inline-flex">
-                  <span className="px-5 py-2 border border-[#C9A84C]/30 group-hover:border-[#C9A84C] text-[#C9A84C] font-bold rounded text-[11px] tracking-[0.15em] uppercase transition-colors">
+                  <span className="px-5 py-2 border border-[#C9A84C]/50 group-hover:border-[#C9A84C] text-[#C9A84C] font-bold rounded text-[11px] tracking-[0.15em] uppercase transition-colors">
                     {t("about.newsletterBtn")}
                   </span>
                 </span>
@@ -206,13 +210,13 @@ export default function About() {
 
               <Link
                 to="/regulation"
-                className="flex-1 group rounded border border-[#C9A84C]/15 bg-[#12121A] p-7 flex flex-col justify-between hover:border-[#C9A84C]/40 hover:bg-[#1E1E2E] transition-all duration-300"
+                className="flex-1 group rounded border border-[#C9A84C]/30 bg-[#1E1E2E] p-7 flex flex-col justify-between hover:border-[#C9A84C]/60 hover:bg-[#262336] transition-all duration-300"
               >
-                <h3 className="font-display text-base font-bold text-[#F5F0E8] group-hover:text-[#C9A84C] transition-colors">
+                <h3 className="font-display text-base font-bold text-white group-hover:text-[#C9A84C] transition-colors">
                   {t("about.regulation")}
                 </h3>
                 <span className="mt-4 inline-flex">
-                  <span className="px-5 py-2 border border-[#C9A84C]/30 group-hover:border-[#C9A84C] text-[#C9A84C] font-bold rounded text-[11px] tracking-[0.15em] uppercase transition-colors">
+                  <span className="px-5 py-2 border border-[#C9A84C]/50 group-hover:border-[#C9A84C] text-[#C9A84C] font-bold rounded text-[11px] tracking-[0.15em] uppercase transition-colors">
                     {t("about.regulationBtn")}
                   </span>
                 </span>

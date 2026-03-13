@@ -223,17 +223,10 @@ export default function Home() {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-[#0A0A0F]/88" />
+        <div className="absolute inset-0 bg-[#0A0A0F]/94" />
 
         {/* Gold top accent */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent" />
-
-        {/* Watermark */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-          <span className="text-white/[0.025] font-display font-black text-[12rem] md:text-[18rem] leading-none tracking-widest uppercase whitespace-nowrap">
-            MARSAI
-          </span>
-        </div>
 
         <div className="relative z-10 max-w-4xl mx-auto">
           <p className="text-[10px] font-semibold tracking-[0.45em] uppercase text-[#C9A84C] mb-3">
