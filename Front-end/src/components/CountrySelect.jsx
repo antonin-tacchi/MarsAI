@@ -13,7 +13,8 @@ export default function CountrySelect({
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const containerRef = useRef(null);
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
+  const btnRef = useRef(null);
 
   const countries = useMemo(() => {
     if (Array.isArray(COUNTRIES)) return COUNTRIES;
@@ -38,17 +39,51 @@ export default function CountrySelect({
 
   const selectedLabel = normalized.find((c) => c.value === value)?.name || "";
 
+  const openDropdown = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setDropPos({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+    setOpen(true);
+  };
+
   /* Close on outside click */
   useEffect(() => {
+    if (!open) return;
     const handler = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+      if (btnRef.current && !btnRef.current.contains(e.target)) {
         setOpen(false);
         setSearch("");
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  }, [open]);
+
+  /* Reposition on scroll/resize */
+  useEffect(() => {
+    if (!open) return;
+    const update = () => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect();
+        setDropPos({
+          top: rect.bottom + window.scrollY + 4,
+          left: rect.left + window.scrollX,
+          width: rect.width,
+        });
+      }
+    };
+    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update, true);
+      window.removeEventListener("resize", update);
+    };
+  }, [open]);
 
   const select = (val) => {
     onChange({ target: { name, value: val } });
@@ -57,7 +92,7 @@ export default function CountrySelect({
   };
 
   return (
-    <div className="flex flex-col w-full" ref={containerRef}>
+    <div className="flex flex-col w-full">
       {label && (
         <label className="text-[11px] font-bold mb-2 text-[#C8C0B0] tracking-[0.2em] uppercase">
           {label}
@@ -66,8 +101,9 @@ export default function CountrySelect({
 
       {/* Trigger button */}
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => open ? (setOpen(false), setSearch("")) : openDropdown()}
         className={`w-full px-4 py-3.5 bg-[#12121A] border-2 rounded text-left flex items-center justify-between transition-all duration-200 outline-none
           ${error
             ? "border-[#8B1A2E] bg-[#8B1A2E]/8"
@@ -86,46 +122,47 @@ export default function CountrySelect({
         </svg>
       </button>
 
-      {/* Dropdown — always below */}
+      {/* Dropdown — fixed positioning to escape overflow:hidden parents */}
       {open && (
-        <div className="relative z-50">
-          <div className="absolute top-1 left-0 right-0 bg-[#12121A] border border-[#C9A84C]/20 rounded shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden">
-            {/* Search */}
-            <div className="p-2 border-b border-[#C9A84C]/10">
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#C9A84C]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                </svg>
-                <input
-                  autoFocus
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher..."
-                  className="w-full bg-[#0A0A0F] border border-[#C9A84C]/15 rounded px-3 py-2 pl-8 text-[12px] text-[#F5F0E8] placeholder:text-[#C8C0B0]/30 outline-none focus:border-[#C9A84C]/40"
-                />
-              </div>
+        <div
+          style={{ position: "fixed", top: dropPos.top, left: dropPos.left, width: dropPos.width, zIndex: 9999 }}
+          className="bg-[#12121A] border border-[#C9A84C]/20 rounded shadow-[0_8px_32px_rgba(0,0,0,0.8)] overflow-hidden"
+        >
+          {/* Search */}
+          <div className="p-2 border-b border-[#C9A84C]/10">
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#C9A84C]/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
+              <input
+                autoFocus
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher..."
+                className="w-full bg-[#0A0A0F] border border-[#C9A84C]/15 rounded px-3 py-2 pl-8 text-[12px] text-[#F5F0E8] placeholder:text-[#C8C0B0]/30 outline-none focus:border-[#C9A84C]/40"
+              />
             </div>
-            {/* Options list */}
-            <div className="max-h-52 overflow-y-auto">
-              {filtered.length === 0 ? (
-                <p className="px-4 py-3 text-[12px] text-[#C8C0B0]/40 text-center">Aucun résultat</p>
-              ) : (
-                filtered.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => select(c.value)}
-                    className={`w-full text-left px-4 py-2.5 text-[13px] transition-colors
-                      ${c.value === value
-                        ? "bg-[#C9A84C]/15 text-[#C9A84C] font-semibold"
-                        : "text-[#C8C0B0] hover:bg-[#C9A84C]/8 hover:text-[#F5F0E8]"}`}
-                  >
-                    {c.name}
-                  </button>
-                ))
-              )}
-            </div>
+          </div>
+          {/* Options list */}
+          <div className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <p className="px-4 py-3 text-[12px] text-[#C8C0B0]/40 text-center">Aucun résultat</p>
+            ) : (
+              filtered.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); select(c.value); }}
+                  className={`w-full text-left px-4 py-2.5 text-[13px] transition-colors
+                    ${c.value === value
+                      ? "bg-[#C9A84C]/15 text-[#C9A84C] font-semibold"
+                      : "text-[#C8C0B0] hover:bg-[#C9A84C]/8 hover:text-[#F5F0E8]"}`}
+                >
+                  {c.name}
+                </button>
+              ))
+            )}
           </div>
         </div>
       )}
