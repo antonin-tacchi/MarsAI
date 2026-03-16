@@ -3,6 +3,51 @@ import { useLanguage } from "../context/LanguageContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
+/* ── Resolve thumbnail src (same logic as FilmCard) ── */
+function youtubeThumb(url) {
+  if (!url) return "";
+  try {
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1].split(/[?&#]/)[0];
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+    }
+    if (url.includes("watch?v=")) {
+      const id = new URL(url).searchParams.get("v");
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+    }
+    if (url.includes("/embed/")) {
+      const id = url.split("/embed/")[1].split(/[?&#]/)[0];
+      return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+    }
+  } catch { /* ignore */ }
+  return "";
+}
+
+function resolveImg(film) {
+  const path = film?.thumbnail_stream_url || film?.thumbnail_url || "";
+  const yt   = youtubeThumb(film?.youtube_url);
+  let src = "";
+  if (path) {
+    src = /^https?:\/\//i.test(path) ? path : `${API_URL}${path}`;
+  } else if (yt) {
+    src = yt;
+  }
+  return src || "/placeholder.jpg";
+}
+
+/* ── Thumbnail image with fallback ── */
+function Thumb({ film, className }) {
+  const [src, setSrc] = useState(() => resolveImg(film));
+  return (
+    <img
+      src={src}
+      alt={film.title}
+      className={className}
+      onError={() => setSrc("/placeholder.jpg")}
+    />
+  );
+}
+
 const AWARD = {
   1: { label: "GRAND PRIX",  accent: "#C9A84C", text: "#0A0A0F" },
   2: { label: "2ème PRIX",   accent: "#A8A9AD", text: "#0A0A0F" },
@@ -30,20 +75,7 @@ function HeroWinner({ film, t }) {
     >
       {/* Background image */}
       <div className="relative h-72 md:h-96">
-        {film.thumbnail_url ? (
-          <img
-            src={`${API_URL}${film.thumbnail_url}`}
-            alt={film.title}
-            className="w-full h-full object-cover"
-            onError={e => e.target.remove()}
-          />
-        ) : (
-          <div className="w-full h-full bg-[#1A1A25] flex items-center justify-center">
-            <svg className="w-16 h-16 text-[#C9A84C]/10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h18M3 16h18" />
-            </svg>
-          </div>
-        )}
+        <Thumb film={film} className="w-full h-full object-cover" />
         {/* Dark gradient from bottom */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/60 to-transparent" />
 
@@ -93,12 +125,7 @@ function SideWinner({ film, delay }) {
     >
       {/* Thumbnail */}
       <div className="relative h-44 md:h-52 overflow-hidden">
-        {film.thumbnail_url ? (
-          <img src={`${API_URL}${film.thumbnail_url}`} alt={film.title} className="w-full h-full object-cover"
-            onError={e => e.target.remove()} />
-        ) : (
-          <div className="w-full h-full bg-[#1A1A25]" />
-        )}
+        <Thumb film={film} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/40 to-transparent" />
 
         {/* Award badge */}
@@ -148,16 +175,7 @@ function RankRow({ film, index }) {
 
       {/* Thumbnail */}
       <div className="w-14 h-9 rounded overflow-hidden flex-shrink-0 border border-[#C9A84C]/10 bg-[#1E1E2E]">
-        {film.thumbnail_url ? (
-          <img src={`${API_URL}${film.thumbnail_url}`} alt={film.title}
-            className="w-full h-full object-cover" onError={e => e.target.remove()} />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-4 h-4 text-[#C9A84C]/15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h18M3 16h18" />
-            </svg>
-          </div>
-        )}
+        <Thumb film={film} className="w-full h-full object-cover" />
       </div>
 
       {/* Title + director */}
