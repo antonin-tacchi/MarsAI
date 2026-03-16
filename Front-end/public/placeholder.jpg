@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225" viewBox="0 0 400 225">
+  <rect width="400" height="225" fill="#1a1a2e"/>
+  <rect x="1" y="1" width="398" height="223" fill="none" stroke="#C9A84C" stroke-width="1" opacity="0.3"/>
+  <g opacity="0.4">
+    <line x1="180" y1="90" x2="180" y2="135" stroke="#C9A84C" stroke-width="2"/>
+    <line x1="220" y1="90" x2="220" y2="135" stroke="#C9A84C" stroke-width="2"/>
+    <line x1="160" y1="90" x2="240" y2="90" stroke="#C9A84C" stroke-width="2"/>
+    <line x1="160" y1="135" x2="240" y2="135" stroke="#C9A84C" stroke-width="2"/>
+    <polygon points="195,100 195,125 215,112" fill="#C9A84C"/>
+  </g>
+  <text x="200" y="160" font-family="Georgia, serif" font-size="11" fill="#C9A84C" text-anchor="middle" opacity="0.5">Image non disponible</text>
+</svg>
