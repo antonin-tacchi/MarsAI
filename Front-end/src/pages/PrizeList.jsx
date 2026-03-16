@@ -3,179 +3,196 @@ import { useLanguage } from "../context/LanguageContext";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-/* ── Medal config ── */
-const MEDAL = {
+/* ── Helpers ── */
+const RANK_CONFIG = {
   1: {
-    label: "medalGold",
-    barBg:   "bg-gradient-to-r from-[#B8962E] to-[#FFD700]",
-    cardBorder: "border-[#C9A84C]/70",
-    cardGlow:   "shadow-[0_0_32px_rgba(201,168,76,0.25)]",
-    badgeBg:  "bg-gradient-to-br from-[#C9A84C] to-[#FFD700]",
-    rankColor:"text-[#0A0A0F]",
-    stepBg:   "bg-gradient-to-r from-[#B8962E] via-[#E8C97A] to-[#B8962E]",
-    stepText: "text-[#0A0A0F]",
+    crown: "M12 2l2.5 5 5.5.8-4 3.9.9 5.5L12 14.8 7.1 17.2l.9-5.5L4 7.8l5.5-.8L12 2z",
+    borderColor: "border-[#C9A84C]",
+    glowColor:   "shadow-[0_0_60px_rgba(201,168,76,0.35),0_0_120px_rgba(201,168,76,0.15)]",
+    badgeBg:     "bg-gradient-to-br from-[#C9A84C] via-[#FFD700] to-[#B8962E]",
+    badgeText:   "text-[#0A0A0F]",
+    accentText:  "text-[#FFD700]",
+    label:       "medalGold",
+    heightClass: "h-56 md:h-72",
+    stepH:       "h-16",
+    order:       1,
   },
   2: {
-    label: "medalSilver",
-    barBg:   "bg-gradient-to-r from-[#8A8A8A] to-[#D4D5D8]",
-    cardBorder: "border-[#A8A9AD]/40",
-    cardGlow:   "shadow-[0_0_20px_rgba(168,169,173,0.15)]",
-    badgeBg:  "bg-gradient-to-br from-[#8A8A8A] to-[#D4D5D8]",
-    rankColor:"text-[#0A0A0F]",
-    stepBg:   "bg-gradient-to-r from-[#6B6C70] to-[#A8A9AD]",
-    stepText: "text-[#F5F0E8]",
+    crown: "M12 3l1.8 3.6 4 .6-2.9 2.8.7 4L12 12l-3.6 1.9.7-4L6.2 7.2l4-.6L12 3z",
+    borderColor: "border-[#A8A9AD]/50",
+    glowColor:   "shadow-[0_0_30px_rgba(168,169,173,0.2)]",
+    badgeBg:     "bg-gradient-to-br from-[#8A8A8A] to-[#D4D5D8]",
+    badgeText:   "text-[#0A0A0F]",
+    accentText:  "text-[#D4D5D8]",
+    label:       "medalSilver",
+    heightClass: "h-44 md:h-56",
+    stepH:       "h-10",
+    order:       0,
   },
   3: {
-    label: "medalBronze",
-    barBg:   "bg-gradient-to-r from-[#7C4B2E] to-[#C47A3A]",
-    cardBorder: "border-[#C47A3A]/40",
-    cardGlow:   "shadow-[0_0_20px_rgba(196,122,58,0.15)]",
-    badgeBg:  "bg-gradient-to-br from-[#7C4B2E] to-[#C47A3A]",
-    rankColor:"text-[#F5F0E8]",
-    stepBg:   "bg-gradient-to-r from-[#7C4B2E] to-[#C47A3A]",
-    stepText: "text-[#F5F0E8]",
+    crown: "M12 3l1.8 3.6 4 .6-2.9 2.8.7 4L12 12l-3.6 1.9.7-4L6.2 7.2l4-.6L12 3z",
+    borderColor: "border-[#C47A3A]/40",
+    glowColor:   "shadow-[0_0_30px_rgba(196,122,58,0.2)]",
+    badgeBg:     "bg-gradient-to-br from-[#7C4B2E] to-[#C47A3A]",
+    badgeText:   "text-[#F5F0E8]",
+    accentText:  "text-[#C47A3A]",
+    label:       "medalBronze",
+    heightClass: "h-36 md:h-44",
+    stepH:       "h-6",
+    order:       2,
   },
 };
 
-/* ── Gold star rating bar ── */
-function RatingBar({ value, max = 10 }) {
-  const pct = Math.round((value / max) * 100);
+function ScoreArc({ value, max = 10, rank }) {
+  const cfg = RANK_CONFIG[rank] || RANK_CONFIG[3];
   return (
-    <div className="flex items-center gap-2.5">
-      <div className="relative h-1 w-20 rounded-full bg-[#C9A84C]/15 overflow-hidden">
-        <div
-          className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-[#C9A84C] to-[#E8C97A] transition-all duration-700"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="font-bold text-[#C9A84C] text-base tabular-nums">
-        {value.toFixed(1)}<span className="text-[10px] font-normal text-[#C8C0B0]/50">/10</span>
+    <div className="flex flex-col items-center">
+      <span className={`font-black tabular-nums text-2xl leading-none ${cfg.accentText}`}>
+        {value.toFixed(1)}
       </span>
+      <span className="text-[10px] text-[#C8C0B0]/40 tracking-widest">/10</span>
     </div>
   );
 }
 
-/* ── Podium card ── */
-function PodiumCard({ film, index, t }) {
-  const m = MEDAL[film.rank] || MEDAL[3];
+/* ── Podium ── */
+function PodiumCard({ film, t }) {
+  const cfg = RANK_CONFIG[film.rank] || RANK_CONFIG[3];
   const isFirst = film.rank === 1;
 
   return (
     <div
-      className={`relative flex flex-col items-center text-center ${isFirst ? "md:-translate-y-8 z-10" : ""}`}
-      style={{ animation: `fadeUp 0.5s ease ${index * 0.12}s both` }}
+      className="flex flex-col"
+      style={{ animation: `fadeUp 0.6s ease ${(film.rank - 1) * 0.1}s both`, order: cfg.order }}
     >
-      {/* Medal badge */}
-      <div className={`w-14 h-14 rounded-full flex items-center justify-center font-black text-xl mb-4 ${m.badgeBg} ${m.rankColor} ${isFirst ? "shadow-[0_0_20px_rgba(201,168,76,0.6)]" : "shadow-md"}`}>
-        {film.rank}
-      </div>
-
-      {/* Card */}
-      <div className={`w-full bg-[#12121A] rounded border-2 overflow-hidden ${m.cardBorder} ${isFirst ? m.cardGlow : ""} transition-all duration-300`}>
-        {film.thumbnail_url ? (
-          <div className="relative h-36 overflow-hidden">
+      {/* Film card */}
+      <div className={`relative rounded-t overflow-hidden border ${cfg.borderColor} ${isFirst ? cfg.glowColor : ""} flex flex-col`}>
+        {/* Thumbnail */}
+        <div className={`relative overflow-hidden ${cfg.heightClass} flex-shrink-0`}>
+          {film.thumbnail_url ? (
             <img
               src={`${API_URL}${film.thumbnail_url}`}
               alt={film.title}
               className="w-full h-full object-cover"
-              onError={(e) => { e.target.parentElement.style.display = "none"; }}
+              onError={(e) => { e.target.parentElement.classList.add("bg-[#1E1E2E]"); e.target.remove(); }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F]/80 to-transparent" />
-          </div>
-        ) : (
-          <div className="h-36 bg-[#1E1E2E] flex items-center justify-center">
-            <svg className="w-10 h-10 text-[#C9A84C]/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h18M3 16h18" />
-            </svg>
-          </div>
-        )}
+          ) : (
+            <div className="w-full h-full bg-[#1E1E2E] flex items-center justify-center">
+              <svg className="w-10 h-10 text-[#C9A84C]/15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h18M3 16h18" />
+              </svg>
+            </div>
+          )}
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0F] via-[#0A0A0F]/40 to-transparent" />
 
-        <div className="p-4 text-left">
-          <p className="font-display font-bold text-white text-sm leading-snug mb-1 truncate">
-            {film.title}
-          </p>
-          <p className="text-[11px] text-[#C8C0B0]/60 mb-3 truncate">{film.director} · {film.country}</p>
-          {film.average_rating !== null
-            ? <RatingBar value={film.average_rating} />
-            : <span className="text-[11px] text-[#C8C0B0]/30 italic">Non noté</span>}
-          <p className="text-[10px] text-[#C8C0B0]/30 mt-1.5">{film.rating_count} votes</p>
+          {/* Rank badge top-left */}
+          <div className={`absolute top-2 left-2 w-9 h-9 rounded flex items-center justify-center font-black text-sm ${cfg.badgeBg} ${cfg.badgeText} shadow-lg`}>
+            {film.rank}
+          </div>
+
+          {/* Score bottom-right */}
+          {film.average_rating !== null && (
+            <div className="absolute bottom-3 right-3">
+              <ScoreArc value={film.average_rating} rank={film.rank} />
+            </div>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className={`p-3 bg-[#0D0D14] border-t ${cfg.borderColor}/30`}>
+          <p className="font-bold text-[#F5F0E8] text-[13px] leading-tight truncate">{film.title}</p>
+          <p className="text-[11px] text-[#C8C0B0]/50 truncate mt-0.5">{film.director}</p>
+          {film.rating_count > 0 && (
+            <p className="text-[10px] text-[#C8C0B0]/25 mt-1">{film.rating_count} votes</p>
+          )}
         </div>
       </div>
 
-      {/* Podium step label */}
-      <div
-        className={`w-full mt-2 flex items-center justify-center font-bold tracking-[0.25em] text-[10px] uppercase py-2.5 ${m.stepBg} ${m.stepText}`}
-        style={{ minHeight: isFirst ? 52 : film.rank === 2 ? 38 : 28 }}
-      >
-        {t(`prizeList.${m.label}`)}
+      {/* Podium step */}
+      <div className={`${cfg.stepH} ${cfg.badgeBg} flex items-center justify-center rounded-b`}>
+        <span className={`text-[9px] font-black tracking-[0.3em] uppercase ${cfg.badgeText}`}>
+          {t(`prizeList.${cfg.label}`)}
+        </span>
       </div>
     </div>
   );
 }
 
-/* ── Table row ── */
-function TableRow({ film, index }) {
-  const m = MEDAL[film.rank];
+/* ── Ranking row ── */
+function RankRow({ film, index }) {
+  const cfg = RANK_CONFIG[film.rank];
 
   return (
-    <tr
-      className="border-b border-[#C9A84C]/8 hover:bg-[#C9A84C]/5 transition-colors group"
-      style={{ animation: `fadeUp 0.4s ease ${index * 0.04}s both` }}
+    <div
+      className="group relative flex items-center gap-4 px-5 py-4 border-b border-[#C9A84C]/8 hover:bg-[#C9A84C]/5 transition-colors"
+      style={{ animation: `fadeUp 0.4s ease ${index * 0.035}s both` }}
     >
-      {/* Rank */}
-      <td className="py-4 px-5 text-center w-14">
-        {m ? (
-          <span className={`inline-flex items-center justify-center w-8 h-8 rounded font-black text-xs ${m.badgeBg} ${m.rankColor}`}>
+      {/* Rank number */}
+      <div className="w-10 flex-shrink-0 text-center">
+        {cfg ? (
+          <span className={`inline-flex items-center justify-center w-8 h-8 rounded font-black text-xs ${cfg.badgeBg} ${cfg.badgeText}`}>
             {film.rank}
           </span>
         ) : (
-          <span className="text-[#C8C0B0]/30 font-bold text-sm tabular-nums">{film.rank}</span>
+          <span className="text-[#C8C0B0]/25 font-black text-lg tabular-nums">{film.rank}</span>
         )}
-      </td>
+      </div>
 
-      {/* Film */}
-      <td className="py-4 px-4">
-        <div className="flex items-center gap-3">
-          {film.thumbnail_url ? (
-            <div className="w-14 h-9 rounded overflow-hidden flex-shrink-0 border border-[#C9A84C]/10">
-              <img src={`${API_URL}${film.thumbnail_url}`} alt={film.title} className="w-full h-full object-cover"
-                onError={(e) => { e.target.parentElement.style.display = "none"; }} />
-            </div>
-          ) : (
-            <div className="w-14 h-9 rounded bg-[#1E1E2E] flex items-center justify-center flex-shrink-0 border border-[#C9A84C]/10">
-              <svg className="w-4 h-4 text-[#C9A84C]/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h18M3 16h18" />
-              </svg>
-            </div>
-          )}
-          <span className="font-display font-bold text-[#F5F0E8] text-sm group-hover:text-[#C9A84C] transition-colors truncate">
-            {film.title}
-          </span>
-        </div>
-      </td>
+      {/* Thumbnail */}
+      <div className="w-16 h-10 rounded overflow-hidden flex-shrink-0 border border-[#C9A84C]/10 bg-[#1E1E2E]">
+        {film.thumbnail_url ? (
+          <img src={`${API_URL}${film.thumbnail_url}`} alt={film.title} className="w-full h-full object-cover"
+            onError={(e) => { e.target.remove(); }} />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <svg className="w-4 h-4 text-[#C9A84C]/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h18M3 16h18" />
+            </svg>
+          </div>
+        )}
+      </div>
 
-      {/* Director */}
-      <td className="py-4 px-4 text-[13px] text-[#C8C0B0]/60 hidden md:table-cell">{film.director}</td>
+      {/* Title + director */}
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-[#F5F0E8] text-sm truncate group-hover:text-[#C9A84C] transition-colors">
+          {film.title}
+        </p>
+        <p className="text-[12px] text-[#C8C0B0]/45 truncate mt-0.5">{film.director}</p>
+      </div>
 
       {/* Country */}
-      <td className="py-4 px-4 hidden lg:table-cell">
-        <span className="text-[11px] font-semibold border border-[#C9A84C]/15 text-[#C8C0B0]/60 px-2.5 py-1 rounded">
+      {film.country && (
+        <span className="hidden md:inline text-[11px] border border-[#C9A84C]/15 text-[#C8C0B0]/50 px-2 py-0.5 rounded flex-shrink-0">
           {film.country}
         </span>
-      </td>
+      )}
 
-      {/* Rating */}
-      <td className="py-4 px-4">
-        {film.average_rating !== null
-          ? <RatingBar value={film.average_rating} />
-          : <span className="text-[11px] text-[#C8C0B0]/25 italic">—</span>}
-      </td>
+      {/* Score */}
+      <div className="flex-shrink-0 text-right">
+        {film.average_rating !== null ? (
+          <>
+            <p className="font-black text-[#C9A84C] text-base tabular-nums leading-none">
+              {film.average_rating.toFixed(1)}
+              <span className="text-[10px] font-normal text-[#C8C0B0]/30">/10</span>
+            </p>
+            <p className="text-[10px] text-[#C8C0B0]/25 mt-0.5">{film.rating_count} votes</p>
+          </>
+        ) : (
+          <span className="text-[#C8C0B0]/20 text-sm">—</span>
+        )}
+      </div>
+    </div>
+  );
+}
 
-      {/* Votes */}
-      <td className="py-4 px-5 text-center">
-        <span className="text-[12px] font-bold text-[#C8C0B0]/40 tabular-nums">{film.rating_count}</span>
-      </td>
-    </tr>
+/* ── Section title ── */
+function SectionTitle({ children }) {
+  return (
+    <div className="flex items-center gap-4 mb-8">
+      <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-[#C9A84C]">{children}</span>
+      <div className="flex-1 h-px bg-gradient-to-r from-[#C9A84C]/30 to-transparent" />
+    </div>
   );
 }
 
@@ -183,8 +200,8 @@ function TableRow({ film, index }) {
 export default function PrizeList() {
   const { t } = useLanguage();
   const [ranking, setRanking] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -199,147 +216,135 @@ export default function PrizeList() {
     })();
   }, []);
 
-  const top3 = ranking.filter(f => f.rank <= 3).sort((a, b) => {
-    const order = { 1: 1, 2: 0, 3: 2 }; // visual order: 2-1-3
-    return order[a.rank] - order[b.rank];
-  });
+  const top3 = ranking
+    .filter(f => f.rank <= 3)
+    .sort((a, b) => {
+      const vis = { 2: 0, 1: 1, 3: 2 };
+      return (vis[a.rank] ?? 9) - (vis[b.rank] ?? 9);
+    });
   const rest = ranking.filter(f => f.rank > 3);
 
   return (
     <>
       <style>{`
         @keyframes fadeUp {
-          from { opacity:0; transform:translateY(20px); }
-          to   { opacity:1; transform:translateY(0); }
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes shimmer {
+          0%   { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        .shimmer-text {
+          background: linear-gradient(90deg, #C9A84C 0%, #FFD700 40%, #C9A84C 60%, #B8962E 100%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: shimmer 4s linear infinite;
         }
       `}</style>
 
       <div className="bg-[#0A0A0F] min-h-screen">
-        {/* Gold top line */}
-        <div className="h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent" />
 
-        <div className="max-w-5xl mx-auto px-4 py-14 md:py-20">
+        {/* ── Hero header ── */}
+        <div className="relative border-b border-[#C9A84C]/10 overflow-hidden">
+          {/* Ambient glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#C9A84C]/5 rounded-full blur-[100px] pointer-events-none" />
 
-          {/* Header */}
-          <div className="mb-16" style={{ animation: "fadeUp 0.5s ease both" }}>
-            <p className="text-[10px] font-semibold tracking-[0.45em] uppercase text-[#C9A84C] mb-3">
+          <div className="relative max-w-5xl mx-auto px-6 py-16 md:py-24"
+               style={{ animation: "fadeUp 0.6s ease both" }}>
+            {/* Trophy icon */}
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-[#C9A84C]/10 border border-[#C9A84C]/25 flex items-center justify-center shadow-[0_0_40px_rgba(201,168,76,0.2)]">
+                <svg className="w-8 h-8 text-[#C9A84C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
+                </svg>
+              </div>
+            </div>
+
+            <p className="text-center text-[10px] font-bold tracking-[0.5em] uppercase text-[#C9A84C]/70 mb-3">
               {t("prizeList.festivalLabel")}
             </p>
-            <h1 className="font-display text-5xl md:text-6xl font-black text-white leading-none mb-4">
+            <h1 className="shimmer-text text-center font-display font-black text-5xl md:text-7xl tracking-tight leading-none mb-4">
               {t("prizeList.title")}
             </h1>
-            <div className="w-14 h-px bg-gradient-to-r from-[#C9A84C] to-transparent" />
+
+            {/* Decorative line */}
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <div className="w-16 h-px bg-gradient-to-r from-transparent to-[#C9A84C]/40" />
+              <div className="w-1 h-1 rounded-full bg-[#C9A84C]/50" />
+              <div className="w-16 h-px bg-gradient-to-l from-transparent to-[#C9A84C]/40" />
+            </div>
           </div>
+        </div>
+
+        {/* ── Content ── */}
+        <div className="max-w-5xl mx-auto px-4 py-14 md:py-20">
 
           {/* Loading */}
           {loading && (
-            <div className="text-center py-20">
+            <div className="text-center py-24">
               <div className="inline-block w-8 h-8 border-2 border-[#C9A84C]/20 border-t-[#C9A84C] rounded-full animate-spin mb-4" />
-              <p className="text-[12px] text-[#C8C0B0]/40 tracking-[0.3em] uppercase">{t("prizeList.loading")}</p>
+              <p className="text-[11px] text-[#C8C0B0]/35 tracking-[0.4em] uppercase">{t("prizeList.loading")}</p>
             </div>
           )}
 
           {/* Error */}
           {!loading && error && (
-            <div className="text-center py-20 border border-[#8B1A2E]/30 rounded bg-[#8B1A2E]/10 p-8">
-              <p className="font-bold text-[#E8607A] uppercase tracking-widest">{t("prizeList.error")}</p>
+            <div className="text-center py-20 border border-[#8B1A2E]/30 rounded-lg bg-[#8B1A2E]/8 p-10">
+              <p className="font-bold text-[#E8607A] uppercase tracking-widest text-sm">{t("prizeList.error")}</p>
             </div>
           )}
 
           {/* Empty */}
           {!loading && !error && ranking.length === 0 && (
-            <div className="text-center py-24 border border-[#C9A84C]/10 rounded">
-              <svg className="w-14 h-14 text-[#C9A84C]/15 mx-auto mb-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-              <p className="font-display text-xl font-bold text-[#C8C0B0]/30 uppercase">{t("prizeList.noResults")}</p>
-              <p className="text-[13px] text-[#C8C0B0]/20 mt-2">{t("prizeList.noResultsDesc")}</p>
+            <div className="text-center py-28 border border-[#C9A84C]/10 rounded-lg">
+              <div className="w-16 h-16 rounded-full border border-[#C9A84C]/15 flex items-center justify-center mx-auto mb-5">
+                <svg className="w-8 h-8 text-[#C9A84C]/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
+              <p className="font-display text-lg font-bold text-[#C8C0B0]/25 uppercase tracking-widest">{t("prizeList.noResults")}</p>
+              <p className="text-[13px] text-[#C8C0B0]/15 mt-2">{t("prizeList.noResultsDesc")}</p>
             </div>
           )}
 
-          {/* Content */}
-          {!loading && !error && ranking.length > 0 && (
-            <>
-              {/* ── Podium top 3 ── */}
-              {top3.length > 0 && (
-                <div className="mb-20">
-                  <div className="flex items-center gap-4 mb-10">
-                    <p className="text-[10px] font-semibold tracking-[0.35em] uppercase text-[#C9A84C]">
-                      — {t("prizeList.podiumLabel")}
-                    </p>
-                    <div className="flex-1 h-px bg-gradient-to-r from-[#C9A84C]/30 to-transparent" />
-                  </div>
+          {/* ── Podium ── */}
+          {!loading && !error && top3.length > 0 && (
+            <section className="mb-20">
+              <SectionTitle>— {t("prizeList.podiumLabel")}</SectionTitle>
 
-                  <div className="grid grid-cols-3 gap-3 md:gap-6 items-end max-w-2xl mx-auto">
-                    {top3.map((film, i) => (
-                      <PodiumCard key={film.film_id} film={film} index={i} t={t} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Full ranking table ── */}
-              {rest.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-4 mb-6">
-                    <p className="text-[10px] font-semibold tracking-[0.35em] uppercase text-[#C9A84C]">
-                      — {t("prizeList.rankingLabel")}
-                    </p>
-                    <div className="flex-1 h-px bg-gradient-to-r from-[#C9A84C]/30 to-transparent" />
-                  </div>
-
-                  {/* Desktop table */}
-                  <div className="hidden md:block border border-[#C9A84C]/15 rounded overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-sm">
-                        <thead>
-                          <tr className="bg-[#12121A] border-b border-[#C9A84C]/20">
-                            <th className="py-4 px-5 text-center w-14 text-[10px] font-bold tracking-[0.3em] uppercase text-[#C9A84C]">#</th>
-                            <th className="py-4 px-4 text-[10px] font-bold tracking-[0.3em] uppercase text-[#C9A84C]">{t("prizeList.film")}</th>
-                            <th className="py-4 px-4 text-[10px] font-bold tracking-[0.3em] uppercase text-[#C9A84C] hidden md:table-cell">{t("prizeList.director")}</th>
-                            <th className="py-4 px-4 text-[10px] font-bold tracking-[0.3em] uppercase text-[#C9A84C] hidden lg:table-cell">{t("prizeList.country")}</th>
-                            <th className="py-4 px-4 text-[10px] font-bold tracking-[0.3em] uppercase text-[#C9A84C]">{t("prizeList.averageRating")}</th>
-                            <th className="py-4 px-5 text-[10px] font-bold tracking-[0.3em] uppercase text-[#C9A84C] text-center">{t("prizeList.votes")}</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-[#0A0A0F]">
-                          {rest.map((film, i) => (
-                            <TableRow key={film.film_id} film={film} index={i} />
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  {/* Mobile cards */}
-                  <div className="md:hidden border border-[#C9A84C]/15 rounded overflow-hidden divide-y divide-[#C9A84C]/8">
-                    {rest.map((film, i) => (
-                      <div
-                        key={film.film_id}
-                        className="flex items-start gap-3 p-4 bg-[#0A0A0F] hover:bg-[#12121A] transition-colors"
-                        style={{ animation: `fadeUp 0.4s ease ${i * 0.04}s both` }}
-                      >
-                        <span className="flex-shrink-0 w-8 h-8 rounded bg-[#1E1E2E] text-[#C8C0B0]/40 text-[11px] font-black flex items-center justify-center">
-                          {film.rank}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-display font-bold text-[#F5F0E8] text-sm truncate">{film.title}</p>
-                          <p className="text-[12px] text-[#C8C0B0]/50">{film.director}</p>
-                          {film.country && <p className="text-[11px] text-[#C8C0B0]/30">{film.country}</p>}
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          {film.average_rating !== null
-                            ? <p className="font-bold text-[#C9A84C] text-base">{film.average_rating.toFixed(1)}<span className="text-[10px] text-[#C8C0B0]/30">/10</span></p>
-                            : <p className="text-[12px] text-[#C8C0B0]/20">—</p>}
-                          <p className="text-[11px] text-[#C8C0B0]/30">{film.rating_count} votes</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
+              <div className="grid grid-cols-3 gap-3 md:gap-5 items-end max-w-2xl mx-auto">
+                {top3.map((film) => (
+                  <PodiumCard key={film.film_id} film={film} t={t} />
+                ))}
+              </div>
+            </section>
           )}
+
+          {/* ── Full ranking ── */}
+          {!loading && !error && rest.length > 0 && (
+            <section>
+              <SectionTitle>— {t("prizeList.rankingLabel")}</SectionTitle>
+
+              <div className="border border-[#C9A84C]/12 rounded-lg overflow-hidden bg-[#0A0A0F]">
+                {/* Header */}
+                <div className="hidden md:grid grid-cols-[3rem_4rem_1fr_auto_7rem] gap-4 items-center px-5 py-3 bg-[#12121A] border-b border-[#C9A84C]/15">
+                  <span className="text-[9px] font-bold tracking-[0.35em] uppercase text-[#C9A84C] text-center">#</span>
+                  <span />
+                  <span className="text-[9px] font-bold tracking-[0.35em] uppercase text-[#C9A84C]">{t("prizeList.film")}</span>
+                  <span className="text-[9px] font-bold tracking-[0.35em] uppercase text-[#C9A84C]">{t("prizeList.country")}</span>
+                  <span className="text-[9px] font-bold tracking-[0.35em] uppercase text-[#C9A84C] text-right">{t("prizeList.averageRating")}</span>
+                </div>
+
+                {rest.map((film, i) => (
+                  <RankRow key={film.film_id} film={film} index={i} />
+                ))}
+              </div>
+            </section>
+          )}
+
         </div>
       </div>
     </>
