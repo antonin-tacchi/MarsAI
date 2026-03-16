@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import COUNTRIES from "../constants/countries";
 
@@ -15,6 +15,7 @@ export default function CountrySelect({
   const [search, setSearch] = useState("");
   const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
   const btnRef = useRef(null);
+  const dropRef = useRef(null);
 
   const countries = useMemo(() => {
     if (Array.isArray(COUNTRIES)) return COUNTRIES;
@@ -37,58 +38,62 @@ export default function CountrySelect({
       : normalized,
   [normalized, search]);
 
-  const selectedLabel = normalized.find((c) => c.value === value)?.name || "";
+  const selectedLabel = useMemo(
+    () => normalized.find((c) => c.value === value)?.name || "",
+    [normalized, value]
+  );
 
-  const openDropdown = () => {
+  const computePos = useCallback(() => {
     if (btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect();
-      setDropPos({
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-      });
+      setDropPos({ top: rect.bottom + 4, left: rect.left, width: rect.width });
     }
+  }, []);
+
+  const openDropdown = () => {
+    computePos();
     setOpen(true);
   };
 
-  /* Close on outside click */
+  const close = useCallback(() => {
+    setOpen(false);
+    setSearch("");
+  }, []);
+
+  /* Close on outside click — check both button AND dropdown */
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
-      if (btnRef.current && !btnRef.current.contains(e.target)) {
-        setOpen(false);
-        setSearch("");
-      }
+      const inBtn = btnRef.current?.contains(e.target);
+      const inDrop = dropRef.current?.contains(e.target);
+      if (!inBtn && !inDrop) close();
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+  }, [open, close]);
+
+  /* Close on Escape */
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open, close]);
 
   /* Reposition on scroll/resize */
   useEffect(() => {
     if (!open) return;
-    const update = () => {
-      if (btnRef.current) {
-        const rect = btnRef.current.getBoundingClientRect();
-        setDropPos({
-          top: rect.bottom + 4,
-          left: rect.left,
-          width: rect.width,
-        });
-      }
-    };
-    window.addEventListener("scroll", update, true);
-    window.addEventListener("resize", update);
+    window.addEventListener("scroll", computePos, true);
+    window.addEventListener("resize", computePos);
     return () => {
-      window.removeEventListener("scroll", update, true);
-      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", computePos, true);
+      window.removeEventListener("resize", computePos);
     };
-  }, [open]);
+  }, [open, computePos]);
 
   const select = (val) => {
     onChange({ target: { name, value: val } });
-    setOpen(false);
-    setSearch("");
+    close();
   };
 
   return (
@@ -103,10 +108,10 @@ export default function CountrySelect({
       <button
         ref={btnRef}
         type="button"
-        onClick={() => open ? (setOpen(false), setSearch("")) : openDropdown()}
+        onClick={() => open ? close() : openDropdown()}
         className={`w-full px-4 py-3.5 bg-[#12121A] border-2 rounded text-left flex items-center justify-between transition-all duration-200 outline-none
           ${error
-            ? "border-[#8B1A2E] bg-[#8B1A2E]/8"
+            ? "border-[#8B1A2E]"
             : open
             ? "border-[#C9A84C]/60 shadow-[0_0_12px_rgba(201,168,76,0.1)]"
             : "border-[#C9A84C]/15 hover:border-[#C9A84C]/35"}`}
@@ -122,9 +127,10 @@ export default function CountrySelect({
         </svg>
       </button>
 
-      {/* Dropdown — fixed positioning to escape overflow:hidden parents */}
+      {/* Dropdown — fixed to escape overflow:hidden parents */}
       {open && (
         <div
+          ref={dropRef}
           style={{ position: "fixed", top: dropPos.top, left: dropPos.left, width: dropPos.width, zIndex: 9999 }}
           className="bg-[#12121A] border border-[#C9A84C]/20 rounded shadow-[0_8px_32px_rgba(0,0,0,0.8)] overflow-hidden"
         >
@@ -144,6 +150,7 @@ export default function CountrySelect({
               />
             </div>
           </div>
+
           {/* Options list */}
           <div className="max-h-52 overflow-y-auto">
             {filtered.length === 0 ? (
@@ -153,11 +160,11 @@ export default function CountrySelect({
                 <button
                   key={c.value}
                   type="button"
-                  onMouseDown={(e) => { e.preventDefault(); select(c.value); }}
+                  onClick={() => select(c.value)}
                   className={`w-full text-left px-4 py-2.5 text-[13px] transition-colors
                     ${c.value === value
-                      ? "bg-[#C9A84C]/15 text-[#C9A84C] font-semibold"
-                      : "text-[#C8C0B0] hover:bg-[#C9A84C]/8 hover:text-[#F5F0E8]"}`}
+                      ? "bg-[#C9A84C]/20 text-[#C9A84C] font-semibold"
+                      : "text-[#C8C0B0] hover:bg-[#C9A84C]/10 hover:text-[#F5F0E8]"}`}
                 >
                   {c.name}
                 </button>
