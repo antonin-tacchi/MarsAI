@@ -391,7 +391,16 @@ export const getPublicFilm = async (req, res) => {
 export const getPublicRanking = async (req, res) => {
   try {
     const ranking = await JuryRating.getRanking();
-    return res.status(200).json({ success: true, data: ranking });
+    const signed = await Promise.all(
+      ranking.map(async (film) => {
+        const [posterStream, thumbStream] = await Promise.all([
+          film.poster_url    ? signGetUrl(film.poster_url)    : Promise.resolve(null),
+          film.thumbnail_url ? signGetUrl(film.thumbnail_url) : Promise.resolve(null),
+        ]);
+        return { ...film, poster_stream_url: posterStream, thumbnail_stream_url: thumbStream };
+      })
+    );
+    return res.status(200).json({ success: true, data: signed });
   } catch (err) {
     console.error("getPublicRanking error:", err);
     return res.status(500).json({
