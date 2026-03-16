@@ -23,7 +23,7 @@ const to_ = (email) => {
   return resolved;
 };
 const APP_NAME = "MarsAI Festival";
-const APP_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const APP_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
 
 // ─── Templates HTML ──────────────────────────────────────────
 
