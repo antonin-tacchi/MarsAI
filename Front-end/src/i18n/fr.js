@@ -696,6 +696,16 @@ export default {
     errorValidation: "Erreur lors de la validation",
     errorRefus: "Erreur lors du refus",
     loadError: "Erreur lors du chargement des films",
+    director: "Réalisateur",
+    description: "Description",
+    aiToolsUsed: "🤖 Outils IA utilisés",
+    submittedOn: "Soumis le {date}",
+    seeLess: "Voir moins",
+    seeMore: "Voir plus",
+    processing: "Traitement...",
+    reject: "❌ Refuser",
+    approve: "✓ Valider",
+    watchFilm: "Voir le film",
   },
 
   // SearchBar
@@ -710,20 +720,6 @@ export default {
     categories: "Catégories",
     countries: "Pays",
     aiTools: "Outils IA",
-  },
-
-  // FilmModerationCard
-  filmModerationCard: {
-    director: "Réalisateur",
-    description: "Description",
-    aiToolsUsed: "🤖 Outils IA utilisés",
-    submittedOn: "Soumis le {date}",
-    seeLess: "Voir moins",
-    seeMore: "Voir plus",
-    processing: "Traitement...",
-    reject: "❌ Refuser",
-    approve: "✓ Valider",
-    watchFilm: "Voir le film",
   },
 
   forgotPassword: {
