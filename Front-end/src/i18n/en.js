@@ -597,6 +597,16 @@ export default {
     errorValidation: "Error during approval",
     errorRefus: "Error during rejection",
     loadError: "Error loading films",
+    director: "Director",
+    description: "Description",
+    aiToolsUsed: "🤖 AI Tools Used",
+    submittedOn: "Submitted on {date}",
+    seeLess: "See less",
+    seeMore: "See more",
+    processing: "Processing...",
+    reject: "❌ Reject",
+    approve: "✓ Approve",
+    watchFilm: "Watch the film",
   },
 
   // SearchBar
@@ -613,19 +623,6 @@ export default {
     aiTools: "AI Tools",
   },
 
-  // FilmModerationCard
-  filmModerationCard: {
-    director: "Director",
-    description: "Description",
-    aiToolsUsed: "🤖 AI Tools Used",
-    submittedOn: "Submitted on {date}",
-    seeLess: "See less",
-    seeMore: "See more",
-    processing: "Processing...",
-    reject: "❌ Reject",
-    approve: "✓ Approve",
-    watchFilm: "Watch the film",
-  },
 
   privacy: {
     title: "Your Personal Data",

@@ -10,11 +10,7 @@ import { useLanguage } from "../context/LanguageContext";
 export default function Login() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,28 +18,15 @@ export default function Login() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validate = () => {
     const newErrors = {};
-
-    if (!formData.email.trim()) {
-      newErrors.email = t("login.emailRequired");
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t("login.emailInvalid");
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = t("login.passwordRequired");
-    }
-
+    if (!formData.email.trim()) newErrors.email = t("login.emailRequired");
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t("login.emailInvalid");
+    if (!formData.password.trim()) newErrors.password = t("login.passwordRequired");
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -51,20 +34,11 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setApiError("");
-
     if (!validate()) return;
-
     setLoading(true);
-
     try {
-      const response = await login(formData);
-      console.log("Login successful:", response);
-
-      // Notifie App.jsx pour qu'il affiche la modal si must_reset_password = true
-      // (authService a déjà sauvegardé must_reset_password dans le user du localStorage)
+      await login(formData);
       window.dispatchEvent(new Event("auth-change"));
-
-      // Redirect to profile page based on user role
       const profile = getProfileRoute();
       navigate(profile ? profile.path : "/");
     } catch (error) {
@@ -75,49 +49,66 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#0A0A0F]">
       <Header />
 
-      <div className="flex-1 flex bg-[#262335]">
-        {/* Left side - Image */}
+      <div className="flex-1 flex">
+        {/* Left — cinematic image panel */}
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
           <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{
-              backgroundImage:
-                "url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070')",
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-[#8A83DA]/20 to-[#463699]/40"></div>
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070')" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0F]/30 to-[#0A0A0F]/60" />
+
+          {/* Gold top line */}
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C9A84C] to-transparent" />
+
+          {/* Festival branding */}
+          <div className="absolute bottom-12 left-12 z-10">
+            <p className="text-[10px] font-semibold tracking-[0.4em] uppercase text-[#C9A84C] mb-2">
+              Festival International
+            </p>
+            <h2 className="font-display text-4xl font-black text-white leading-tight">
+              Mars<span className="text-[#C9A84C]">AI</span>
+            </h2>
+            <div className="mt-3 w-10 h-px bg-[#C9A84C]" />
           </div>
         </div>
 
-        {/* Right side - F orm */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-8 lg:p-12 bg-[#FBF5F0]">
-          <div className="w-full max-w-xl px-4 md:px-6">
-            {/* Tab Toggle */}
-            <div className="flex bg-white rounded-full p-1 mb-8 border border-[#463699] text-base">
-              <div className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium bg-[#463699] text-white">
+        {/* Right — form */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-10 lg:p-16 bg-[#0A0A0F]">
+          <div className="w-full max-w-md">
+
+            {/* Tab toggle */}
+            <div className="flex bg-[#12121A] rounded border border-[#C9A84C]/15 p-1 mb-10">
+              <div className="flex-1 text-center py-2.5 px-4 rounded bg-gradient-to-r from-[#C9A84C] to-[#E8C97A] text-[#0A0A0F] text-[11px] font-bold tracking-[0.2em] uppercase">
                 {t("login.title")}
               </div>
               <Link
                 to="/register"
-                className="flex-1 text-center py-2 px-4 rounded-full text-sm font-medium text-[#262335] hover:bg-gray-50 transition-colors"
+                className="flex-1 text-center py-2.5 px-4 rounded text-[11px] font-bold tracking-[0.2em] uppercase text-[#C8C0B0] hover:text-[#C9A84C] transition-colors"
               >
                 {t("login.register")}
               </Link>
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl md:text-4xl font-bold text-[#262335] mb-8">
-              {t("login.title")}
-            </h1>
+            <div className="mb-8">
+              <p className="text-[10px] font-semibold tracking-[0.4em] uppercase text-[#C9A84C] mb-2">
+                — Accès membres —
+              </p>
+              <h1 className="font-display text-3xl md:text-4xl font-bold text-white">
+                {t("login.title")}
+              </h1>
+              <div className="mt-3 w-10 h-px bg-gradient-to-r from-[#C9A84C] to-transparent" />
+            </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email */}
               <div>
-                <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
+                <label className="block text-[11px] font-bold mb-2 text-[#C8C0B0] tracking-[0.2em] uppercase">
                   {t("login.email")}
                 </label>
                 <input
@@ -126,16 +117,15 @@ export default function Login() {
                   value={formData.email}
                   onChange={handleChange}
                   autoComplete="email"
-                  className="w-full px-4 py-3 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
+                  className={`w-full px-4 py-3.5 bg-[#12121A] border-2 rounded text-[#F5F0E8] placeholder:text-[#C8C0B0]/30 outline-none transition-all duration-200
+                    ${errors.email ? "border-[#8B1A2E] bg-[#8B1A2E]/8" : "border-[#C9A84C]/15 focus:border-[#C9A84C]/60 focus:shadow-[0_0_12px_rgba(201,168,76,0.1)]"}`}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-[#B02240] text-[10px] mt-1.5 ml-1 font-semibold italic">{errors.email}</p>}
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-sm md:text-base font-medium text-[#262335] mb-2">
+                <label className="block text-[11px] font-bold mb-2 text-[#C8C0B0] tracking-[0.2em] uppercase">
                   {t("login.password")}
                 </label>
                 <div className="relative">
@@ -145,43 +135,44 @@ export default function Login() {
                     value={formData.password}
                     onChange={handleChange}
                     autoComplete="current-password"
-                    className="w-full px-4 py-3 pr-12 bg-white border border-[#C7C2CE] rounded-md focus:outline-none focus:border-[#463699] text-[#262335] text-base"
+                    className={`w-full px-4 py-3.5 pr-12 bg-[#12121A] border-2 rounded text-[#F5F0E8] placeholder:text-[#C8C0B0]/30 outline-none transition-all duration-200
+                      ${errors.password ? "border-[#8B1A2E] bg-[#8B1A2E]/8" : "border-[#C9A84C]/15 focus:border-[#C9A84C]/60 focus:shadow-[0_0_12px_rgba(201,168,76,0.1)]"}`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#262335]/50 hover:text-[#463699] transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#C8C0B0]/50 hover:text-[#C9A84C] transition-colors"
                   >
-                    {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                    {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-                )}
+                {errors.password && <p className="text-[#B02240] text-[10px] mt-1.5 ml-1 font-semibold italic">{errors.password}</p>}
                 <div className="text-right mt-2">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-[#463699] hover:underline"
-                  >
+                  <Link to="/forgot-password" className="text-[12px] text-[#C9A84C]/70 hover:text-[#C9A84C] transition-colors">
                     {t("login.forgotPassword")}
                   </Link>
                 </div>
               </div>
 
-              {/* Error message */}
+              {/* API Error */}
               {apiError && (
-                <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                  <p className="text-red-600 text-sm">{apiError}</p>
+                <div className="bg-[#8B1A2E]/15 border border-[#8B1A2E]/40 rounded p-3">
+                  <p className="text-[#E8607A] text-[13px]">{apiError}</p>
                 </div>
               )}
 
-              {/* Submit button */}
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#262335] text-white py-3.5 rounded-md font-semibold hover:bg-[#463699] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6 text-base md:text-lg"
+                className="w-full bg-gradient-to-r from-[#C9A84C] to-[#E8C97A] text-[#0A0A0F] py-4 rounded font-bold tracking-[0.2em] uppercase text-[12px] hover:shadow-[0_0_24px_rgba(201,168,76,0.4)] hover:scale-[1.01] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 mt-2"
               >
-                {loading ? t("login.submitting") : t("login.submit")}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-[#0A0A0F]/40 border-t-[#0A0A0F] rounded-full animate-spin" />
+                    {t("login.submitting")}
+                  </span>
+                ) : t("login.submit")}
               </button>
             </form>
           </div>
